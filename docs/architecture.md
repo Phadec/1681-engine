@@ -25,18 +25,22 @@ frame, so without the guard one bad frame stops the game for good.
 | Folder | Depends on | Holds |
 |---|---|---|
 | `engine/` | `core`, `ecs`, `events` | `Engine`, `Scene`, `SceneManager`, `FixedLoop` |
-| `ecs/` | — | `World`, components, systems |
+| `ecs/` | — | `World` (sparse sets), field components, systems |
 | `events/` | — | `EventBus` |
-| `core/` | pixi.js | `Stage`, `Camera`, display objects, `PixelLayer`, textures, atlas |
-| `art/`, `art/rig/` | — (pure pixel maths) | colours, ramps, outlines, the rig's bones and pose maths |
-| `fx/` | `core`, `art` | `pixelPaint`, `pixelTone`, `Evaporation`, hit feel |
-| `light/` | `core` | `Darkness`, transient lights |
+| `core/` | pixi.js | `Stage`, `Camera`, display objects, textures, atlas |
+| `assets/` | `tilemap` | `AssetLoader` |
+| `tilemap/` | `net` (collision), `core` (view) | the Tiled reader, collision, `TilemapView` |
+| `anim/` | `ecs`, `core` | `Animator`, the animation system |
+| `rig/` | — | skeleton, pose maths, the humanoid |
+| `fx/` | — | hit-stop and recoil curves, view culling |
 | `audio/` | Web Audio | `sound`, synth, sample bank |
-| `input/`, `platform/` | DOM | keyboard, sticks, touch detection |
+| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection |
 | `net/` | — (pure) | movement, snapshot codec, cadence, server clock |
+| `pixel/` | the core | the pixel-art module (`lantern-engine/pixel`): `PixelLayer`, `pixelPaint`, ramps, `Darkness`, `Evaporation` |
 
-`ecs/`, `events/`, `net/` and most of `art/` import nothing from Pixi or the DOM, so they run under node: that is
-where the unit tests live, and where a server can import the movement code from.
+The core never imports `pixel/`; `src/architecture.test.ts` fails if it does. `ecs/`, `events/`, `net/`, `rig/` and
+the Tiled reader import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
+where a server can import the movement and collision code from.
 
 ## Rules that keep it fast
 

@@ -21,8 +21,13 @@ export interface EngineOptions {
   hz?: number;
   /** Textures shared by the stage; a fresh registry by default. */
   textures?: TextureRegistry;
-  /** Nearest-neighbour sampling for every texture, the pixel-art default (default true). */
-  pixelArt?: boolean;
+  /**
+   * Pixel art: nearest-neighbour textures, no antialiasing, one backing pixel per CSS pixel, and a camera that lands
+   * on whole pixels (default false: smooth textures drawn at the screen's own density, for any other art style).
+   */
+  pixelPerfect?: boolean;
+  /** Backing pixels per CSS pixel when not `pixelPerfect` (default `devicePixelRatio`, at most 2). */
+  resolution?: number;
   /**
    * Renderer preference (default 'webgl'). WebGL 2 runs everywhere the engine is tested. 'webgpu' is experimental:
    * Pixi falls back to WebGL where WebGPU is missing, but the engine's own paths (pooled `PixelLayer` buffers, the
@@ -78,22 +83,28 @@ export class Engine {
   ) {
     this.loop = new FixedLoop(options.hz === undefined ? {} : { hz: options.hz });
     this.stage = new EngineStage(app, textures, (now, delta) => this.tick(now, delta));
-    this.stage.cameras.main.setZoom(options.zoom ?? 1);
+    const cam = this.stage.cameras.main;
+    cam.setZoom(options.zoom ?? 1);
+    cam.roundPixels = options.pixelPerfect === true;
+    cam.resolution = app.renderer.resolution;
     this.scenes = new SceneManager(this);
     Stage.onCaught = (where, error) => this.events.emit('error', { where, error });
     app.ticker.add(this.onTick);
   }
 
   static async create(options: EngineOptions): Promise<Engine> {
-    if (options.pixelArt !== false) TextureSource.defaultOptions.scaleMode = 'nearest';
+    const pixel = options.pixelPerfect === true;
+    TextureSource.defaultOptions.scaleMode = pixel ? 'nearest' : 'linear';
+    const resolution = pixel ? 1 : (options.resolution ?? Math.min(2, typeof devicePixelRatio === 'number' ? devicePixelRatio : 1));
     patchPixi();
     const app = new Application();
     const fill = options.width === undefined && options.height === undefined;
     await app.init({
       ...(fill ? { resizeTo: options.parent } : { width: options.width ?? 800, height: options.height ?? 600 }),
       background: options.background ?? '#000000',
-      antialias: false,
-      resolution: 1,
+      antialias: !pixel,
+      resolution,
+      autoDensity: true,
       preference: options.preference ?? 'webgl',
     });
     options.parent.appendChild(app.canvas);

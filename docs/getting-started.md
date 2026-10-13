@@ -1,118 +1,104 @@
 # Getting started
 
-This walks through a complete little game: a character that walks a walled room and rolls. The finished file is
-[`examples/walk-room/main.ts`](../examples/walk-room/main.ts).
+This builds a small top-down game step by step: a map made in Tiled, an animated hero who walks and rolls, input from
+keyboard, gamepad and touch, and a camera that follows. The finished file is
+[`examples/top-down/main.ts`](../examples/top-down/main.ts).
 
 ## 1. An engine
 
 ```ts
-import { Engine } from 'dither-engine';
+import { Engine } from 'lantern-engine';
 
 const engine = await Engine.create({
-  parent: document.getElementById('app')!,
-  width: 960,
-  height: 576,
-  background: '#14101c',
+  parent: document.getElementById('app')!, // fills it and follows its size; or pass width and height
+  background: '#1b2a1e',
   zoom: 3, // each world pixel is 3×3 screen pixels
+  pixelPerfect: true, // pixel art: sharp textures, a camera on whole pixels. Leave it out for smooth art.
 });
+engine.events.on('error', ({ where, error }) => console.error(where, error));
 ```
-
-Leave out `width` and `height` to fill `parent` and follow its size. Whole-number zooms keep pixel art crisp.
 
 ## 2. A scene
 
 A scene is one screen of the game. It owns a `world` (entities and systems), a `root` container for what it draws in
-the world and a `hud` container for what it draws on the screen. Everything in them is cleared when it leaves.
+the world and a `hud` container for what it draws on the screen; all of them are cleared when it leaves.
 
 ```ts
-import { Scene } from 'dither-engine';
+import { Scene } from 'lantern-engine';
 
-class RoomScene extends Scene {
-  override onEnter() {
-    // build the level here; may be async (load assets) — the scene updates once it resolves
+class Level extends Scene {
+  override async onEnter() {
+    // load and build the level; the scene starts updating once this resolves
   }
   override fixedUpdate(dt: number) {
-    // once per simulation step (60 a second by default)
+    // once per simulation step (60 a second by default), dt in seconds
   }
   override update(dt: number, alpha: number) {
     // once per rendered frame; alpha is how far the frame is between two steps
   }
 }
 
-await engine.scenes.replace(new RoomScene());
+await engine.scenes.replace(new Level());
 ```
 
-`engine.scenes.push(menu)` pauses the current scene under another; `engine.scenes.pop()` resumes it.
+`engine.scenes.push(pauseMenu)` pauses the current scene under another; `engine.scenes.pop()` resumes it.
 
-## 3. Components and entities
-
-Components are plain data with a typed key:
+## 3. Loading assets
 
 ```ts
-import { defineComponent, createMover, type MoverState, type MovementParams } from 'dither-engine';
+import { AssetLoader } from 'lantern-engine';
+
+// inside onEnter:
+const assets = new AssetLoader(this.engine.stage.textures);
+assets
+  .tilemap('map', 'assets/map.tmj') // a Tiled map; its tileset images load with it
+  .spritesheet('hero', 'assets/hero.png', { frameWidth: 16, frameHeight: 16 }); // frames named 0, 1, 2…
+await assets.load(({ done, total }) => progressBar.set(done / total));
+const tiled = assets.map('map');
+```
+
+A missing file fails the load with its URL in the message.
+
+## 4. A Tiled map and its collision
+
+Make the map in [Tiled](https://www.mapeditor.org) and save it as JSON (`.tmj`), with its tilesets embedded.
+
+```ts
+import { TilemapView, collisionFromTiled, objectsOf } from 'lantern-engine';
+
+const map = new TilemapView(this.engine.stage, tiled, { parent: this.root });
+const grid = collisionFromTiled(tiled, { solid: { property: 'solid' } }); // tiles with a `solid` property block
+this.engine.stage.cameras.main.setBounds(0, 0, map.widthPx, map.heightPx);
+const start = objectsOf(tiled, 'spawn')[0]; // a point object whose class is "spawn"
+```
+
+Call `map.update()` once a frame (in `update`): it shows only the chunks in view. Collision can also come from a tile
+layer: by default, every tile of a layer named `collision` is solid.
+
+## 5. Entities, components and systems
+
+Components are plain data with a typed key; systems are behaviour over the entities that hold some of them, in one of
+two phases: **`fixed`** once per simulation step (movement, rules), **`frame`** once per rendered frame (drawing).
+
+```ts
+import { defineComponent, system, createMover, stepMover, INPUT_FLAG_DASH, type MoverState, type MovementParams } from 'lantern-engine';
 
 const Body = defineComponent<{ mover: MoverState; params: MovementParams }>('Body');
 
-// inside onEnter:
-this.world.spawn([Body, { mover: createMover(64, 64), params: { speed: 70, dashSpeed: 200, dashSteps: 10, dashCooldownSteps: 40, canMove: true, canDash: true } }]);
-```
-
-## 4. Systems
-
-A system is behaviour over the entities that hold some components, in one of two phases:
-
-- **`fixed`**: once per simulation step, for movement and rules. Steps are equal in length on every machine.
-- **`frame`**: once per rendered frame, for drawing.
-
-```ts
-import { system, stepMover, Keyboard, INPUT_FLAG_DASH } from 'dither-engine';
-
-const keys = new Keyboard();
+this.world.spawn([Body, { mover: createMover(start.x, start.y), params: { speed: 72, dashSpeed: 210, dashSteps: 10, dashCooldownSteps: 36, canMove: true, canDash: true } }]);
 
 this.world.addSystem(
   system('move', 'fixed', ({ world }) => {
-    const step: [number, number, number] = [
-      keys.axis(['KeyA'], ['KeyD']),
-      keys.axis(['KeyW'], ['KeyS']),
-      keys.isDown('Space') ? INPUT_FLAG_DASH : 0,
-    ];
-    for (const [, body] of world.query(Body)) stepMover(body.mover, step, body.params, grid);
-    keys.endStep();
+    world.each(Body, (_e, body) => stepMover(body.mover, [x, y, rolling ? INPUT_FLAG_DASH : 0], body.params, grid));
   }),
 );
 ```
 
-Systems run in the order they were added. One that throws is reported on `engine.events` (`'error'`) and the others
-still run.
+`stepMover` is deterministic: the same steps give the same position on every machine, so a server can run it as the
+authority and a client can predict with it. Systems run in the order added; one that throws is reported on
+`engine.events` and the others still run.
 
-## 4b. Fast components for many bodies
-
-Object components are easy; for data thousands of bodies carry every step, keep it in typed-array columns and walk
-the cached slot list. This is the fastest path in the engine (0.1 ms a step for 50,000 bodies, see `npm run bench`).
-
-```ts
-import { defineFields, system } from 'dither-engine';
-
-const Position = defineFields('Position', { x: 'f32', y: 'f32' });
-const Velocity = defineFields('Velocity', { x: 'f32', y: 'f32' });
-
-this.world.spawn([Position, { x: 10, y: 20 }], [Velocity, { x: 30 }]);
-
-this.world.addSystem(
-  system('move', 'fixed', ({ world, dt }) => {
-    const p = world.columns(Position); // fetch per run: columns grow as entities are added
-    const v = world.columns(Velocity);
-    const slots = world.slots(Position, Velocity); // cached until an entity joins or leaves
-    for (let k = 0; k < slots.length; k++) {
-      const i = slots[k]!;
-      p.x[i]! += v.x[i]! * dt;
-      p.y[i]! += v.y[i]! * dt;
-    }
-  }),
-);
-```
-
-Which walk to use:
+### Which walk to use
 
 | Walk | Cost | Use for |
 |---|---|---|
@@ -120,43 +106,93 @@ Which walk to use:
 | `world.each(A, B, (e, a, b) => …)` | no allocation | object components walked every step |
 | `world.slots(A, B)` + `world.columns(A)` | a flat loop over typed arrays | numeric data on thousands of bodies |
 
-## 5. Drawing pixels
-
-`stage.add.pixels()` gives a `PixelLayer`: paint rects or `pixelPaint` shapes into it, then `present()`.
-
 ```ts
-import { pixelPaint } from 'dither-engine';
+import { defineFields } from 'lantern-engine';
 
-const halo = this.engine.stage.add.pixels();
-this.root.addChild(halo);
+const Position = defineFields('Position', { x: 'f32', y: 'f32' });
+const Velocity = defineFields('Velocity', { x: 'f32', y: 'f32' });
 
-this.world.addSystem(
-  system('halo', 'frame', ({ now }) => {
-    const frame = Math.floor(now / (1000 / 12)); // effects step at 12 fps, like the art
-    halo.clear();
-    pixelPaint.ring(halo, 10 + (frame % 6), 0x71d8ef, frame, 2);
-    halo.present();
-  }),
-);
-```
-
-## 6. Collision
-
-Movement runs against a `CollisionGrid` of solid tiles:
-
-```ts
-import { createCollisionGrid } from 'dither-engine';
-
-const grid = createCollisionGrid(width, height, 16, solidString, {
-  bodyHalfWidth: 5, // the moving body's foot box
-  bodyHalfHeight: 3,
+system('drift', 'fixed', ({ world, dt }) => {
+  const p = world.columns(Position); // fetch per run: columns grow as entities are added
+  const v = world.columns(Velocity);
+  const slots = world.slots(Position, Velocity); // cached until an entity joins or leaves
+  for (let k = 0; k < slots.length; k++) {
+    const i = slots[k]!;
+    p.x[i]! += v.x[i]! * dt;
+    p.y[i]! += v.y[i]! * dt;
+  }
 });
 ```
 
-The same `stepMover` on the same steps gives the same position on every machine, so a server can run it as the
-authority and a client can predict with it.
+## 6. A sprite that animates
+
+```ts
+import { Animator, SpriteComponent, AnimationComponent, animationSystem } from 'lantern-engine';
+
+const sprite = this.engine.stage.add.image(start.x, start.y, 'hero', 0).setOrigin(0.5, 1);
+this.root.addChild(sprite);
+const clips = { idle: { frames: [0, 1], fps: 2 }, walk: { frames: [2, 3, 4, 5], fps: 10 } };
+this.world.spawn([Body, …], [SpriteComponent, sprite], [AnimationComponent, new Animator(clips, 'idle')]);
+this.world.addSystem(animationSystem()); // advances every Animator and shows its frame
+```
+
+In your own frame system, `anim.play('walk')` switches clip (the clip already playing keeps its place), and
+`sprite.setDepth(y)` sorts bodies by where they stand.
+
+## 7. Input actions
+
+Game code asks for actions, never for keys, so players can rebind and every device works the same.
+
+```ts
+import { Actions, Keyboard } from 'lantern-engine';
+
+const input = new Actions(new Keyboard(), {
+  left: ['KeyA', 'ArrowLeft', 'pad:left', 'pad:lx-', 'touch:left'],
+  right: ['KeyD', 'ArrowRight', 'pad:right', 'pad:lx+', 'touch:right'],
+  up: ['KeyW', 'ArrowUp', 'pad:up', 'pad:ly-', 'touch:up'],
+  down: ['KeyS', 'ArrowDown', 'pad:down', 'pad:ly+', 'touch:down'],
+  roll: ['Space', 'pad:a', 'touch:roll'],
+});
+
+// at the start of each fixed step:
+input.poll();
+const [x, y] = input.vector('left', 'right', 'up', 'down'); // never longer than 1
+const rolling = input.pressed('roll');
+input.endStep();
+```
+
+An on-screen button calls `input.press('roll')` on pointer down and `input.release('roll')` on pointer up.
+
+## 8. The camera
+
+```ts
+this.engine.stage.cameras.main.track(sprite, { lerp: 0.15, deadzoneWidth: 24, deadzoneHeight: 16 });
+```
+
+`lerp` 1 locks on; lower follows softly, at the same pace at any frame rate. The camera stays inside its bounds.
+
+## 9. Pixel art
+
+Pixel-art tools live in their own module, so other games never ship them:
+
+```ts
+import { addPixelLayer, pixelPaint } from 'lantern-engine/pixel';
+
+const halo = addPixelLayer(this.engine.stage); // thousands of pixel rects in one texture
+this.root.addChild(halo);
+
+system('halo', 'frame', ({ now }) => {
+  const frame = Math.floor(now / (1000 / 12)); // effects step at 12 fps, like the art
+  halo.clear();
+  pixelPaint.ring(halo, 10 + (frame % 6), 0x71d8ef, frame, 2);
+  halo.present();
+});
+```
+
+It also holds `Darkness` (night and caves lit by dithered lamps), `Evaporation` (a body dissolving into its own
+pixels) and the colour ramps. [`examples/walk-room`](../examples/walk-room/main.ts) uses them.
 
 ## Next
 
 - [Architecture](architecture.md) for how the pieces fit together.
-- The source of `src/index.ts`: everything exported there is public API.
+- `src/index.ts` and `src/pixel/index.ts`: everything exported there is public API.

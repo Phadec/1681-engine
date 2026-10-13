@@ -1,4 +1,4 @@
-import type { PixelLayer } from '../core/PixelLayer';
+import { addPixelLayer, type PixelLayer } from './PixelLayer';
 import type { Stage } from '../core/Stage';
 import { engineSettings } from '../settings';
 import type { WorldObject } from '../core/types';
@@ -68,7 +68,7 @@ export class Evaporation {
     const n = Math.min(want, Math.max(MIN_PER_BODY, (thin ? THIN.budget : BUDGET) - this.live));
     if (n <= 0) return;
     const size = Math.max(1, Math.round(Math.abs(d.scaleY)));
-    const g = this.scene.add.pixels();
+    const g = addPixelLayer(this.scene);
     this.track(g);
     const c: Cloud = {
       g, x: Math.round(d.x), y: Math.round(d.y), born: now, end: now, size, n, frame: -1,

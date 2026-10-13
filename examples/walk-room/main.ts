@@ -8,14 +8,13 @@ import {
   createCollisionGrid,
   createMover,
   defineComponent,
-  pixelPaint,
   stepMover,
   system,
   type CollisionGrid,
   type MoverState,
   type MovementParams,
-  type PixelLayer,
 } from '../../src';
+import { addPixelLayer, pixelPaint, type PixelLayer } from '../../src/pixel';
 
 /*
  * The smallest whole game: an engine, one scene, three components and three systems. A box walks a walled room
@@ -51,7 +50,7 @@ class RoomScene extends Scene {
     stage.cameras.main.centerOn((W * TILE_SIZE) / 2, (H * TILE_SIZE) / 2);
 
     // the room never changes: painted once
-    const floor = stage.add.pixels();
+    const floor = addPixelLayer(stage);
     for (let ty = 0; ty < H; ty++) {
       for (let tx = 0; tx < W; tx++) {
         const wall = solid[ty * W + tx] === '1';
@@ -62,8 +61,8 @@ class RoomScene extends Scene {
     this.root.addChild(floor);
 
     // the hero: one entity, three components
-    const sprite = stage.add.pixels();
-    const halo = stage.add.pixels();
+    const sprite = addPixelLayer(stage);
+    const halo = addPixelLayer(stage);
     this.root.addChild(sprite, halo);
     this.world.spawn(
       [Body, { mover: createMover(4 * TILE_SIZE, 4 * TILE_SIZE), params: { speed: 70, dashSpeed: 200, dashSteps: 10, dashCooldownSteps: 40, canMove: true, canDash: true } }],
@@ -128,6 +127,6 @@ class RoomScene extends Scene {
   }
 }
 
-const engine = await Engine.create({ parent: document.getElementById('app')!, width: 960, height: 576, background: '#14101c', zoom: 3 });
+const engine = await Engine.create({ pixelPerfect: true, parent: document.getElementById('app')!, width: 960, height: 576, background: '#14101c', zoom: 3 });
 engine.events.on('error', ({ where, error }) => console.error(where, error));
 await engine.scenes.replace(new RoomScene());

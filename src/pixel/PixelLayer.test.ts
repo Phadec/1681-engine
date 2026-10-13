@@ -124,8 +124,8 @@ test('staged runs land after what was drawn before the commit, the later run win
 });
 
 test('the pixel effects lay the same pixels straight into a layer as through the rects', async () => {
-  const paint = await import('../fx/pixelPaint');
-  const tone = await import('../fx/pixelTone');
+  const paint = await import('./pixelPaint');
+  const tone = await import('./pixelTone');
   const shapes = (g: never) => {
     paint.ring(g, 14, 0xc8a0ff, 3, 2);
     paint.arc(g, 2, -4, 11, 0.2, 2.6, 0xff7438, true, 2);
@@ -171,7 +171,7 @@ test('the pixel effects lay the same pixels straight into a layer as through the
 
 test("Pixi's batch texture table forgets a texture when cleared (the leak patch)", async () => {
   const { BatchTextureArray } = await import('pixi.js');
-  const { patchPixi } = await import('./pixiPatches');
+  const { patchPixi } = await import('../core/pixiPatches');
   assert.ok(patchPixi(), 'the patch applies to this Pixi');
   const arr = new BatchTextureArray() as unknown as { ids: Record<number, number | null>; textures: unknown[]; count: number; clear(): void };
   for (let i = 0; i < 3; i++) {

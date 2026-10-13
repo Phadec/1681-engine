@@ -7,7 +7,7 @@ export interface EngineSettings {
   reducedFx: boolean;
   /** Turns off everything that only costs battery: transient lights, heavy particles. */
   batterySaver: boolean;
-  /** Short-lived lights a fight throws into the dark (`light/lights.ts`). */
+  /** Short-lived lights a fight throws into the dark (`pixel/lights.ts`). */
   combatLights: boolean;
   /** 0–1, the combat sounds' volume (`audio/SoundEngine.ts`). */
   sfxVolume: number;

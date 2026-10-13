@@ -32,6 +32,8 @@ export class Camera {
   zoom = 1;
   /** Backing pixels per screen pixel (the renderer's resolution, `zoomResolution`): what `snap` rounds to. */
   resolution = 1;
+  /** Lands the view on whole backing pixels (pixel art); off, the world moves smoothly between them. */
+  roundPixels = false;
   scrollX = 0;
   scrollY = 0;
   width = 0;
@@ -189,7 +191,9 @@ export class Camera {
     }
     this.world.scale.set(this.zoom);
     const k = this.zoom * this.resolution;
-    this.world.position.set(-Math.round(this.scrollX * k) / this.resolution + ox, -Math.round(this.scrollY * k) / this.resolution + oy);
+    const sx = this.roundPixels ? Math.round(this.scrollX * k) / this.resolution : this.scrollX * this.zoom;
+    const sy = this.roundPixels ? Math.round(this.scrollY * k) / this.resolution : this.scrollY * this.zoom;
+    this.world.position.set(-sx + ox, -sy + oy);
     for (const f of this.followers) {
       f.scale.set(this.zoom);
       f.position.copyFrom(this.world.position);

@@ -1,5 +1,5 @@
 import { batchFor, beginOutline, capturing, currentCoverage, dithered, endOutline, fillRuns, flushBatch, grade, pixelKey, ramp, record, stageRun } from './pixelTone';
-import { PixelLayer } from '../core/PixelLayer';
+import { PixelLayer } from './PixelLayer';
 import type { Graphics } from '../core/Graphics';
 
 /*

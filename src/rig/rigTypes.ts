@@ -7,7 +7,7 @@ export type Limb = [number, number, number, number];
 export type Face = 'blink' | 'happy' | 'tired' | 'dizzy';
 
 /**
- * A pose of the humanoid rig (`art/rig/poses/<NAME>.json`). Every field is optional: a pose that leaves one
+ * A pose of the humanoid rig (a JSON object of bone angles). Every field is optional: a pose that leaves one
  * out takes it from the pose it is laid over (a guard only moves the weapon arm, an attack keeps the running legs).
  */
 export interface RigPose {
@@ -39,7 +39,7 @@ export interface RigPose {
   curl?: [number, number];
 }
 
-/** The rig's proportions (`art/rig/humanoid.json`), in grid pixels of the 20x24 character frame. */
+/** The rig's proportions (`rig/humanoid.json`), in grid pixels of the 20x24 character frame. */
 export interface RigDef {
   /** Art pixels per grid pixel of the rendered body. */
   scale: number;

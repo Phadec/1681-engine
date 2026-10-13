@@ -1,13 +1,17 @@
 {
-  "name": "dither-engine",
-  "version": "0.1.0",
-  "description": "A 2.5D pixel-art game engine on PixiJS 8: scenes and ECS, a fixed-step loop, pixel-perfect effects, dithered lighting, a skeleton rig, synthesized audio, touch input and deterministic, server-replayable movement.",
+  "name": "lantern-engine",
+  "version": "0.2.0",
+  "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/dither-engine.js"
+      "import": "./dist/lantern-engine.js"
+    },
+    "./pixel": {
+      "types": "./dist/types/pixel/index.d.ts",
+      "import": "./dist/pixel.js"
     },
     "./package.json": "./package.json"
   },
@@ -31,18 +35,19 @@
   "license": "MIT",
   "keywords": [
     "game-engine",
-    "pixel-art",
+    "2d",
     "pixijs",
     "ecs",
-    "2d",
+    "tiled",
+    "pixel-art",
     "gamedev",
     "multiplayer",
     "typescript"
   ],
   "sideEffects": [
-    "./dist/dither-engine.js"
+    "./dist/*.js"
   ],
-  "module": "./dist/dither-engine.js",
+  "module": "./dist/lantern-engine.js",
   "files": [
     "dist",
     "README.md",

@@ -9,9 +9,9 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     lib: {
-      entry: resolve(import.meta.dirname, 'src/index.ts'),
+      entry: { 'lantern-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts') },
       formats: ['es'],
-      fileName: () => 'dither-engine.js',
+      fileName: (_format, name) => `${name}.js`,
     },
     rollupOptions: {
       external: [/^pixi\.js(\/.*)?$/],

@@ -5,6 +5,43 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.2.0
+
+The engine is now **Lantern Engine** (`lantern-engine`), for 2D games in any art style; the pixel-art tools moved to
+their own module, **Dither** (`lantern-engine/pixel`).
+
+### Breaking
+
+- Pixel-art exports moved to `lantern-engine/pixel`: `PixelLayer`, `pixelPaint`, `pixelTone`, the colour and pixel-grid
+  helpers, `PALETTE`, the prop kit, `ramp`/`selectiveOutline`, `Darkness` and the transient lights, `Evaporation`,
+  `spritePixels`.
+- `stage.add.pixels()` is gone: use `addPixelLayer(stage)` from the pixel module, or `stage.add.existing(obj)` for any
+  object made elsewhere.
+- `EngineOptions.pixelArt` (default on) is now `pixelPerfect` (default off). Off, textures are smooth, antialiased and
+  drawn at the screen's density; on, they are sharp, at one backing pixel per CSS pixel, and the camera lands on
+  whole pixels (`Camera.roundPixels`).
+- `createCollisionGrid`'s fifth argument is an options object (`ground`, `shotOverTiles`, `bodyHalfWidth`,
+  `bodyHalfHeight`); `setShotOverTiles` is gone.
+
+### Added
+
+- `AssetLoader`: images, sprite sheets, JSON, text and Tiled maps with their tileset images, progress, a concurrency
+  limit, errors that name the URL.
+- Tiled maps: `parseTiled` (CSV and base64 layers, groups, objects, properties, flips, tile animations; clear refusals
+  for what is not supported), `collisionFromTiled` (a layer or a tile property), `TilemapView` (layers drawn in culled
+  chunks, each at its own depth among the bodies).
+- `Animator` (fps or per-frame durations, loop or finish, speed) and `animationSystem` with `SpriteComponent` and
+  `AnimationComponent`.
+- `Actions`: named input bound to keys, gamepad buttons and sticks (with a dead zone), and virtual touch buttons; per-step
+  edges, analog values, rebinding.
+- `Camera.track`: a soft follow that is the same at any frame rate, a deadzone, an offset, the bounds kept.
+- Example `top-down` with a Tiled map, written by `examples/top-down/make-assets.mjs`.
+- `world.each(A, B, fn)`: walks without allocating a row per entity.
+- `defineFields(name, { x: 'f32', … })`: numeric components kept in typed-array columns (`world.columns`).
+- `world.slots(A, B)`: the matching slot indices as a cached `Int32Array`, rebuilt only when membership changes.
+  With field components a step over 50,000 bodies takes 0.1 ms, 200 times the first release.
+- `world.count(type)`, `entityIndex(e)`, `npm run bench`.
+
 ### Changed
 
 - `World` stores components in sparse sets instead of maps: a query over 50,000 bodies went from 21 ms to 2 ms a
@@ -12,15 +49,7 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   stale id never matches the entity that reuses its slot. Entities are walked last-added first.
 - Removing a component while a walk is in progress is deferred like destroying an entity, so nothing is skipped.
 
-### Added
-
-- `world.each(A, B, fn)`: walks without allocating a row per entity.
-- `defineFields(name, { x: 'f32', … })`: numeric components kept in typed-array columns (`world.columns`).
-- `world.slots(A, B)`: the matching slot indices as a cached `Int32Array`, rebuilt only when membership changes.
-  With field components a step over 50,000 bodies takes 0.1 ms, 200 times the first release.
-- `world.count(type)`, `entityIndex(e)`, `npm run bench`.
-
-## 0.1.0
+## 0.1.0 (as Dither Engine)
 
 First release, split out of a shipped game's client.
 

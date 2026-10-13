@@ -1,5 +1,5 @@
-import { P } from '../palette';
-import type { PixelGrid } from '../pixel';
+import { P } from './palette';
+import type { PixelGrid } from './pixel';
 import { outlineOf } from './ramp';
 
 /*

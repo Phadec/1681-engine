@@ -1,4 +1,4 @@
-import { type Color, channels, mix, rgba, shade } from '../pixel';
+import { type Color, channels, mix, rgba, shade } from './pixel';
 
 /*
  * Hue-shifted ramps: the one place a character's colours get their shadows and lights. At 20x24 a body cannot get

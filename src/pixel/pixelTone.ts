@@ -1,5 +1,5 @@
 import type { Graphics } from '../core/Graphics';
-import { PixelLayer } from '../core/PixelLayer';
+import { PixelLayer } from './PixelLayer';
 
 /*
  * Colour ramps and ordered dithering for the pixel effects. A ramp turns one colour into five tones the way pixel

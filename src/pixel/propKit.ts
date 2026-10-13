@@ -1,6 +1,6 @@
 import { P } from './palette';
 import { type Color, PixelGrid, rgba } from './pixel';
-import { hueShade, outlineOf } from './rig/ramp';
+import { hueShade, outlineOf } from './ramp';
 
 /*
  * Pieces shared by every map prop painter (`props.ts`, `buildings.ts`, `streetProps.ts`). A prop is anchored at the

@@ -128,7 +128,7 @@ function touchPad(input: Actions<Action>): void {
   }
 }
 
-const engine = await Engine.create({ parent: document.getElementById('app')!, background: '#1b2a1e', zoom: 3 });
+const engine = await Engine.create({ pixelPerfect: true, parent: document.getElementById('app')!, background: '#1b2a1e', zoom: 3 });
 engine.events.on('error', ({ where, error }) => console.error(where, error));
 // handy in the browser console: engine.scene.world, engine.stage.cameras.main
 (globalThis as { engine?: Engine }).engine = engine;

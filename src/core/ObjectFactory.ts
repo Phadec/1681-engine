@@ -3,7 +3,6 @@ import { BitmapLabel } from './BitmapLabel';
 import { Graphics } from './Graphics';
 import { Group } from './Group';
 import { Image } from './Image';
-import { PixelLayer } from './PixelLayer';
 import { Rectangle } from './Rectangle';
 import type { Stage } from './Stage';
 import { Text, type TextStyle } from './Text';
@@ -35,11 +34,6 @@ export class ObjectFactory {
     return g;
   }
 
-  /** A `Graphics` whose rects are shown as one texture (`PixelLayer`): the pixel effects' layer. */
-  pixels(): PixelLayer {
-    return this.attach(new PixelLayer());
-  }
-
   container(x = 0, y = 0, children: Container[] = []): Group {
     const c = this.attach(new Group());
     c.position.set(x, y);
@@ -60,6 +54,11 @@ export class ObjectFactory {
   /** A bitmap-font label (`BitmapLabel`): cheap to change, for text rewritten many times a second. */
   label(x: number, y: number, text: string, fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number): BitmapLabel {
     return this.attach(new BitmapLabel(x, y, text, fontFamily, size, color, stroke, strokeWidth, resolution));
+  }
+
+  /** Puts an object made elsewhere on the world layer, as the factory's own are (a `PixelLayer`, a custom class). */
+  existing<T extends Container & { scene: Stage }>(obj: T): T {
+    return this.attach(obj);
   }
 
   private attach<T extends Container & { scene: Stage }>(obj: T): T {

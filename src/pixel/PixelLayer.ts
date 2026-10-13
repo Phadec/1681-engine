@@ -1,6 +1,7 @@
 import { BufferImageSource, Sprite, Texture } from 'pixi.js';
-import { Graphics } from './Graphics';
-import { patchPixi } from './pixiPatches';
+import { Graphics } from '../core/Graphics';
+import { patchPixi } from '../core/pixiPatches';
+import type { Stage } from '../core/Stage';
 
 patchPixi();
 
@@ -100,6 +101,11 @@ function giveSurface(s: Surface): void {
  * and each one stayed in Pixi's batch tables), so a destroyed layer hands its texture
  * to the next one; `PixelLayer.drainPool` lets them all go when the map changes.
  */
+/** A new `PixelLayer` on the stage's world layer. */
+export function addPixelLayer(stage: Stage): PixelLayer {
+  return stage.add.existing(new PixelLayer());
+}
+
 export class PixelLayer extends Graphics {
   /** This frame's rects: x, y, w, h, colour, alpha — six numbers each. */
   private readonly rects: number[] = [];
