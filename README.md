@@ -1,5 +1,9 @@
 # Lantern Engine
 
+[![CI](https://github.com/Phadec/lantern-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/Phadec/lantern-engine/actions/workflows/ci.yml)
+[![Docs](https://github.com/Phadec/lantern-engine/actions/workflows/docs.yml/badge.svg)](https://phadec.github.io/lantern-engine/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 A 2D game engine for the web, built on [PixiJS 8](https://pixijs.com) and written in TypeScript, for games in any
 art style: hand-drawn, HD, vector or pixel art. Pixel art gets a module of its own, **Dither**.
 
@@ -71,6 +75,8 @@ is experimental here: it falls back to WebGL where the browser lacks it, but has
 path has.
 
 ## Documentation
+
+**https://phadec.github.io/lantern-engine/** — the guide, the API reference and the examples running live.
 
 The documentation site (guide, API reference generated from the source, live examples) is built with
 `npm run docs:build` and published to GitHub Pages by `.github/workflows/docs.yml`; `npm run docs:dev` serves it

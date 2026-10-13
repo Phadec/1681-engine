@@ -71,5 +71,14 @@
   },
   "peerDependencies": {
     "pixi.js": "^8.6.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Phadec/lantern-engine.git"
+  },
+  "homepage": "https://phadec.github.io/lantern-engine/",
+  "bugs": {
+    "url": "https://github.com/Phadec/lantern-engine/issues"
+  },
+  "author": "Phadec"
 }

@@ -36,6 +36,8 @@ export default defineConfig({
       '/api/': [{ text: 'API reference', items: apiSidebar }],
     },
     search: { provider: 'local' },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/Phadec/lantern-engine' }],
+    editLink: { pattern: 'https://github.com/Phadec/lantern-engine/edit/main/docs/:path', text: 'Edit this page on GitHub' },
     outline: { level: [2, 3] },
     footer: { message: 'Released under the MIT License.' },
   },

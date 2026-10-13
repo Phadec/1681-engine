@@ -19,5 +19,6 @@
   "useCodeBlocks": true,
   "parametersFormat": "table",
   "entryFileName": "index",
-  "disableSources": true
+  "gitRemote": "origin",
+  "sourceLinkTemplate": "https://github.com/Phadec/lantern-engine/blob/{gitRevision}/{path}#L{line}"
 }
