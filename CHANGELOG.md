@@ -5,6 +5,14 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.1
+
+### Changed
+
+- The library ships one file per source module (`dist/core/Stage.js`, `dist/pixel/pixel.js`…) behind the same two
+  entry points, and declares no side effects, so a game's bundler keeps only what it imports: a web worker that wants
+  the colour helpers no longer takes Pixi, the audio engine and every other module with it.
+
 ## 0.5.0
 
 ### Fixed

@@ -18,6 +18,9 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [/^pixi\.js(\/.*)?$/],
+      // one file per source module, so a game's bundler keeps only what it imports: a worker that wants the colour
+      // helpers of `pixel/pixel.ts` no longer takes Pixi, the audio engine and the rest of the bundle with it
+      output: { preserveModules: true, preserveModulesRoot: 'src', entryFileNames: '[name].js' },
     },
   },
   worker: { format: 'es' },
