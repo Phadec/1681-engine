@@ -30,6 +30,12 @@ CI runs the same command; a pull request must pass it.
 Write commit messages in the imperative ("Add a gamepad source"). Add a line under `## Unreleased` in
 `CHANGELOG.md` for anything a user of the package would notice.
 
+## Releasing
+
+Move `## Unreleased` under a new version heading, run `npm version <version> --no-git-tag-version`, commit, then tag
+`v<version>` and push the tag: `.github/workflows/publish.yml` checks and publishes it to npm (Trusted Publishing, no
+token). A tag already pushed is published again from Actions → Publish → Run workflow.
+
 ## Reporting bugs
 
 Open an issue with the engine version, browser and device, what you expected, what happened, and the smallest code

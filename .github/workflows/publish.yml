@@ -1,0 +1,40 @@
+name: Publish
+
+# Publishes to npm through Trusted Publishing (OIDC): no token is kept anywhere. npmjs.com → lantern-engine →
+# Settings → Trusted Publisher names this repository and this file. Push a tag `v<version>` to release; a tag already
+# pushed is published again from Actions → Publish → Run workflow.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (e.g. v0.5.0)'
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      # trusted publishing needs npm 11.5.1 or later
+      - run: npm install -g npm@latest
+      - name: The tag names the package's version
+        run: |
+          tag="${{ inputs.tag || github.ref_name }}"
+          version="v$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$version" ]; then echo "tag $tag but package.json is $version"; exit 1; fi
+      - run: npm ci
+      # prepublishOnly runs npm run check (typecheck, tests, build) before anything is sent
+      - run: npm publish
