@@ -1,6 +1,20 @@
 import type { Container } from 'pixi.js';
 import { Rectangle } from './Rectangle';
 
+export interface TrackOptions {
+  /**
+   * How much of the way to the target the camera closes each 60th of a second (0–1, default 1: locked on). 0.1 is a
+   * soft follow; the rate is the same at any frame rate.
+   */
+  lerp?: number;
+  /** A box round the screen's centre (world px) the target may move in without the camera moving. */
+  deadzoneWidth?: number;
+  deadzoneHeight?: number;
+  /** Where on the target to look (world px from its position), e.g. a little above a body's feet. */
+  offsetX?: number;
+  offsetY?: number;
+}
+
 export interface ViewRect {
   x: number;
   y: number;
@@ -33,6 +47,9 @@ export class Camera {
   private flashPeak = 1;
   /** Screen-layer containers laid over the world with its exact transform, shake included (see `follow`). */
   private readonly followers = new Set<Container>();
+  private target: { readonly x: number; readonly y: number } | null = null;
+  private trackOpts: Required<TrackOptions> = { lerp: 1, deadzoneWidth: 0, deadzoneHeight: 0, offsetX: 0, offsetY: 0 };
+  private lastApply = -1;
 
   constructor(
     private readonly world: Container,
@@ -113,8 +130,49 @@ export class Camera {
     this.flashPeak = peak;
   }
 
+  /**
+   * Keeps `target` (anything with `x` and `y`, read every frame: an entity's position, a sprite) in view, inside the
+   * bounds if there are any. Replaces any target before.
+   */
+  track(target: { readonly x: number; readonly y: number }, options: TrackOptions = {}): this {
+    this.target = target;
+    this.trackOpts = { lerp: 1, deadzoneWidth: 0, deadzoneHeight: 0, offsetX: 0, offsetY: 0, ...options };
+    if ((options.lerp ?? 1) >= 1) this.centerOn(target.x + this.trackOpts.offsetX, target.y + this.trackOpts.offsetY);
+    return this;
+  }
+
+  untrack(): this {
+    this.target = null;
+    return this;
+  }
+
+  /** Moves the view toward the tracked target for a frame `dtMs` long. */
+  private follow1(dtMs: number): void {
+    const t = this.target;
+    if (!t) return;
+    const o = this.trackOpts;
+    const vw = this.width / this.zoom;
+    const vh = this.height / this.zoom;
+    const cx = this.scrollX + vw / 2;
+    const cy = this.scrollY + vh / 2;
+    const tx = t.x + o.offsetX;
+    const ty = t.y + o.offsetY;
+    // only the part of the target's offset outside the deadzone moves the camera
+    const hx = o.deadzoneWidth / 2;
+    const hy = o.deadzoneHeight / 2;
+    const dx = tx - cx > hx ? tx - cx - hx : tx - cx < -hx ? tx - cx + hx : 0;
+    const dy = ty - cy > hy ? ty - cy - hy : ty - cy < -hy ? ty - cy + hy : 0;
+    const k = o.lerp >= 1 ? 1 : 1 - Math.pow(1 - Math.max(0, o.lerp), dtMs / (1000 / 60));
+    this.scrollX += dx * k;
+    this.scrollY += dy * k;
+    this.clamp();
+  }
+
   /** Writes the camera into the world layer; called once per frame after the scene updated. */
   apply(now: number): void {
+    const dtMs = this.lastApply < 0 ? 1000 / 60 : Math.min(100, now - this.lastApply);
+    this.lastApply = now;
+    this.follow1(dtMs);
     let ox = 0;
     let oy = 0;
     if (now < this.shakeUntil) {
@@ -130,7 +188,8 @@ export class Camera {
       }
     }
     this.world.scale.set(this.zoom);
-    this.world.position.set(-this.scrollX * this.zoom + ox, -this.scrollY * this.zoom + oy);
+    const k = this.zoom * this.resolution;
+    this.world.position.set(-Math.round(this.scrollX * k) / this.resolution + ox, -Math.round(this.scrollY * k) / this.resolution + oy);
     for (const f of this.followers) {
       f.scale.set(this.zoom);
       f.position.copyFrom(this.world.position);

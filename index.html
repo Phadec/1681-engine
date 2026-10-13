@@ -3,15 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Dither Engine demo</title>
+    <title>Dither Engine examples</title>
     <style>
-      body { margin: 0; background: #0b0910; color: #d8d0e8; font: 14px monospace; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; }
-      canvas { image-rendering: pixelated; }
+      body { margin: 0; padding: 32px 16px; background: #0b0910; color: #d8d0e8; font: 15px/1.6 monospace; }
+      main { max-width: 640px; margin: 0 auto; }
+      a { color: #ffd98a; }
+      li { margin: 8px 0; }
     </style>
   </head>
   <body>
-    <div id="app"></div>
-    <div id="hud">Arrows / WASD to move, Space to roll</div>
-    <script type="module" src="/examples/walk-room/main.ts"></script>
+    <main>
+      <h1>Dither Engine examples</h1>
+      <ul>
+        <li><a href="examples/walk-room/">walk-room</a>: one scene, three components, three systems, pixel effects.</li>
+        <li><a href="examples/top-down/">top-down</a>: a Tiled map, asset loading, an animated hero, input actions (keyboard, gamepad, touch), camera follow.</li>
+      </ul>
+    </main>
   </body>
 </html>

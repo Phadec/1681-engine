@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Top-down · Dither Engine</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0910; color: #d8d0e8; font: 14px monospace; overflow: hidden; }
+      #app { position: fixed; inset: 0; }
+      canvas { image-rendering: pixelated; display: block; }
+      #status { position: fixed; left: 12px; top: 10px; text-shadow: 1px 1px 0 #000; pointer-events: none; }
+      #pad { position: fixed; inset: auto 0 16px 0; display: flex; justify-content: space-between; padding: 0 16px; touch-action: none; user-select: none; }
+      #pad[hidden] { display: none; }
+      .dpad { display: grid; grid-template: repeat(3, 52px) / repeat(3, 52px); }
+      #pad button { width: 52px; height: 52px; border: 2px solid #3a3048; background: #1a1424cc; color: #d8d0e8; font: 18px monospace; }
+      #pad .roll { width: 72px; height: 72px; align-self: end; border-radius: 50%; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div id="status">loading…</div>
+    <div id="pad" hidden>
+      <div class="dpad">
+        <span></span><button data-action="up">^</button><span></span>
+        <button data-action="left">&lt;</button><span></span><button data-action="right">&gt;</button>
+        <span></span><button data-action="down">v</button><span></span>
+      </div>
+      <button class="roll" data-action="roll">roll</button>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

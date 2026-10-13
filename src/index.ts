@@ -25,7 +25,7 @@ export { engineSettings, type EngineSettings } from './settings';
 
 // ── Rendering core ────────────────────────────────────────────────────────────────────────────────────────────────
 export { Stage } from './core/Stage';
-export { Camera, type ViewRect } from './core/Camera';
+export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
 export { Clock } from './core/Clock';
 export { Tweener } from './core/Tweener';
 export { easeByName } from './core/eases';
@@ -42,6 +42,31 @@ export { TextureRegistry, CanvasTexture } from './core/TextureRegistry';
 export { AtlasBuilder } from './core/atlas';
 export { planAtlas, atlasPageLimit, type AtlasSize } from './core/atlasPlan';
 export type { WorldObject } from './core/types';
+
+// ── Assets, animation, tilemaps ─────────────────────────────────────────────────────────────────────────────────
+export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LoadProgress, type TextureSink } from './assets/AssetLoader';
+export { Animator, type AnimationClip, type AnimationClips } from './anim/Animator';
+export { animationSystem, SpriteComponent, AnimationComponent } from './anim/animationSystem';
+export {
+  parseTiled,
+  tileAt,
+  tileRect,
+  gidOf,
+  layerByName,
+  objectsOf,
+  FLIP_H,
+  FLIP_V,
+  FLIP_D,
+  type TileMap,
+  type TileLayer,
+  type ObjectLayer,
+  type MapLayer,
+  type MapObject,
+  type Tileset,
+  type Properties,
+} from './tilemap/tiled';
+export { collisionFromTiled, type TiledCollisionOptions } from './tilemap/collision';
+export { TilemapView, type TilemapViewOptions } from './tilemap/TilemapView';
 
 // ── Pixel art ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export {
@@ -95,6 +120,7 @@ export { renderRecipe, SYNTH_RATE, type SynthRecipe, type SynthLayer } from './a
 
 // ── Input and platform ────────────────────────────────────────────────────────────────────────────────────────────
 export { Keyboard } from './input/Keyboard';
+export { Actions, PAD_BUTTONS, type Bindings, type ActionsOptions, type PadState } from './input/Actions';
 export { aimAxis } from './input/aimAxis';
 export { stickVector, stickActive, stickToAxis, STICK_DEAD_ZONE, type StickVector } from './input/stickAxis';
 export { LongPress } from './input/longPress';
