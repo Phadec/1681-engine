@@ -1,6 +1,6 @@
 {
   "name": "lantern-engine",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -17,7 +17,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run clean && vite build && tsc -p tsconfig.build.json",
+    "build": "npm run clean && vite build && tsc -p tsconfig.build.json && node scripts/fix-dts-extensions.mjs",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "test": "node scripts/test.mjs",

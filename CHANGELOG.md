@@ -5,6 +5,8 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.4.0
+
 ### Changed
 
 - Node 22 or later (Node 20 reached its end of life; Pixi reads `navigator`, which Node 20 lacks, as it loads).
