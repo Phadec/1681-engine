@@ -1,5 +1,5 @@
 /** What `inView` reads off the main camera (Camera's own fields; a fake stage may lack them). */
-interface CameraLike {
+export interface CameraLike {
   zoom: number;
   scrollX?: number;
   scrollY?: number;

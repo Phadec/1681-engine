@@ -24,12 +24,12 @@ export interface AtlasSize {
   h: number;
 }
 
-interface AtlasPage {
+export interface AtlasPage {
   width: number;
   height: number;
 }
 
-interface AtlasPlan {
+export interface AtlasPlan {
   pages: AtlasPage[];
   /** One per input, in input order: the page and the top-left corner. */
   places: { page: number; x: number; y: number }[];

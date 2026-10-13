@@ -18,7 +18,7 @@ export type FieldKind = 'f32' | 'f64' | 'i8' | 'i16' | 'i32' | 'u8' | 'u16' | 'u
 
 export type FieldSpec = Record<string, FieldKind>;
 
-type ArrayOf<K extends FieldKind> = K extends 'f32'
+export type ArrayOf<K extends FieldKind> = K extends 'f32'
   ? Float32Array
   : K extends 'f64'
     ? Float64Array

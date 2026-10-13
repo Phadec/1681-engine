@@ -15,7 +15,7 @@ export interface EngineSettings {
   musicVolume: number;
 }
 
-type Listener = (s: EngineSettings) => void;
+export type SettingsListener = (s: EngineSettings) => void;
 
 const DEFAULTS: EngineSettings = {
   reducedFx: false,
@@ -26,7 +26,7 @@ const DEFAULTS: EngineSettings = {
 };
 
 let state: EngineSettings = { ...DEFAULTS };
-const listeners = new Set<Listener>();
+const listeners = new Set<SettingsListener>();
 
 /** Same shape as the zustand stores the game used (`getState`, `subscribe`), so moved code reads it unchanged. */
 export const engineSettings = {
@@ -37,7 +37,7 @@ export const engineSettings = {
     state = { ...state, ...patch };
     for (const l of [...listeners]) l(state);
   },
-  subscribe(listener: Listener): () => void {
+  subscribe(listener: SettingsListener): () => void {
     listeners.add(listener);
     return () => listeners.delete(listener);
   },

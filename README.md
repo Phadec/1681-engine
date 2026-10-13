@@ -72,12 +72,18 @@ path has.
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md): an engine, a scene, entities and systems, assets, a Tiled map, input,
+The documentation site (guide, API reference generated from the source, live examples) is built with
+`npm run docs:build` and published to GitHub Pages by `.github/workflows/docs.yml`; `npm run docs:dev` serves it
+locally.
+
+- [Getting started](docs/guide/getting-started.md): an engine, a scene, entities and systems, assets, a Tiled map, input,
   the camera, a rigged character, light and music, and multiplayer, step by step.
-- [Architecture](docs/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
+- [Architecture](docs/guide/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
 - [Examples](examples/), run with `npm run dev`:
   - `top-down`: a Tiled map, asset loading, an animated hero, input actions on keyboard, gamepad and touch, camera follow.
   - `night-garden`: smooth vector art, a rigged hero animated by blended poses, a lantern and fireflies in the dark.
+  - `pixel-dungeon`: the pixel module: dithered torchlight, a carried light, slimes that evaporate into their own pixels.
+  - `ecs-stress`: tens of thousands of bodies on typed-array components, with the frame rate and step time.
   - `multiplayer`: `npm run example:server`, then two tabs: prediction, reconciliation and interpolation.
   - `walk-room`: the smallest whole game, with pixel effects.
 
@@ -91,6 +97,7 @@ npm run typecheck  # sources and tests
 npm run bench      # ECS benchmark
 npm run build      # dist/: both ESM bundles and their .d.ts files
 npm run check      # typecheck, test and build, as CI runs it
+npm run docs:dev   # the documentation site, with the API reference and examples
 ```
 
 Contributions are welcome: read [CONTRIBUTING.md](CONTRIBUTING.md) first.

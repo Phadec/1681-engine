@@ -7,7 +7,7 @@ import { PixelLayer } from './PixelLayer';
  * drops pixels in a 4x4 Bayer order, so an effect thins out pixel by pixel instead of vanishing in one frame.
  */
 
-interface Ramp {
+export interface Ramp {
   /** Darkest: under-shade and outline pixels. */
   shade: number;
   deep: number;

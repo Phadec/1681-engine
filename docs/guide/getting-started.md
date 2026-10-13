@@ -2,7 +2,7 @@
 
 This builds a small top-down game step by step: a map made in Tiled, an animated hero who walks and rolls, input from
 keyboard, gamepad and touch, and a camera that follows. The finished file is
-[`examples/top-down/main.ts`](../examples/top-down/main.ts).
+[`examples/top-down/main.ts`](/examples#top-down).
 
 ## 1. An engine
 
@@ -190,7 +190,7 @@ system('halo', 'frame', ({ now }) => {
 ```
 
 It also holds `Darkness` (night and caves lit by dithered lamps), `Evaporation` (a body dissolving into its own
-pixels) and the colour ramps. [`examples/walk-room`](../examples/walk-room/main.ts) uses them.
+pixels) and the colour ramps. [`examples/walk-room`](/examples#walk-room) uses them.
 
 ## 10. Characters from a rig
 
@@ -223,7 +223,7 @@ const lantern = night.add({ x: 0, y: 0, radius: 140, color: 0xffb060, flicker: 0
 music.play('music/night.ogg'); // starts on the first tap or key; crossfades when another track plays
 ```
 
-Pixel-art games use the pixel module's dithered `Darkness` instead. [`examples/night-garden`](../examples/night-garden/main.ts)
+Pixel-art games use the pixel module's dithered `Darkness` instead. [`examples/night-garden`](/examples#night-garden)
 puts the rig, the lights and smooth vector art together.
 
 ## 12. Multiplayer
@@ -269,7 +269,7 @@ conn.events.on('snapshot', (s) => {
 
 Share the map and `MovementParams` between server and client (one module both import), or predictions will disagree.
 `Room` refuses input no client sends (NaN, axes past 1, floods), never runs more than a few steps a tick for one
-player, and `RoomHost` disconnects whoever keeps sending nonsense. [`examples/multiplayer`](../examples/multiplayer/)
+player, and `RoomHost` disconnects whoever keeps sending nonsense. [`examples/multiplayer`](/examples#multiplayer)
 is the whole thing: `npm run example:server`, then open it in two tabs.
 
 ## Next

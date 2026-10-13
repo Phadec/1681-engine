@@ -35,7 +35,7 @@ const MUFFLE: [number, number] = [18000, 1800];
 const TAME_SHELF = { freq: 3500, gainDb: -7 };
 const TAME_TOP = 11000;
 
-interface PlayOptions {
+export interface SoundOptions {
   /** Where it happened in the world; absent for what happens to or is done by the local player. */
   x?: number;
   y?: number;
@@ -51,7 +51,7 @@ interface PlayOptions {
   maxMs?: number;
 }
 
-class SoundEngine {
+export class SoundEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private readonly buffers = new Map<string, AudioBuffer | null>();
@@ -95,7 +95,7 @@ class SoundEngine {
     });
   }
 
-  play(name: string | undefined, opts: PlayOptions = {}): void {
+  play(name: string | undefined, opts: SoundOptions = {}): void {
     if (!name || (!SOUNDS.recipes[name] && !hasTakes(name))) return;
     if (engineSettings.getState().sfxVolume <= 0) return;
     const ctx = this.ctx;

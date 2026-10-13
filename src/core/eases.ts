@@ -1,4 +1,4 @@
-type EaseFn = (t: number) => number;
+export type EaseFn = (t: number) => number;
 
 const linear: EaseFn = (t) => t;
 

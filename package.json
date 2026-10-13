@@ -24,15 +24,24 @@
     "check": "npm run typecheck && npm test && npm run build",
     "prepublishOnly": "npm run check",
     "bench": "node --expose-gc --import tsx bench/ecs.bench.ts",
-    "example:server": "tsx examples/multiplayer/server.ts"
+    "example:server": "tsx examples/multiplayer/server.ts",
+    "docs:examples": "node scripts/build-examples.mjs",
+    "docs:dev": "npm run docs:prepare && vitepress dev docs",
+    "docs:build": "npm run docs:prepare && npm run docs:examples && vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:prepare": "typedoc && node -e \"require('fs').copyFileSync('CHANGELOG.md','docs/changelog.md')\""
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@types/ws": "^8.18.2",
     "pixi.js": "^8.21.0",
     "tsx": "^4.20.5",
+    "typedoc": "^0.28.20",
+    "typedoc-plugin-markdown": "^4.13.1",
+    "typedoc-vitepress-theme": "^1.1.4",
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
+    "vitepress": "^1.6.4",
     "ws": "^8.22.0"
   },
   "license": "MIT",

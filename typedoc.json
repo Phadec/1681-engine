@@ -1,0 +1,23 @@
+{
+  "$schema": "https://typedoc-plugin-markdown.org/schema.json",
+  "entryPoints": [
+    "src/index.ts",
+    "src/pixel/index.ts"
+  ],
+  "tsconfig": "tsconfig.build.json",
+  "out": "docs/api",
+  "plugin": [
+    "typedoc-plugin-markdown",
+    "typedoc-vitepress-theme"
+  ],
+  "docsRoot": "docs",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "hidePageHeader": true,
+  "useCodeBlocks": true,
+  "parametersFormat": "table",
+  "entryFileName": "index",
+  "disableSources": true
+}

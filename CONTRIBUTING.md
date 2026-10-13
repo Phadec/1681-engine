@@ -19,7 +19,7 @@ CI runs the same command; a pull request must pass it.
   and gets unit tests under node (`src/**/*.test.ts`, `node:test` + `node:assert`).
 - **Public API is `src/index.ts`.** Anything not exported there is internal. Adding to it is a feature; changing or
   removing something in it is a breaking change and goes in `CHANGELOG.md`.
-- **Follow the performance rules** in [docs/architecture.md](docs/architecture.md): whole world pixels, pooled
+- **Follow the performance rules** in [the architecture guide](docs/guide/architecture.md): whole world pixels, pooled
   textures, no long jobs inside a frame, guarded steps.
 - **Comments say why**, not what. A number that came from measuring says what was measured.
 - **Determinism:** never read the clock, `Math.random` or the frame rate inside `net/movement.ts` or a `fixed` system

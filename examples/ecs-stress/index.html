@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>ecs-stress · Lantern Engine</title>
+    <style>
+      html, body { margin: 0; height: 100%; background: #0b0910; color: #e8e0f0; font: 14px system-ui, sans-serif; overflow: hidden; }
+      #app { position: fixed; inset: 0; }
+      canvas { display: block; }
+      .hud { position: fixed; left: 14px; top: 12px; text-shadow: 0 1px 3px #000; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+      button { font: inherit; padding: 4px 10px; border-radius: 4px; border: 1px solid #5a5070; background: #241e30; color: inherit; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <div class="hud"><span id="hud">…</span><button data-add="1000">+1k</button><button data-add="10000">+10k</button><button data-add="50000">+50k</button><button id="clear">clear</button></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

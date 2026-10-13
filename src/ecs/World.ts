@@ -65,7 +65,7 @@ export function system(name: string, phase: SystemPhase, run: (ctx: SystemContex
   return { name, phase, run };
 }
 
-type Values<T extends readonly ComponentType<unknown>[]> = { [K in keyof T]: T[K] extends ComponentType<infer V> ? V : never };
+export type ComponentValues<T extends readonly ComponentType<unknown>[]> = { [K in keyof T]: T[K] extends ComponentType<infer V> ? V : never };
 
 /** Slot index in the low 22 bits (4 million live entities), generation above. */
 const INDEX_BITS = 22;
@@ -201,7 +201,7 @@ export class World {
    * Calls `fn(entity, ...components)` for every live entity holding all of `types`. Allocates nothing per entity:
    * the form for systems that walk thousands of bodies every step.
    */
-  each<const T extends readonly ComponentType<unknown>[]>(...args: [...types: T, fn: (e: Entity, ...values: Values<T>) => void]): void {
+  each<const T extends readonly ComponentType<unknown>[]>(...args: [...types: T, fn: (e: Entity, ...values: ComponentValues<T>) => void]): void {
     const fn = args[args.length - 1] as (e: Entity, ...values: unknown[]) => void;
     const types = args.slice(0, -1) as unknown as T;
     const sets = this.setsFor(types);
@@ -285,7 +285,7 @@ export class World {
    * Every live entity holding all of `types`, with those components in the same order. Yields a fresh row per
    * entity: convenient, but `each` is the form for hot loops.
    */
-  *query<const T extends readonly ComponentType<unknown>[]>(...types: T): IterableIterator<[Entity, ...Values<T>]> {
+  *query<const T extends readonly ComponentType<unknown>[]>(...types: T): IterableIterator<[Entity, ...ComponentValues<T>]> {
     const sets = this.setsFor(types);
     if (!sets) return;
     const lead = smallest(sets);
@@ -303,7 +303,7 @@ export class World {
           }
           row.push(set.get(index));
         }
-        if (all) yield row as [Entity, ...Values<T>];
+        if (all) yield row as [Entity, ...ComponentValues<T>];
       }
     } finally {
       this.endWalk();
@@ -311,7 +311,7 @@ export class World {
   }
 
   /** The first entity matching the query, or undefined: for singletons (the player, the camera target). */
-  first<const T extends readonly ComponentType<unknown>[]>(...types: T): [Entity, ...Values<T>] | undefined {
+  first<const T extends readonly ComponentType<unknown>[]>(...types: T): [Entity, ...ComponentValues<T>] | undefined {
     for (const row of this.query(...types)) return row;
     return undefined;
   }

@@ -5,6 +5,16 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+### Added
+
+- A documentation site (VitePress): home, guide, an API reference generated from the source by TypeDoc, the changelog,
+  and the examples running live; `npm run docs:dev` / `docs:build`, published by a GitHub Pages workflow.
+- Examples `pixel-dungeon` (dithered torchlight, a carried light, evaporating slimes) and `ecs-stress` (tens of
+  thousands of bodies with the frame rate and step time).
+- Types the public API refers to are exported too: `ComponentValues`, `ArrayOf`, `SettingsListener`, `Tween`,
+  `TweenConfig`, `TweenTarget`, `EaseFn`, `Vec2`, `AtlasPlan`, `AtlasPage`, `CameraLike`, `SoundEngine`,
+  `SoundOptions`, `TiledPropertyValue`; `PackedPixels` is exported as a class from the pixel module.
+
 ## 0.3.0
 
 ### Added

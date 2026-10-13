@@ -19,19 +19,20 @@ export {
   type System,
   type SystemContext,
   type SystemPhase,
+  type ComponentValues,
 } from './ecs/World';
-export type { FieldKind, FieldSpec, FieldsType, FieldValues, Columns } from './ecs/fields';
+export type { FieldKind, FieldSpec, FieldsType, FieldValues, Columns, ArrayOf } from './ecs/fields';
 export { EventBus } from './events/EventBus';
-export { engineSettings, type EngineSettings } from './settings';
+export { engineSettings, type EngineSettings, type SettingsListener } from './settings';
 
 // ── Rendering core ────────────────────────────────────────────────────────────────────────────────────────────────
 export { Stage } from './core/Stage';
 export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
 export { Clock } from './core/Clock';
-export { Tweener } from './core/Tweener';
-export { easeByName } from './core/eases';
+export { Tweener, Tween, type TweenConfig, type TweenTarget } from './core/Tweener';
+export { easeByName, type EaseFn } from './core/eases';
 export { ObjectFactory } from './core/ObjectFactory';
-export { Graphics } from './core/Graphics';
+export { Graphics, type Vec2 } from './core/Graphics';
 export { Image } from './core/Image';
 export { Group } from './core/Group';
 export { Rectangle } from './core/Rectangle';
@@ -40,7 +41,7 @@ export { BitmapLabel, installLabelFont, addLabelGlyphs } from './core/BitmapLabe
 export { Pointer } from './core/Pointer';
 export { TextureRegistry, CanvasTexture } from './core/TextureRegistry';
 export { AtlasBuilder } from './core/atlas';
-export { planAtlas, atlasPageLimit, type AtlasSize } from './core/atlasPlan';
+export { planAtlas, atlasPageLimit, type AtlasSize, type AtlasPlan, type AtlasPage } from './core/atlasPlan';
 export type { WorldObject } from './core/types';
 
 // ── Assets, animation, tilemaps ─────────────────────────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ export {
   type MapObject,
   type Tileset,
   type Properties,
+  type TiledPropertyValue,
 } from './tilemap/tiled';
 export { collisionFromTiled, type TiledCollisionOptions } from './tilemap/collision';
 export { TilemapView, type TilemapViewOptions } from './tilemap/TilemapView';
@@ -82,10 +84,10 @@ export { LightLayer, type Light, type LightLayerOptions } from './light/LightLay
 
 // ── Game feel ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export { hitStopMs, recoilPx, recoilAt, RECOIL_MS, hurtFlashMs, hurtFlashGapMs, HEAVY_FLASH_GAP_MS } from './fx/hitStop';
-export { inView } from './fx/viewCull';
+export { inView, type CameraLike } from './fx/viewCull';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
-export { sound } from './audio/SoundEngine';
+export { sound, SoundEngine, type SoundOptions } from './audio/SoundEngine';
 export { music, MusicPlayer, type PlayOptions as MusicOptions } from './audio/MusicPlayer';
 export { registerSounds, type SoundTable } from './audio/soundTable';
 export { registerTakes, hasTakes } from './audio/sampleBank';

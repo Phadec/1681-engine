@@ -1,7 +1,7 @@
 import { Container, Graphics as PixiGraphics } from 'pixi.js';
 import { GameObject } from './gameObject';
 
-interface Vec2 {
+export interface Vec2 {
   x: number;
   y: number;
 }

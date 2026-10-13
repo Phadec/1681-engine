@@ -35,7 +35,7 @@ export * as pixelPaint from './pixelPaint';
 /** Colour ramps, grading, dithering and batching under `pixelPaint`. */
 export * as pixelTone from './pixelTone';
 export { Evaporation, type DeathPixels } from './Evaporation';
-export { spritePixels, NO_PIXELS, type PackedPixels, type SpritePixel } from './spritePixels';
+export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './spritePixels';
 
 export { Darkness, WARM_LIGHT, LAMP_DIM, CARRIED_LIGHT } from './Darkness';
 export { flashLight, carriedLight, liveLights, clearLights, type TransientLight } from './lights';

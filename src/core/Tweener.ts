@@ -1,9 +1,9 @@
 import { easeByName } from './eases';
 
-type Target = Record<string, unknown> & { destroyed?: boolean };
+export type TweenTarget = Record<string, unknown> & { destroyed?: boolean };
 
 /** Tween config in the shape the renderer has always used: numeric props at the top level or under `props`. */
-interface TweenConfig {
+export interface TweenConfig {
   targets: object | object[];
   duration?: number;
   delay?: number;
@@ -25,26 +25,26 @@ const RESERVED = new Set([
 ]);
 
 interface Track {
-  target: Target;
+  target: TweenTarget;
   prop: string;
   from: number;
   to: number;
 }
 
 /** One running tween; `remove()` stops it without calling onComplete. */
-class Tween {
+export class Tween {
   private tracks: Track[] | null = null;
   private elapsed = 0;
   private plays = 0;
   removed = false;
-  readonly targets: Target[];
+  readonly targets: TweenTarget[];
 
   constructor(
     private readonly cfg: TweenConfig,
     private readonly ends: Record<string, number>,
   ) {
     const t = cfg.targets;
-    this.targets = (Array.isArray(t) ? t : [t]) as Target[];
+    this.targets = (Array.isArray(t) ? t : [t]) as TweenTarget[];
   }
 
   /**
@@ -119,12 +119,12 @@ class Tween {
   }
 }
 
-function read(target: Target, prop: string): number {
+function read(target: TweenTarget, prop: string): number {
   const v = prop === 'scale' ? target['scaleX'] : target[prop];
   return typeof v === 'number' ? v : 0;
 }
 
-function write(target: Target, prop: string, value: number): void {
+function write(target: TweenTarget, prop: string, value: number): void {
   if (prop === 'scale') {
     target['scaleX'] = value;
     target['scaleY'] = value;
