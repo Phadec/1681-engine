@@ -5,6 +5,26 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.3
+
+### Added
+
+- Music in layers: `music.channel(name)` plays one looping track per channel (a score and an ambience under it),
+  each crossfaded on its own at its own level; `music.play` is the `'music'` channel. `music.configure({ route,
+  pauseInBackground })`: the `<audio>` element's own volume by default, a Web Audio gain only where that volume is
+  read-only (iOS) or when asked, and the music stopped while the page is hidden. `MusicChannel`, `elementVolumeLocked`.
+- `paintLayer(stage, { at, duration, paint, depth, alive, every, fps, onCreate })` in `lantern-engine/pixel`: one
+  effect as its own pixel layer redrawn at 12 fps, following its anchor, dithered away at the end and skipped off
+  screen.
+- `Footsteps`: steps and hooves by the surface under the feet, the surface named by the game (`setSurfaceAt`).
+- `detectTouch` and `TouchEnv` are exported; `setTouchOverrideKey` names the `localStorage` key that forces touch.
+
+### Changed
+
+- `MusicOptions` is now the player's configuration; a track's options are `MusicPlayOptions`.
+- Music plays on the element's own volume where it works, instead of always through Web Audio: a file from another
+  origin no longer plays silent there.
+
 ## 0.5.2
 
 ### Added

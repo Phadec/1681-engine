@@ -221,7 +221,13 @@ const lantern = night.add({ x: 0, y: 0, radius: 140, color: 0xffb060, flicker: 0
 // each frame: lantern.x = hero.x; lantern.y = hero.y - 30; night.update();
 
 music.play('music/night.ogg'); // starts on the first tap or key; crossfades when another track plays
+music.channel('ambience').play('amb/crickets.ogg', { volume: 0.4 }); // a second layer under the score
 ```
+
+Every channel follows `engineSettings.musicVolume`. Music goes through Web Audio only where an `<audio>`'s own volume
+is read-only (iOS); `music.configure({ route: 'graph' })` forces it, and `pauseInBackground` stops it while the page
+is hidden (on touch devices by default). Footsteps by surface are `new Footsteps({ sounds, fallback })` with
+`setSurfaceAt((x, y) => …)` and `step(x, y, local)` on each beat of a walk.
 
 Pixel-art games use the pixel module's dithered `Darkness` instead. [`examples/night-garden`](/examples#night-garden)
 puts the rig, the lights and smooth vector art together.

@@ -1,12 +1,12 @@
-/** What decides whether the touch controls are shown; read off the browser by `touchDevice.ts`. */
+/** What decides whether the touch controls are shown; read off the browser by `isTouchUi` (`platform/touch.ts`). */
 export interface TouchEnv {
-  /** Running inside the native shell (Capacitor iOS). */
+  /** Running inside a native shell (`setNativeShell`: Capacitor, a kiosk…). */
   native: boolean;
   /** `(pointer: coarse)` matches: the **primary** pointer is a finger. */
   coarse: boolean;
   /** `navigator.maxTouchPoints`. */
   touchPoints: number;
-  /** `?touch=1|0` in the URL or `localStorage['engine.touch']`, for trying the controls on a desktop browser. */
+  /** `?touch=1|0` in the URL or `localStorage` (`setTouchOverrideKey`), for trying the controls on a desktop browser. */
   override: string | null;
 }
 

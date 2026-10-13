@@ -48,6 +48,7 @@ export * as pixelPaint from './pixelPaint';
 /** Colour ramps, grading, dithering and batching under `pixelPaint`. */
 export * as pixelTone from './pixelTone';
 export { registerHandRamps } from './pixelTone';
+export { paintLayer, type PaintLayerOptions } from './paintLayer';
 export { Evaporation, type DeathPixels } from './Evaporation';
 export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './spritePixels';
 

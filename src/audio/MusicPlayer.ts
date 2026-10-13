@@ -1,171 +1,133 @@
 import { engineSettings } from '../settings';
+import { isTouchUi } from '../platform/touch';
+import { ElementVoice } from './music/ElementVoice';
+import { GraphVoice } from './music/GraphVoice';
+import { MusicChannel, type PlayOptions } from './music/MusicChannel';
+import { elementVolumeLocked, type MusicVoice } from './music/musicVoice';
 
-export interface PlayOptions {
-  /** Crossfade from what is playing, ms (default 1200). */
-  fadeMs?: number;
-  /** Start over at the end (default true). */
-  loop?: boolean;
-  /** This track's own level, 0–1, under the music volume (default 1). */
-  volume?: number;
-}
+export type { PlayOptions } from './music/MusicChannel';
 
-/** One playing track: an `<audio>` element, routed through a gain when Web Audio is there. */
-interface Track {
-  url: string;
-  el: HTMLAudioElement;
-  gain: GainNode | null;
-  level: number;
-  /** Fade from `from` to `to` between `start` and `start + ms` (performance.now()). */
-  fade: { from: number; to: number; start: number; ms: number };
-  dying: boolean;
+/**
+ * How music reaches the speaker: `'element'` on the `<audio>` element's own volume (nothing in between; a file from
+ * another origin plays as it is), `'graph'` through a Web Audio gain (the only way where that volume is read-only),
+ * `'auto'` (default) the graph only where it has to be (iOS).
+ */
+export type MusicRoute = 'auto' | 'element' | 'graph';
+
+export interface MusicOptions {
+  route?: MusicRoute;
+  /** Stop the music while the page is hidden (an app sent to the background). Default: on touch devices. */
+  pauseInBackground?: boolean;
 }
 
 /**
- * Background music: one track at a time, crossfaded when it changes, looping, at `engineSettings.musicVolume`.
- * Tracks stream through `<audio>` elements (no decoding a whole song into memory). Where Web Audio exists their level
- * is a gain node, since iOS ignores an element's own `volume`.
+ * Background music in layers: each named channel (`'music'` by default, `'ambience'`, any other) plays one looping
+ * track at a time, crossfaded when it changes, all at `engineSettings.musicVolume`. Tracks stream through `<audio>`
+ * elements (no decoding a whole song into memory).
  *
- * Browsers start sound only after a user gesture: `play` before one is remembered and starts on the first tap or key.
+ * Browsers start sound only after a user gesture: a track played before one starts on the first tap or key. On iOS the
+ * graph's context is woken inside that gesture too, and again after the app comes back from the background.
  *
  * ```ts
- * music.play('music/forest.ogg');
- * music.play('music/boss.ogg', { fadeMs: 600 }); // crossfades
+ * music.play('music/forest.ogg');                                     // the 'music' channel
+ * music.channel('ambience').play('amb/wind.ogg', { volume: 0.5 });     // a second layer under it
+ * music.play('music/boss.ogg', { fadeMs: 600 });                      // crossfades the first only
  * music.stop(2000);
  * ```
  */
 export class MusicPlayer {
-  private ctx: AudioContext | null = null;
-  private master: GainNode | null = null;
-  private readonly tracks: Track[] = [];
-  private raf = 0;
-  private unlocked = false;
-  private readonly cleanup: (() => void)[] = [];
+  private readonly channels = new Map<string, MusicChannel>();
+  private route: MusicRoute = 'auto';
+  private graph: AudioContext | null = null;
+  private graphLocked: boolean | null = null;
+  private pauseInBackground: boolean | null = null;
+  private installed = false;
 
-  constructor() {
-    if (typeof window === 'undefined') return;
-    const unlock = () => {
-      this.unlocked = true;
-      void this.ctx?.resume();
-      for (const t of this.tracks) if (!t.dying && t.el.paused) void t.el.play().catch(() => {});
-    };
-    for (const type of ['pointerdown', 'keydown', 'touchend'] as const) {
-      window.addEventListener(type, unlock, { passive: true });
-      this.cleanup.push(() => window.removeEventListener(type, unlock));
-    }
-    this.cleanup.push(engineSettings.subscribe(() => this.applyVolume()));
+  /** Picks the route and background behaviour; call before the first track for the route to apply to every track. */
+  configure(options: MusicOptions): this {
+    if (options.route) this.route = options.route;
+    if (options.pauseInBackground !== undefined) this.pauseInBackground = options.pauseInBackground;
+    return this;
   }
 
-  /** The url of the track playing (or fading in), if any. */
+  /** The channel named `name`, made on first use. */
+  channel(name = 'music'): MusicChannel {
+    let ch = this.channels.get(name);
+    if (!ch) {
+      this.install();
+      ch = new MusicChannel(() => engineSettings.getState().musicVolume, (el) => this.voiceFor(el));
+      this.channels.set(name, ch);
+    }
+    return ch;
+  }
+
+  /** The url the `'music'` channel plays, if any. */
   get current(): string | null {
-    for (let i = this.tracks.length - 1; i >= 0; i--) if (!this.tracks[i]!.dying) return this.tracks[i]!.url;
-    return null;
+    return this.channels.get('music')?.current ?? null;
   }
 
-  /** Plays `url`, crossfading from what plays now. The track already playing is left alone. */
-  play(url: string, options: PlayOptions = {}): void {
-    if (typeof Audio === 'undefined') return;
-    if (this.current === url) return;
-    const fadeMs = Math.max(0, options.fadeMs ?? 1200);
-    this.fadeOutAll(fadeMs);
-    const el = new Audio(url);
-    el.loop = options.loop !== false;
-    el.preload = 'auto';
-    el.crossOrigin = 'anonymous';
-    const track: Track = { url, el, gain: null, level: Math.min(1, Math.max(0, options.volume ?? 1)), fade: { from: 0, to: 1, start: performance.now(), ms: fadeMs }, dying: false };
-    const ctx = this.context();
-    if (ctx && this.master) {
-      const gain = ctx.createGain();
-      gain.gain.value = 0;
-      ctx.createMediaElementSource(el).connect(gain).connect(this.master);
-      track.gain = gain;
-    } else {
-      el.volume = 0;
-    }
-    this.tracks.push(track);
-    if (this.unlocked || !this.needsGesture()) void el.play().catch(() => {});
-    this.tick();
+  /** Plays `url` on the `'music'` channel. */
+  play(url: string, options?: PlayOptions): void {
+    this.channel().play(url, options);
   }
 
-  /** Fades the music out and stops it. */
+  /** Fades every channel out. */
   stop(fadeMs = 1200): void {
-    this.fadeOutAll(Math.max(0, fadeMs));
-    this.tick();
+    for (const ch of this.channels.values()) ch.stop(fadeMs);
   }
 
   pause(): void {
-    for (const t of this.tracks) t.el.pause();
+    for (const ch of this.channels.values()) ch.pause();
   }
 
   resume(): void {
-    for (const t of this.tracks) if (!t.dying) void t.el.play().catch(() => {});
+    this.wake();
   }
 
   destroy(): void {
-    cancelAnimationFrame(this.raf);
-    for (const fn of this.cleanup.splice(0)) fn();
-    for (const t of this.tracks.splice(0)) this.release(t);
-    void this.ctx?.close();
-    this.ctx = null;
+    for (const ch of this.channels.values()) ch.dispose();
+    this.channels.clear();
+    void this.graph?.close();
+    this.graph = null;
   }
 
-  private fadeOutAll(ms: number): void {
-    const now = performance.now();
-    for (const t of this.tracks) {
-      if (t.dying) continue;
-      t.fade = { from: fadeValue(t.fade, now), to: 0, start: now, ms };
-      t.dying = true;
-    }
+  private voiceFor(el: HTMLAudioElement): MusicVoice {
+    const graph = this.throughGraph() ? this.context() : null;
+    return graph ? new GraphVoice(el, graph) : new ElementVoice(el);
   }
 
-  /** Runs the fades a frame at a time until none is left. */
-  private tick = (): void => {
-    cancelAnimationFrame(this.raf);
-    const now = performance.now();
-    let busy = false;
-    for (let i = this.tracks.length - 1; i >= 0; i--) {
-      const t = this.tracks[i]!;
-      const v = fadeValue(t.fade, now);
-      if (t.dying && v <= 0) {
-        this.release(t);
-        this.tracks.splice(i, 1);
-        continue;
-      }
-      this.setLevel(t, v);
-      if (now < t.fade.start + t.fade.ms) busy = true;
-    }
-    if (busy) this.raf = requestAnimationFrame(this.tick);
-  };
-
-  private applyVolume(): void {
-    const now = performance.now();
-    for (const t of this.tracks) this.setLevel(t, fadeValue(t.fade, now));
-  }
-
-  private setLevel(t: Track, fade: number): void {
-    const v = Math.min(1, Math.max(0, fade * t.level * engineSettings.getState().musicVolume));
-    if (t.gain) t.gain.gain.value = v;
-    else t.el.volume = v;
-  }
-
-  private release(t: Track): void {
-    t.el.pause();
-    t.el.removeAttribute('src');
-    t.el.load();
-    t.gain?.disconnect();
-  }
-
-  private needsGesture(): boolean {
-    return this.ctx?.state === 'suspended';
+  private throughGraph(): boolean {
+    if (this.route !== 'auto') return this.route === 'graph';
+    return (this.graphLocked ??= elementVolumeLocked());
   }
 
   private context(): AudioContext | null {
-    if (this.ctx) return this.ctx;
-    const Ctor = (globalThis as { AudioContext?: typeof AudioContext }).AudioContext;
+    if (this.graph) return this.graph;
+    const Ctor = (globalThis as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).AudioContext ?? (globalThis as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;
-    this.ctx = new Ctor();
-    this.master = this.ctx.createGain();
-    this.master.connect(this.ctx.destination);
-    return this.ctx;
+    this.graph = new Ctor();
+    return this.graph;
+  }
+
+  /** Retries every refused start and follows the volume; the graph's context resumes inside the gesture that called it. */
+  private wake(): void {
+    if (this.graph && this.graph.state !== 'running') void this.graph.resume().catch(() => {});
+    if (typeof document !== 'undefined' && document.hidden) return;
+    for (const ch of this.channels.values()) ch.refresh();
+  }
+
+  private install(): void {
+    if (this.installed || typeof window === 'undefined') return;
+    this.installed = true;
+    const wake = () => this.wake();
+    // `touchend` is the gesture iOS accepts for starting media; the others are the desktop's
+    for (const type of ['pointerdown', 'touchend', 'keydown'] as const) window.addEventListener(type, wake, { capture: true });
+    engineSettings.subscribe(wake);
+    document.addEventListener('visibilitychange', () => {
+      if (!(this.pauseInBackground ?? isTouchUi())) return;
+      if (document.hidden) this.pause();
+      else wake();
+    });
   }
 }
 

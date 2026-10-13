@@ -88,9 +88,12 @@ export { inView, type CameraLike } from './fx/viewCull';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 export { sound, SoundEngine, type SoundOptions } from './audio/SoundEngine';
-export { music, MusicPlayer, type PlayOptions as MusicOptions } from './audio/MusicPlayer';
+export { music, MusicPlayer, type PlayOptions as MusicPlayOptions, type MusicOptions, type MusicRoute } from './audio/MusicPlayer';
+export { MusicChannel } from './audio/music/MusicChannel';
+export { elementVolumeLocked } from './audio/music/musicVoice';
 export { registerSounds, type SoundTable } from './audio/soundTable';
 export { registerTakes, hasTakes } from './audio/sampleBank';
+export { Footsteps, type FootstepOptions, type SurfaceSounds } from './audio/Footsteps';
 export { renderRecipe, SYNTH_RATE, type SynthRecipe, type SynthLayer } from './audio/synth';
 
 // ── Input and platform ────────────────────────────────────────────────────────────────────────────────────────────
@@ -99,7 +102,8 @@ export { Actions, PAD_BUTTONS, type Bindings, type ActionsOptions, type PadState
 export { aimAxis } from './input/aimAxis';
 export { stickVector, stickActive, stickToAxis, STICK_DEAD_ZONE, type StickVector } from './input/stickAxis';
 export { LongPress } from './input/longPress';
-export { isTouchUi, setNativeShell } from './platform/touch';
+export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch';
+export { detectTouch, type TouchEnv } from './input/touchDetect';
 
 // ── Networking and simulation ─────────────────────────────────────────────────────────────────────────────────────
 export {
