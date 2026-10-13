@@ -10,6 +10,8 @@ export { FixedLoop, type FixedLoopOptions } from './engine/FixedLoop';
 export {
   World,
   defineComponent,
+  defineFields,
+  entityIndex,
   system,
   type Entity,
   type ComponentType,
@@ -17,6 +19,7 @@ export {
   type SystemContext,
   type SystemPhase,
 } from './ecs/World';
+export type { FieldKind, FieldSpec, FieldsType, FieldValues, Columns } from './ecs/fields';
 export { EventBus } from './events/EventBus';
 export { engineSettings, type EngineSettings } from './settings';
 

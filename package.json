@@ -18,7 +18,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "check": "npm run typecheck && npm test && npm run build",
-    "prepublishOnly": "npm run check"
+    "prepublishOnly": "npm run check",
+    "bench": "node --expose-gc --import tsx bench/ecs.bench.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

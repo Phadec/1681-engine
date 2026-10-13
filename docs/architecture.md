@@ -55,6 +55,19 @@ These came from profiling a real game on phones; keep to them when you add code.
 6. **Lists walked every frame are never mutated while walked.** `World` defers destruction to the end of a run;
    `EventBus` replaces its listener list instead of editing it.
 
+## ECS storage
+
+Each component type is a sparse set: `sparse[slot]` points into packed `entities`/`values` arrays, so a lookup is two
+array reads and a walk is a walk over flat arrays. Field components (`defineFields`) keep their numbers in one typed
+array per field, indexed by slot, and `slots()` caches the matching slot list per set of components, keyed on each
+set's membership version. Measured with `npm run bench` (node 24, one core), a movement step:
+
+| Bodies | Maps (0.1.0) | `each`, objects | `slots`, fields |
+|---|---|---|---|
+| 10,000 | 0.98 ms | 0.07–0.13 ms | 0.02 ms |
+| 50,000 | 21 ms | 0.4–1.3 ms | 0.1 ms |
+| 200,000 | — | — | 0.5 ms |
+
 ## Determinism
 
 `net/movement.ts` is written so a port in another language gives the same doubles: the operation order is fixed,

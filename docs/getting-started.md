@@ -85,6 +85,41 @@ this.world.addSystem(
 Systems run in the order they were added. One that throws is reported on `engine.events` (`'error'`) and the others
 still run.
 
+## 4b. Fast components for many bodies
+
+Object components are easy; for data thousands of bodies carry every step, keep it in typed-array columns and walk
+the cached slot list. This is the fastest path in the engine (0.1 ms a step for 50,000 bodies, see `npm run bench`).
+
+```ts
+import { defineFields, system } from 'dither-engine';
+
+const Position = defineFields('Position', { x: 'f32', y: 'f32' });
+const Velocity = defineFields('Velocity', { x: 'f32', y: 'f32' });
+
+this.world.spawn([Position, { x: 10, y: 20 }], [Velocity, { x: 30 }]);
+
+this.world.addSystem(
+  system('move', 'fixed', ({ world, dt }) => {
+    const p = world.columns(Position); // fetch per run: columns grow as entities are added
+    const v = world.columns(Velocity);
+    const slots = world.slots(Position, Velocity); // cached until an entity joins or leaves
+    for (let k = 0; k < slots.length; k++) {
+      const i = slots[k]!;
+      p.x[i]! += v.x[i]! * dt;
+      p.y[i]! += v.y[i]! * dt;
+    }
+  }),
+);
+```
+
+Which walk to use:
+
+| Walk | Cost | Use for |
+|---|---|---|
+| `for (const [e, a, b] of world.query(A, B))` | a row per entity | anything not hot; the most readable |
+| `world.each(A, B, (e, a, b) => …)` | no allocation | object components walked every step |
+| `world.slots(A, B)` + `world.columns(A)` | a flat loop over typed arrays | numeric data on thousands of bodies |
+
 ## 5. Drawing pixels
 
 `stage.add.pixels()` gives a `PixelLayer`: paint rects or `pixelPaint` shapes into it, then `present()`.

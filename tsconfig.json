@@ -28,6 +28,7 @@
   "include": [
     "src",
     "examples",
+    "bench",
     "vite.config.ts"
   ],
   "exclude": [

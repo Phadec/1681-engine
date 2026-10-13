@@ -5,6 +5,21 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+### Changed
+
+- `World` stores components in sparse sets instead of maps: a query over 50,000 bodies went from 21 ms to 2 ms a
+  step, and spawning and destroying makes a third of the garbage. Entity ids are recycled with a generation, so a
+  stale id never matches the entity that reuses its slot. Entities are walked last-added first.
+- Removing a component while a walk is in progress is deferred like destroying an entity, so nothing is skipped.
+
+### Added
+
+- `world.each(A, B, fn)`: walks without allocating a row per entity.
+- `defineFields(name, { x: 'f32', … })`: numeric components kept in typed-array columns (`world.columns`).
+- `world.slots(A, B)`: the matching slot indices as a cached `Int32Array`, rebuilt only when membership changes.
+  With field components a step over 50,000 bodies takes 0.1 ms, 200 times the first release.
+- `world.count(type)`, `entityIndex(e)`, `npm run bench`.
+
 ## 0.1.0
 
 First release, split out of a shipped game's client.
