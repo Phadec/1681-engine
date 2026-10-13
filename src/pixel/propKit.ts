@@ -3,8 +3,8 @@ import { type Color, PixelGrid, rgba } from './pixel';
 import { hueShade, outlineOf } from './ramp';
 
 /*
- * Pieces shared by every map prop painter (`props.ts`, `buildings.ts`, `streetProps.ts`). A prop is anchored at the
- * bottom-centre of its tile footprint: `anchorX/anchorY` are pixel coordinates inside its canvas.
+ * Pieces for painting map props (trees, rocks, buildings) in code. A prop is anchored at the bottom-centre of its tile
+ * footprint: `anchorX/anchorY` are pixel coordinates inside its canvas.
  */
 
 export interface PropArt {
@@ -43,17 +43,17 @@ export function litOutline(g: PixelGrid, dark: Color = P.outline): void {
 
 /**
  * A soft shadow thrown down and to the right onto the ground, laid only on empty pixels (call it after `litOutline`,
- * or the outline would ring the shadow): a darker core and a fainter rim, the violet of the rocks' shadows.
+ * or the outline would ring the shadow): a darker `core` and a fainter `rim`, by default a translucent violet.
  */
-export function groundShadow(g: PixelGrid, cx: number, cy: number, rx: number, ry: number): void {
+export function groundShadow(g: PixelGrid, cx: number, cy: number, rx: number, ry: number, core: Color = SHADOW_CORE, rim: Color = SHADOW_RIM): void {
   for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++)
     for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
       if (!g.inBounds(x, y) || g.alphaAt(x, y)) continue;
       const dx = (x + 0.5 - cx) / rx;
       const dy = (y + 0.5 - cy) / ry;
       const d = dx * dx + dy * dy;
-      if (d <= 0.55) g.px(x, y, SHADOW_CORE);
-      else if (d <= 1) g.px(x, y, SHADOW_RIM);
+      if (d <= 0.55) g.px(x, y, core);
+      else if (d <= 1) g.px(x, y, rim);
     }
 }
 
@@ -61,8 +61,8 @@ const SHADOW_CORE = rgba(26, 22, 44, 78);
 const SHADOW_RIM = rgba(26, 22, 44, 40);
 /*
  * ── Ramp-shaded pieces ──
- * `shadeBox` shades with hue-shifted ramps (`townPalette.ts`) instead of `shade`; with `litOutline` above, a prop
- * painted with them looks like the rig's people standing next to it.
+ * `shadeBox` shades with hue-shifted ramps (`ramp.ts`) instead of `shade`; with `litOutline` above, a prop painted
+ * with them looks like rig-drawn people standing next to it.
  */
 
 /**

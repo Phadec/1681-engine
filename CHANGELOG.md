@@ -5,6 +5,25 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.2
+
+### Added
+
+- `registerMaterial(name, { light, factors })`: a game adds its own materials to the hue-shifted ramps, or changes a
+  built-in one. `Material` is the built-in set (`BuiltinMaterial`) or any registered name; `MATERIALS` and
+  `RAMP_FACTOR_SET` (now exported) include what is registered.
+- `registerHandRamps(…)`: ramps picked by hand for a game's own effect colours.
+- `lantern-engine/pixel/tone` and `lantern-engine/pixel/paint`: the pixel shapes and the colour/dither helpers as
+  named exports (`pixelPaint` and `pixelTone` remain namespaces of `lantern-engine/pixel`).
+- `selectiveOutline(g, width, dark)` and `groundShadow(g, cx, cy, rx, ry, core, rim)` take their colours.
+- A test that fails on a game's names or language anywhere in the engine, and "The engine knows no game" in the
+  architecture guide.
+
+### Changed
+
+- `pixelTone.ramp` has no hand-picked ramps built in any more (they were one game's effect colours): every colour is
+  `derivedRamp` until a game registers its own.
+
 ## 0.5.1
 
 ### Changed

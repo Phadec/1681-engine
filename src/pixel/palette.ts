@@ -1,6 +1,10 @@
 import { hex } from './pixel';
 
-/** Shared colour palette: warm medieval fantasy tones, readable on green ground. */
+/**
+ * The default palette (`PALETTE` from `lantern-engine/pixel`): warm fantasy tones, readable on green ground. It is a
+ * starting point, not a rule: a game brings its own colours, and the helpers that use one of these (an outline, a
+ * shadow) take the colour as a parameter.
+ */
 export const P = {
   outline: hex('#1a1220'),
   outlineSoft: hex('#2e2233'),

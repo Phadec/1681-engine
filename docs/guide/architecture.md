@@ -43,6 +43,26 @@ The core never imports `pixel/`; `src/architecture.test.ts` fails if it does. `e
 the Tiled reader import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
 where a server can import the movement and collision code from.
 
+## The engine knows no game
+
+Lantern grew out of one game, and it stays useful to the next one only if nothing in it belongs to that game. What
+differs between games is a parameter or something the game hands in at start-up, never a table written into the
+engine:
+
+| A game brings | Through |
+|---|---|
+| its materials (glass, slime, bark…) or other shading for a built-in one | `registerMaterial(name, { light, factors })` |
+| ramps picked by hand for its effect colours | `registerHandRamps([[colour, { hi, light, deep, shade }], …])` |
+| its sounds: synth recipes and recorded takes | `registerSounds`, `registerTakes` |
+| the letters its labels print beyond ASCII | `addLabelGlyphs` |
+| its colours for outlines and shadows | the `dark` / `core` / `rim` parameters of `selectiveOutline`, `litOutline`, `groundShadow`; `PALETTE` is only a default |
+| its settings (volume, reduced effects, battery saver) | `engineSettings.set`, mirrored from its own store |
+| which presses its pointer ignores, whether it is a native shell | `Pointer.ignorePress`, `setNativeShell` |
+
+Something belongs in the engine when a second game would use it as it is; anything named after a game's content (its
+classes, regions, items, people) stays in that game. `src/architecture.test.ts` fails on a game's names or on text
+in a game's language anywhere in `src/`.
+
 ## Rules that keep it fast
 
 These came from profiling a real game on phones; keep to them when you add code.

@@ -14,7 +14,13 @@ import {
   type MoverState,
   type MovementParams,
 } from '../../src';
-import { addPixelLayer, pixelPaint, type PixelLayer } from '../../src/pixel';
+import { addPixelLayer, pixelPaint, registerHandRamps, type PixelLayer } from '../../src/pixel';
+
+// the hero's two colours shaded by hand rather than by the formula: a game picks ramps like these for its own colours
+registerHandRamps([
+  [0xc8a0ff, { hi: 0xfbf0ff, light: 0xe6cdfc, deep: 0x8456c8, shade: 0x3e2466 }],
+  [0xffd98a, { hi: 0xfffbe6, light: 0xffecb8, deep: 0xc8963e, shade: 0x6a4424 }],
+]);
 
 /*
  * The smallest whole game: an engine, one scene, three components and three systems. A box walks a walled room

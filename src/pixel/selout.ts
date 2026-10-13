@@ -1,5 +1,5 @@
 import { P } from './palette';
-import type { PixelGrid } from './pixel';
+import type { Color, PixelGrid } from './pixel';
 import { outlineOf } from './ramp';
 
 /*
@@ -7,10 +7,11 @@ import { outlineOf } from './ramp';
  * one ring outside the silhouette per grid pixel of `width` — so nothing about the silhouette changes, only the
  * colour of the ring: where the body turns away from the light (the back, facing left of a body facing right) and
  * where it stands on the ground (under the feet, under an arm) the ring stays full dark; on the lit side (the front
- * and the top of the head and shoulders) it takes the dark tone of the fill it borders (`outlineOf`). A hard black
- * line all round a 20x24 body is a sticker; a line that is the coat's own darkest shade on its lit side is a body.
+ * and the top of the head and shoulders) it takes the dark tone of the fill it borders (`outlineOf`). `dark` is the
+ * full-dark ring's colour (the default palette's outline unless a game passes its own). A hard black
+ * line all round a small pixel body is a sticker; a line that is the coat's own darkest shade on its lit side is a body.
  */
-export function selectiveOutline(g: PixelGrid, width = 1): void {
+export function selectiveOutline(g: PixelGrid, width = 1, dark: Color = P.outline): void {
   const { w, h, data } = g;
   const solid = new Uint8Array(data.length);
   let x0 = w, y0 = h, x1 = -1, y1 = -1;
@@ -37,7 +38,7 @@ export function selectiveOutline(g: PixelGrid, width = 1): void {
       const below = y + 1 < h && solid[i + w] === 1;
       if (!(above || right || left || below)) continue;
       // under the body or behind it: full dark; in front of it or over it: the fill's own darkest tone
-      data[i] = above || right ? P.outline : outlineOf(data[left ? i - 1 : i + w]!);
+      data[i] = above || right ? dark : outlineOf(data[left ? i - 1 : i + w]!);
       frontier.push(i);
     }
   for (const i of frontier) solid[i] = 1;

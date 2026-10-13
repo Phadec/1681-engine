@@ -1,18 +1,23 @@
 import { type Color, channels, mix, rgba, shade } from './pixel';
 
 /*
- * Hue-shifted ramps: the one place a character's colours get their shadows and lights. At 20x24 a body cannot get
+ * Hue-shifted ramps: the one place a character's colours get their shadows and lights. A small pixel body cannot get
  * detail from extra pixels, so it gets it from colour — a shadow that only darkens reads as dirt, a light that only
  * whitens reads as chalk. Here a shadow drifts toward its material's cool (or, for skin and leather, warm red) hue
  * and gains a little saturation; a light drifts toward warm yellow and loses a little. Everything the rig paints
  * goes through `hueShade`.
+ *
+ * The materials below are built in; a game adds its own (glass, slime, bark…) with `registerMaterial`, or changes how a
+ * built-in one shades by registering it again. A material nobody registered shades as cloth.
  */
 
-export type Material = 'cloth' | 'leather' | 'mail' | 'plate' | 'dragon' | 'fur' | 'skin' | 'hair' | 'gold' | 'gem' | 'shadow';
+/** The materials every game starts with. */
+export type BuiltinMaterial = 'cloth' | 'leather' | 'mail' | 'plate' | 'dragon' | 'fur' | 'skin' | 'hair' | 'gold' | 'gem' | 'shadow';
+/** A built-in material or one a game registered (`registerMaterial`). */
+export type Material = BuiltinMaterial | (string & {});
 
-export const MATERIALS: readonly Material[] = ['cloth', 'leather', 'mail', 'plate', 'dragon', 'fur', 'skin', 'hair', 'gold', 'gem', 'shadow'];
-
-interface Light {
+/** How a material's shadows and lights move its hue. */
+export interface MaterialLight {
   /** Hue (degrees) a shadow drifts toward, and how far it drifts at a factor of 0.5. */
   cool: number;
   coolDeg: number;
@@ -23,7 +28,7 @@ interface Light {
   warmDeg: number;
 }
 
-const LIGHT: Record<Material, Light> = {
+const LIGHT: Record<string, MaterialLight> = {
   // wool and linen: violet shadows, faintly warm lights
   cloth: { cool: 255, coolDeg: 14, coolSat: 0.06, warm: 50, warmDeg: 6 },
   // hide: its shadows go red-brown, never grey
@@ -55,8 +60,11 @@ export interface Ramp {
   glint: Color;
 }
 
+/** Five shading factors, darkest to brightest. */
+export type RampFactors = [number, number, number, number, number];
+
 /** The factors each material's ramp is built from: metal is contrasty, fur and skin are soft. */
-const RAMP_FACTORS: Record<Material, [number, number, number, number, number]> = {
+const RAMP_FACTORS: Record<string, RampFactors> = {
   cloth: [0.5, 0.66, 0.82, 1.12, 1.25],
   leather: [0.46, 0.62, 0.8, 1.16, 1.3],
   mail: [0.44, 0.6, 0.78, 1.22, 1.42],
@@ -70,8 +78,28 @@ const RAMP_FACTORS: Record<Material, [number, number, number, number, number]> =
   shadow: [0.5, 0.66, 0.82, 1.12, 1.25],
 };
 
+/** Every registered material, built-in ones first. */
+export const MATERIALS: readonly Material[] = Object.keys(LIGHT);
+
 /** Every factor a ramp or a painter shades by — what a recolour or a fine-pass mask has to recognise. */
 export const RAMP_FACTOR_SET: readonly number[] = [...new Set(Object.values(RAMP_FACTORS).flat())];
+
+/**
+ * Adds a material, or changes a built-in one: how its shadows and lights drift (`light`) and the five factors its
+ * ramp is built from, darkest to brightest (`factors`, around 1: below darkens, above lifts). Register before painting
+ * with it; tones already worked out for that material are forgotten.
+ */
+export function registerMaterial(name: string, material: { light: MaterialLight; factors: RampFactors }): void {
+  LIGHT[name] = material.light;
+  RAMP_FACTORS[name] = material.factors;
+  if (!(MATERIALS as Material[]).includes(name)) (MATERIALS as Material[]).push(name);
+  const factors = RAMP_FACTOR_SET as number[];
+  for (const f of material.factors) if (!factors.includes(f)) factors.push(f);
+  for (const cache of [CACHE, RAMPS] as Map<string, unknown>[]) for (const key of [...cache.keys()]) if (key.endsWith(`:${name}`)) cache.delete(key);
+}
+
+const lightOf = (m: Material): MaterialLight => LIGHT[m] ?? LIGHT.cloth!;
+const factorsOf = (m: Material): RampFactors => RAMP_FACTORS[m] ?? RAMP_FACTORS.cloth!;
 
 function toHsv(c: Color): [number, number, number] {
   const [r, g, b] = channels(c);
@@ -119,7 +147,7 @@ export function hueShade(c: Color, f: number, material: Material): Color {
   const key = `${c}:${f}:${material}`;
   let out = CACHE.get(key);
   if (out !== undefined) return out;
-  const L = LIGHT[material];
+  const L = lightOf(material);
   const plain = shade(c, f);
   const [h, s, v] = toHsv(plain);
   const a = plain >>> 24;
@@ -149,7 +177,7 @@ export function ramp(c: Color, material: Material): Ramp {
   const key = `${c}:${material}`;
   let r = RAMPS.get(key);
   if (!r) {
-    const [deep, dark, mid, light, glint] = RAMP_FACTORS[material].map((f) => hueShade(c, f, material)) as [Color, Color, Color, Color, Color];
+    const [deep, dark, mid, light, glint] = factorsOf(material).map((f) => hueShade(c, f, material)) as [Color, Color, Color, Color, Color];
     r = { deep, dark, mid, base: c, light, glint };
     RAMPS.set(key, r);
   }

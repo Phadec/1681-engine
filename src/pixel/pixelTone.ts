@@ -56,43 +56,18 @@ function drift(h: number, target: number, amount: number): number {
 }
 
 /**
- * Ramps picked by hand for the colours the kits are built on — a kit module paints its crescents, rings and trails in
- * one material colour and lets the shapes shade themselves, so without these every shade of a kit was the formula's
- * . `ramp` of one of these colours returns its hand ramp; every other colour
- * gets `derivedRamp`. `base` is always the colour itself.
+ * Ramps picked by hand for the colours a game's effects are built on (`registerHandRamps`): an effect paints its
+ * crescents, rings and trails in one material colour and lets the shapes shade themselves, so a hand ramp is how a
+ * game's own colours get shades better than the formula's. `ramp` of one of these colours returns its hand ramp;
+ * every other colour gets `derivedRamp`. `base` is always the colour itself.
  */
-const HAND_RAMPS = new Map<number, Omit<Ramp, 'base'>>([
-  // arcane violet
-  [0xc8a0ff, { hi: 0xfbf0ff, light: 0xe6cdfc, deep: 0x8456c8, shade: 0x3e2466 }],
-  // straw and bone (the hunters' arrows)
-  [0xe8d8a0, { hi: 0xfffbe8, light: 0xf6ecc4, deep: 0xb09a62, shade: 0x5a4a30 }],
-  // dusk violet
-  [0xb070ff, { hi: 0xf4e6ff, light: 0xd4b0ff, deep: 0x7040b8, shade: 0x301a5a }],
-  // cold sky steel
-  [0x9fe6ff, { hi: 0xf4fcff, light: 0xd0f4ff, deep: 0x5a9ac8, shade: 0x243e6a }],
-  // bright steel
-  [0xe0e0f0, { hi: 0xffffff, light: 0xf2f2fa, deep: 0x9a9cb6, shade: 0x4a4a64 }],
-  // wind over grass
-  [0xa8f0c0, { hi: 0xf0fff4, light: 0xd4fae0, deep: 0x5eb088, shade: 0x245a46 }],
-  // holy gold
-  [0xffd98a, { hi: 0xfffbe6, light: 0xffecb8, deep: 0xc8963e, shade: 0x6a4424 }],
-  // judgement gold
-  [0xffe08a, { hi: 0xfffbe2, light: 0xfff0bc, deep: 0xd0a044, shade: 0x704a22 }],
-  // trap amber
-  [0xffc040, { hi: 0xfff4d0, light: 0xffe090, deep: 0xc07a20, shade: 0x6a3a16 }],
-  // hunter's gold
-  [0xd0b070, { hi: 0xfff6dc, light: 0xecd6a0, deep: 0x8e7040, shade: 0x4a3a24 }],
-  // war-cry amber
-  [0xffb13b, { hi: 0xfff0cc, light: 0xffd488, deep: 0xc0701e, shade: 0x683414 }],
-  // moonlit silver-blue
-  [0xa0b0ff, { hi: 0xf2f4ff, light: 0xd0d8ff, deep: 0x5e6ac8, shade: 0x2a2e6a }],
-  // blood
-  [0xff4a3a, { hi: 0xffe0d4, light: 0xff9a86, deep: 0xa81e22, shade: 0x4e0c16 }],
-  // pale violet steel
-  [0xe0d0ff, { hi: 0xfbf6ff, light: 0xf0e8ff, deep: 0x9a86c8, shade: 0x4a3a6e }],
-]);
+const HAND = new Map<number, Ramp>();
 
-const HAND = new Map<number, Ramp>([...HAND_RAMPS].map(([c, r]) => [c, { ...r, base: c }]));
+/** Gives these colours ramps picked by hand (darkest `shade` … brightest `hi`); a colour registered again is replaced. */
+export function registerHandRamps(ramps: Iterable<readonly [number, Omit<Ramp, 'base'>]> | Record<number, Omit<Ramp, 'base'>>): void {
+  const entries = Symbol.iterator in ramps ? ramps : Object.entries(ramps).map(([c, r]) => [Number(c), r] as const);
+  for (const [c, r] of entries) HAND.set(c, { ...r, base: c });
+}
 
 export function ramp(color: number): Ramp {
   return HAND.get(color) ?? derivedRamp(color);

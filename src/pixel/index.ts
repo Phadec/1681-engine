@@ -27,13 +27,27 @@ export {
 } from './pixel';
 export { P as PALETTE } from './palette';
 export { art, litOutline, groundShadow, shadeBox, type PropArt } from './propKit';
-export { ramp, rampTones, hueShade, outlineOf, MATERIALS, type Material, type Ramp } from './ramp';
+export {
+  ramp,
+  rampTones,
+  hueShade,
+  outlineOf,
+  registerMaterial,
+  MATERIALS,
+  RAMP_FACTOR_SET,
+  type Material,
+  type BuiltinMaterial,
+  type MaterialLight,
+  type RampFactors,
+  type Ramp,
+} from './ramp';
 export { selectiveOutline } from './selout';
 
 /** Pixel shapes on the 1-px world grid: `pixelPaint.ring(g, …)`, `pixelPaint.arc(g, …)`… */
 export * as pixelPaint from './pixelPaint';
 /** Colour ramps, grading, dithering and batching under `pixelPaint`. */
 export * as pixelTone from './pixelTone';
+export { registerHandRamps } from './pixelTone';
 export { Evaporation, type DeathPixels } from './Evaporation';
 export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './spritePixels';
 
