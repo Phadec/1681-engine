@@ -68,7 +68,8 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 npm install lantern-engine pixi.js
 ```
 
-`pixi.js` (8.6 or later) is a peer dependency. The package is ESM only and ships its TypeScript types.
+`pixi.js` (8.6 or later) is a peer dependency. The package is ESM only and ships its TypeScript types. On a server
+(the multiplayer `Room`) it needs Node 22 or later.
 
 The engine renders with **WebGL 2** by default. `Engine.create({ preference: 'webgpu' })` opts into WebGPU, which
 is experimental here: it falls back to WebGL where the browser lacks it, but has not been profiled the way the WebGL

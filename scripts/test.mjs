@@ -1,5 +1,5 @@
-// Runs every src/**/*.test.ts under node's test runner. The file list is found here because `node --test` only
-// expands glob patterns itself from Node 21, and the engine supports Node 20.
+// Runs every src/**/*.test.ts under node's test runner, with the file list found here rather than left to a glob
+// pattern, whose expansion differs between Node versions and shells.
 import { spawnSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
