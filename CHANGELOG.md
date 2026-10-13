@@ -5,6 +5,14 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.0
+
+### Fixed
+
+- The bundled audio worker (`takeCleanerWorker`) is found again by a game's own bundler: 0.4.0 wrote its URL as an
+  absolute `/assets/…`, so Vite failed to build any game importing the engine (`Could not resolve entry module`). The
+  library is now built with a relative base and the worker sits beside the module that loads it.
+
 ## 0.4.0
 
 ### Changed
