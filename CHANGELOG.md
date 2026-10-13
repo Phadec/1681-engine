@@ -5,6 +5,21 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.3.0
+
+### Added
+
+- Characters: `RigView` draws a rig from cut-out images or vector shapes (origin at the feet, mirrored by `facing`,
+  joints readable for held items); `PosePlayer` blends key poses with crossfades between clips; `HUMANOID_POSES` (72)
+  and `HUMANOID_CLIPS`.
+- `LightLayer`: smooth darkness with soft lights, colour washes and flicker.
+- `music` / `MusicPlayer`: streamed tracks, crossfaded, looping, at the music volume, iOS-safe.
+- Multiplayer: the netcode protocol, `PredictedMover` (prediction and reconciliation), `InterpolationBuffer`, an
+  authoritative `Room` with input validation and flood limits, `RoomHost` for any Node WebSocket library, and a
+  client `Connection` with batching, clock sync and reconnection. Tested end to end with simulated latency and jitter,
+  and through real sockets in the example.
+- Examples `night-garden` (smooth art, rig, lights) and `multiplayer` (`npm run example:server`).
+
 ## 0.2.0
 
 The engine is now **Lantern Engine** (`lantern-engine`), for 2D games in any art style; the pixel-art tools moved to

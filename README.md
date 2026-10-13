@@ -52,9 +52,10 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Input** | `Actions`: named actions bound to keys, gamepad buttons and sticks, and on-screen touch buttons, with per-step edges and analog values. `Keyboard`, stick maths, long press, touch detection. |
 | **Camera** | Zoom, bounds, shake, flash, and `track` with a soft follow that is the same at any frame rate, a deadzone and an offset. |
 | **Rendering** | `Stage` with world and screen layers, display objects, tweens, timers, bitmap labels, a texture atlas that splits pages by the GPU's limit, guards that keep one bad frame from stopping the loop. |
-| **Characters** | A 2D skeleton rig (`Skeleton`, pose blending and overlays) with a built-in humanoid. |
-| **Audio** | Web Audio `sound` engine: synthesized recipes, recorded takes cleaned in a worker, voice limiting, distance attenuation and muffling, stereo panning, iOS unlock handling. |
-| **Networking** | Deterministic tile movement with dodge rolls, a 16-byte binary snapshot record codec, action cadence rules that forgive jitter without letting clients cheat, a server clock estimator. |
+| **Characters** | A 2D skeleton rig drawn by `RigView` from cut-out images or vector shapes, `PosePlayer` blending key poses with crossfades, and a built-in humanoid with 72 poses and ready clips (idle, walk, run, roll, slash, thrust, cast, throw, emotes). |
+| **Light** | `LightLayer`: smooth darkness with soft radial lights, colour washes and flicker (the pixel module has its own dithered `Darkness`). |
+| **Audio** | Web Audio `sound` engine (synthesized recipes, recorded takes cleaned in a worker, voice limiting, distance muffling, panning) and `music`: streamed tracks crossfaded and looped. iOS unlock handled. |
+| **Multiplayer** | An authoritative `Room` and its socket host for Node, a client `Connection`, `PredictedMover` (prediction and reconciliation over deterministic movement: in tests and in the example the server never has to correct it), `InterpolationBuffer` for everyone else, binary snapshots, clock sync, input validation and flood limits, cadence rules. |
 | **Pixel art** (`/pixel`) | `PixelLayer` (thousands of pixel rects in one pooled texture), `pixelPaint` shapes shaded from hue-shifted ramps and faded by ordered dither, `Darkness` with dithered lamps and transient lights, `Evaporation`, the selective outline. |
 
 ## Install
@@ -71,11 +72,13 @@ path has.
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md): an engine, a scene, entities and systems, assets, a Tiled map, input
-  and the camera, step by step.
+- [Getting started](docs/getting-started.md): an engine, a scene, entities and systems, assets, a Tiled map, input,
+  the camera, a rigged character, light and music, and multiplayer, step by step.
 - [Architecture](docs/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
 - [Examples](examples/), run with `npm run dev`:
   - `top-down`: a Tiled map, asset loading, an animated hero, input actions on keyboard, gamepad and touch, camera follow.
+  - `night-garden`: smooth vector art, a rigged hero animated by blended poses, a lantern and fireflies in the dark.
+  - `multiplayer`: `npm run example:server`, then two tabs: prediction, reconciliation and interpolation.
   - `walk-room`: the smallest whole game, with pixel effects.
 
 ## Develop

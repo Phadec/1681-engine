@@ -192,6 +192,86 @@ system('halo', 'frame', ({ now }) => {
 It also holds `Darkness` (night and caves lit by dithered lamps), `Evaporation` (a body dissolving into its own
 pixels) and the colour ramps. [`examples/walk-room`](../examples/walk-room/main.ts) uses them.
 
+## 10. Characters from a rig
+
+A rig is a skeleton posed by bone angles; `RigView` draws it with cut-out images or vector shapes, and `PosePlayer`
+blends between key poses so a few keys make a smooth motion. The built-in humanoid comes with 72 poses and clips.
+
+```ts
+import { RigView, PosePlayer, HUMANOID_RIG, HUMANOID_POSES, HUMANOID_CLIPS } from 'lantern-engine';
+
+const hero = new RigView(HUMANOID_RIG, { torso: { color: 0x7a4ab0 } }, undefined, { scale: 3 }); // or { texture: 'arm' } per part
+this.root.addChild(hero);
+const poses = new PosePlayer(HUMANOID_POSES, HUMANOID_CLIPS, 'idle');
+
+// each frame:
+poses.play(moving ? 'walk' : 'idle', { fadeMs: 120 });
+poses.update(dt);
+hero.setPose(poses.pose);
+hero.facing = goingLeft ? -1 : 1;
+```
+
+## 11. Light and music
+
+```ts
+import { LightLayer, music } from 'lantern-engine';
+
+const night = new LightLayer(this.engine.stage, { darkness: 0.88 });
+const lantern = night.add({ x: 0, y: 0, radius: 140, color: 0xffb060, flicker: 0.06 });
+// each frame: lantern.x = hero.x; lantern.y = hero.y - 30; night.update();
+
+music.play('music/night.ogg'); // starts on the first tap or key; crossfades when another track plays
+```
+
+Pixel-art games use the pixel module's dithered `Darkness` instead. [`examples/night-garden`](../examples/night-garden/main.ts)
+puts the rig, the lights and smooth vector art together.
+
+## 12. Multiplayer
+
+The server is authoritative: clients send input steps, the server moves everyone with the same `stepMover` and sends
+snapshots. Each client predicts its own body (no lag on its own keys) and draws everyone else a little in the past,
+between snapshots. Because movement is deterministic, a prediction replayed on the server's word lands exactly where
+it was: in practice the server never has to correct it.
+
+**Server** (Node, any WebSocket library; `ws` here):
+
+```ts
+import { WebSocketServer } from 'ws';
+import { Room, RoomHost } from 'lantern-engine';
+
+const room = new Room({ grid: GRID, params: PARAMS, spawn: () => ({ x: 64, y: 64 }) });
+const host = new RoomHost(room, { admit: (hello) => validate(hello) }); // throw to refuse a player
+new WebSocketServer({ port: 5181 }).on('connection', (ws) => {
+  const id = host.connect(ws);
+  ws.on('message', (data, binary) => host.message(id, binary ? new Uint8Array(data) : data.toString()));
+  ws.on('close', () => host.disconnect(id));
+});
+host.start(); // 60 steps and 20 snapshots a second
+```
+
+**Client:**
+
+```ts
+import { Connection, PredictedMover, InterpolationBuffer, serverNow } from 'lantern-engine';
+
+const conn = new Connection('ws://localhost:5181', { hello: () => ({ name: 'Ash' }) }).connect();
+const others = new InterpolationBuffer(100);
+let me: PredictedMover | null = null;
+conn.events.on('snapshot', (s) => {
+  me ??= new PredictedMover(s.me![0], s.me![1], PARAMS, GRID);
+  me.reconcile(s.ack, s.me!); // rewind to the server's word, replay what it has not seen yet
+  others.push(s.time, s.up!); // s.sp: bodies that came into view; s.rm: bodies that left
+});
+
+// each fixed step: conn.queueInput(me.step(step), step);
+// each frame: conn.flush(); me.smooth(dt); draw me at (me.drawX, me.drawY), others at others.sample(id, serverNow())
+```
+
+Share the map and `MovementParams` between server and client (one module both import), or predictions will disagree.
+`Room` refuses input no client sends (NaN, axes past 1, floods), never runs more than a few steps a tick for one
+player, and `RoomHost` disconnects whoever keeps sending nonsense. [`examples/multiplayer`](../examples/multiplayer/)
+is the whole thing: `npm run example:server`, then open it in two tabs.
+
 ## Next
 
 - [Architecture](architecture.md) for how the pieces fit together.

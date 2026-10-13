@@ -1,6 +1,6 @@
 {
   "name": "lantern-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -23,14 +23,17 @@
     "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "check": "npm run typecheck && npm test && npm run build",
     "prepublishOnly": "npm run check",
-    "bench": "node --expose-gc --import tsx bench/ecs.bench.ts"
+    "bench": "node --expose-gc --import tsx bench/ecs.bench.ts",
+    "example:server": "tsx examples/multiplayer/server.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/ws": "^8.18.2",
+    "pixi.js": "^8.21.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
-    "pixi.js": "^8.21.0"
+    "ws": "^8.22.0"
   },
   "license": "MIT",
   "keywords": [

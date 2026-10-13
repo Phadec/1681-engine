@@ -136,3 +136,9 @@ export {
 } from './net/snapshotCodec';
 export { CADENCE, cadenceEarly, cadenceNext } from './net/cadence';
 export { serverNow, serverOffset, noteServerTime, resetServerClock } from './net/serverClock';
+export { PredictedMover } from './net/PredictedMover';
+export { InterpolationBuffer, type InterpolatedState } from './net/InterpolationBuffer';
+export { Room, type RoomPlayer, type RoomOptions } from './net/Room';
+export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';
+export { Connection, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export { moverToWire, moverFromWire, type ClientMessage, type ServerMessage, type Snapshot, type SpawnInfo, type MoverWire } from './net/protocol';

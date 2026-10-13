@@ -31,11 +31,12 @@ frame, so without the guard one bad frame stops the game for good.
 | `assets/` | `tilemap` | `AssetLoader` |
 | `tilemap/` | `net` (collision), `core` (view) | the Tiled reader, collision, `TilemapView` |
 | `anim/` | `ecs`, `core` | `Animator`, the animation system |
-| `rig/` | — | skeleton, pose maths, the humanoid |
+| `rig/` | — (`RigView`: pixi.js) | skeleton, pose maths, `PosePlayer`, the humanoid's poses and clips, `RigView` |
+| `light/` | `core` | `LightLayer` |
 | `fx/` | — | hit-stop and recoil curves, view culling |
 | `audio/` | Web Audio | `sound`, synth, sample bank |
 | `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection |
-| `net/` | — (pure) | movement, snapshot codec, cadence, server clock |
+| `net/` | — (pure; `Connection`: WebSocket) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
 | `pixel/` | the core | the pixel-art module (`lantern-engine/pixel`): `PixelLayer`, `pixelPaint`, ramps, `Darkness`, `Evaporation` |
 
 The core never imports `pixel/`; `src/architecture.test.ts` fails if it does. `ecs/`, `events/`, `net/`, `rig/` and
