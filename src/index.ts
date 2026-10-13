@@ -73,6 +73,12 @@ export { Skeleton } from './rig/Skeleton';
 export { HUMANOID_RIG } from './rig/humanoid';
 export { blendPose, overlay, upperOver } from './rig/poseMath';
 export type { RigDef, RigPose, Limb, Face, Joints, Point as RigPoint } from './rig/rigTypes';
+export { HUMANOID_POSES, HUMANOID_CLIPS, type HumanoidClip } from './rig/humanoidPoses';
+export { PosePlayer, type PoseClip } from './rig/PosePlayer';
+export { RigView, RIG_PARTS, type RigPart, type PartSkin, type RigSkin, type RigViewOptions } from './rig/RigView';
+
+// ── Light ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+export { LightLayer, type Light, type LightLayerOptions } from './light/LightLayer';
 
 // ── Game feel ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export { hitStopMs, recoilPx, recoilAt, RECOIL_MS, hurtFlashMs, hurtFlashGapMs, HEAVY_FLASH_GAP_MS } from './fx/hitStop';
@@ -80,6 +86,7 @@ export { inView } from './fx/viewCull';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 export { sound } from './audio/SoundEngine';
+export { music, MusicPlayer, type PlayOptions as MusicOptions } from './audio/MusicPlayer';
 export { registerSounds, type SoundTable } from './audio/soundTable';
 export { registerTakes, hasTakes } from './audio/sampleBank';
 export { renderRecipe, SYNTH_RATE, type SynthRecipe, type SynthLayer } from './audio/synth';
