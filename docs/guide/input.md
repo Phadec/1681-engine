@@ -105,6 +105,31 @@ What is already held when the capture opens (the Enter or pad A that chose the r
 go; a stick counts once pushed past `axisThreshold` (0.6), so drift never binds; a captured key never reaches the
 game's own handlers. `padLabel` names pad bindings ("A", "Left stick left"); pass `names` for a game's own.
 
+## Recording and replaying input
+
+`InputRecorder` keeps an `Actions`' every step as an `InputTape`, plain JSON with only the changes in it (a held key
+costs nothing a step). `InputPlayer` plays one back: each `poll` takes the next step from the tape instead of the
+devices, and when it ends the devices answer again.
+
+```ts
+import { InputRecorder, InputPlayer } from '1681-engine';
+
+// record from the start of a run, with what the run needs to start the same
+const rec = new InputRecorder(actions, { seed, level: 'forest-2', build: version });
+// a crash, or "report a bug": the tape goes with the report
+report.input = rec.stop();
+
+// a developer opens it
+const tape = report.input;
+startRun(tape.meta!.seed, tape.meta!.level);
+new InputPlayer(tape).playInto(actions, () => console.log('replay over'));
+```
+
+Values are kept whole, so the replay reads exactly what the player gave. It plays the same game only when the game is
+deterministic given its input: step it on the fixed loop, seed its randomness from `meta`, and never read the clock or
+a frame's `dt` in what decides the outcome (the same rule as the [netcode](netcode.md#pitfalls)). `actions.replaying`
+says a replay is driving; `actions.replay(null)` stops it.
+
 ## Stale presses: `Actions.flush` and `Scene.useInput`
 
 While a pause menu sits over a level, the level's `Actions` is not polled. A key pressed in the menu would otherwise

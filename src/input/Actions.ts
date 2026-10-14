@@ -60,6 +60,10 @@ export class Actions<A extends string> {
   private readonly chords = new Map<string, KeyChord | null>();
   /** Keys a chord holds this step: their bare bindings read 0 until the key comes up. */
   private readonly claimed = new Set<string>();
+  /** Where `poll` takes its values from instead of the devices (a replay), until it returns null. */
+  private source: (() => ReadonlyMap<A, number> | null) | null = null;
+  /** Handed every step's values after `poll` (a recorder). */
+  private readonly taps = new Set<(values: ReadonlyMap<A, number>) => void>();
   private readonly keyDown = (code: string) => this.keyboard !== null && (this.keyboard.isDown(code) || this.keyboard.pressed(code));
 
   constructor(
@@ -107,6 +111,40 @@ export class Actions<A extends string> {
   poll(): void {
     [this.before, this.now] = [this.now, this.before];
     this.now.clear();
+    if (this.source) {
+      const values = this.source();
+      if (values) {
+        for (const [action, v] of values) if (v > 0) this.now.set(action, v);
+        for (const tap of this.taps) tap(this.now);
+        return;
+      }
+      // the replay ran out: from here on the devices answer again
+      this.source = null;
+    }
+    this.readDevices();
+    for (const tap of this.taps) tap(this.now);
+  }
+
+  /**
+   * Takes each step's values from `source` instead of the devices (an `InputPlayer`), until it returns null; then
+   * the devices answer again. Pass null to stop at once.
+   */
+  replay(source: (() => ReadonlyMap<A, number> | null) | null): void {
+    this.source = source;
+  }
+
+  /** Whether a replay is driving the actions now. */
+  get replaying(): boolean {
+    return this.source !== null;
+  }
+
+  /** Calls `tap` with every step's values right after `poll` (an `InputRecorder`); returns the stop. */
+  tap(tap: (values: ReadonlyMap<A, number>) => void): () => void {
+    this.taps.add(tap);
+    return () => this.taps.delete(tap);
+  }
+
+  private readDevices(): void {
     const pads = this.gamepads().filter((p): p is PadState => p !== null);
     this.claimChords();
     for (const [action, inputs] of this.bindings) {
