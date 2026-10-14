@@ -11,6 +11,22 @@ npm run check   # typecheck sources and tests, run the tests, build the library
 
 CI runs the same command; a pull request must pass it.
 
+## Browser tests
+
+`npm run check` runs under node only, with fakes for the DOM and Pixi, so it stays fast. What only a real browser can
+answer — WebGL pixels read back after a render, canvas text metrics, `FontFace`, `decodeAudioData`, a window fitted to
+the viewport, fullscreen and pointer lock — is tested in headless Chromium by Vitest's browser mode (Playwright):
+
+```sh
+npx playwright install chromium   # once
+npm run test:browser
+```
+
+The tests live in `test/browser/` (`*.test.ts`, `*.test.tsx`) and import the sources directly. Assert on values: pixels
+read back with `renderAndRead` (`test/browser/gl.ts`, `gl.readPixels` on the canvas), texture sizes, counts, layout
+boxes — never on screenshots. WebGL runs on SwiftShader everywhere (CI has no GPU), so a pixel reads the same on every
+machine. CI runs them in a job of their own.
+
 ## Code
 
 - **TypeScript, strict.** No `any` without a comment saying why.
