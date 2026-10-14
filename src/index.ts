@@ -39,6 +39,7 @@ export { easeByName, type EaseFn } from './core/eases';
 export { ObjectFactory } from './core/ObjectFactory';
 export { Graphics, type Vec2 } from './core/Graphics';
 export { Image } from './core/Image';
+export { solidSilhouette, fillSolid, clearSilhouettes } from './core/silhouette';
 export { Group } from './core/Group';
 export { blendLayer, type BlendLayerOptions } from './core/blendLayer';
 export { Rectangle } from './core/Rectangle';
@@ -100,6 +101,7 @@ export { LightLayer, type Light, type LightLayerOptions } from './light/LightLay
 export { hitStopMs, recoilPx, recoilAt, RECOIL_MS, hurtFlashMs, hurtFlashGapMs, HEAVY_FLASH_GAP_MS } from './fx/hitStop';
 export { FloatingText, type FloatingTextStyle, type FloatingTextOptions, type FloatOptions } from './fx/FloatingText';
 export { inView, type CameraLike } from './fx/viewCull';
+export { Afterimages, type AfterimagesOptions } from './fx/Afterimages';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 export { sound, SoundEngine, type SoundOptions } from './audio/SoundEngine';
