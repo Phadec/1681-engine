@@ -5,6 +5,59 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.9
+
+### Added
+
+- **Platform helpers**: `enterFullscreen`/`exitFullscreen`/`toggleFullscreen`/`isFullscreen`/`fullscreenSupported`/
+  `onFullscreenChange` (with webkit fallbacks), `lockOrientation`/`unlockOrientation`/`currentOrientationKind`,
+  `prefersReducedMotion`/`onReducedMotionChange`/`followReducedMotion`, `requestPointerLock`/`exitPointerLock`/
+  `isPointerLocked`/`onPointerLockChange`, `onAppResume` and `timeoutSignal` (an `AbortSignal.timeout` stand-in for
+  older iOS); each does nothing safely where unsupported.
+- `Engine.create({ pauseWhenHidden, followReducedMotion })` (both off by default): pause while the page is hidden with
+  no catch-up steps on return, and copy the system's reduced-motion setting into `engineSettings.reducedFx`.
+  `HiddenPause` holds the rule on its own.
+- **Gamepad rumble**: `rumble`, `rumblePad`, `stopRumble`, `rumbleParams` and `Actions.rumble`. `Pointer` gains
+  `lock`, `unlock`, `locked` and `takeMovement` for mouse-look.
+- **`AssetLoader`** loads `atlas` (TexturePacker/Pixi JSON, hash or array, multipack, trimmed and rotated frames;
+  `getAtlas`), `font` (a `FontFace` into `document.fonts`) and `audio` (`getAudio`/`decodeAudio`, decoded through the
+  sound context or kept until one exists). `parseAtlas`, `collectAtlasPages`, `duplicateFrames`,
+  `TextureRegistry.addAtlas`, `CanvasTexture.addPacked`, `SoundEngine.audioContext`.
+- **`RichText`** (`1681-engine/ui`): inline markup for colour, bold, italic, size and icons, wrapped and aligned, on
+  canvas or bitmap fonts; the pure `parseRichText`, `escapeRichText`, `stripRichText` and `layoutRichText`.
+- **Hit flashes and dash ghosts without a filter pass**: `solidSilhouette`, `fillSolid`, `clearSilhouettes` and pooled
+  `Afterimages`.
+- **Pixel-art zoom maths**: `worldZoom`, `baseZoom`, `zoomSteps`, `zoomResolution`, `fitScale` (whole steps and an
+  optional half step with the resolution that keeps a world pixel whole).
+- `blendLayer`: one container per stage for additive sprites, so they do not split batches.
+- In `1681-engine/pixel`: `spark`, `tail`, `pixelOn`; `PixelMarks` and `aimPixels` (chevron aim lines and lock rings
+  in world pixels).
+- `Connection`: `fatalCloseCodes` (close codes that never reconnect) and `resumeProbeMs` (a socket that does not answer
+  a ping after the app returns from the background is dropped with `CLOSE_NO_ANSWER` and reconnected);
+  `reconnectDelay` and `shouldReconnect`.
+- Guide pages: assets, platform, ECS, rig, tilemaps, audio, rich text, netcode.
+
+### Changed
+
+- Movement numbers no longer need a fork: `MovementParams` takes `dashFlag` and `stepDt` (defaults `INPUT_FLAG_DASH`,
+  1/60 s); the tile size and body half extents were already the grid's. `TILE_SIZE`, `BODY_HALF_*` and
+  `INPUT_FLAG_DASH` are kept as the defaults.
+- `Darkness` takes `{ carriedLight }` (default `CARRIED_LIGHT`, 80) and `update()`'s radius defaults to it; the pixel
+  module no longer imports `net/`.
+- `Clock` runs timers without allocating a frame; a timer that throws is reported to `Clock.onError` and dropped.
+- `DrawCallCounter` counts `drawRangeElements` and leaves a later wrapper in place when it uninstalls.
+- A socket replaced by a newer one no longer emits a stale `close`.
+- The package ships no source maps (`ENGINE_SOURCEMAP=1` builds them; they pointed at an unpublished `src/`) and no
+  longer declares `engines.node`; `Room`, `RoomHost` and `LobbyHost` on a server need Node 22 or later. The tarball went
+  from 931 kB to about 420 kB.
+- Typechecks against pixi.js 8.6, the peer floor, tested in CI along with the examples build. Workflows use v5 actions;
+  publishing pins npm 11 and uses no cache.
+
+### Tests
+
+- Golden bytes for the snapshot codec, cadence, `LobbyRooms`, `Connection`, the platform helpers, sparse sets, field
+  columns, sticks, long press, eases, synth, view culling, touch detection, the spatial hash and transient lights.
+
 ## 0.5.8
 
 ### Added
