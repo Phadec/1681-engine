@@ -16,20 +16,26 @@ permissions:
   contents: read
   id-token: write
 
+# one release at a time, and never cancelled halfway through a publish
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ inputs.tag || github.ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 24
+          # no npm cache: a release is built from a clean install, never from a cache another run wrote
           registry-url: https://registry.npmjs.org
-          cache: npm
-      # trusted publishing needs npm 11.5.1 or later
-      - run: npm install -g npm@latest
+          package-manager-cache: false
+      # trusted publishing needs npm 11.5.1 or later; pinned to that line so a new npm major cannot change a release
+      - run: npm install -g npm@^11.5.1
       - name: The tag names the package's version
         run: |
           tag="${{ inputs.tag || github.ref_name }}"
