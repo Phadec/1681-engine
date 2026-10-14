@@ -1,6 +1,6 @@
 name: Publish
 
-# Publishes to npm through Trusted Publishing (OIDC): no token is kept anywhere. npmjs.com → lantern-engine →
+# Publishes to npm through Trusted Publishing (OIDC): no token is kept anywhere. npmjs.com → 1681-engine →
 # Settings → Trusted Publisher names this repository and this file. Push a tag `v<version>` to release; a tag already
 # pushed is published again from Actions → Publish → Run workflow.
 on:

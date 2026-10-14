@@ -20,5 +20,5 @@
   "parametersFormat": "table",
   "entryFileName": "index",
   "gitRemote": "origin",
-  "sourceLinkTemplate": "https://github.com/Phadec/lantern-engine/blob/{gitRevision}/{path}#L{line}"
+  "sourceLinkTemplate": "https://github.com/Phadec/1681-engine/blob/{gitRevision}/{path}#L{line}"
 }

@@ -30,14 +30,20 @@ export interface ComponentType<T> {
 }
 
 let nextComponentId = 0;
+/** Every component type made, by id: what a debugger names a store by. */
+const TYPES: ComponentType<unknown>[] = [];
 
 export function defineComponent<T>(name: string): ComponentType<T> {
-  return { id: nextComponentId++, name };
+  const type = { id: nextComponentId++, name };
+  TYPES[type.id] = type;
+  return type;
 }
 
 /** A component of numeric fields kept in typed-array columns (`fields.ts`): the fast form for data every body has. */
 export function defineFields<const S extends FieldSpec>(name: string, fields: S): FieldsType<S> {
-  return { id: nextComponentId++, name, fields };
+  const type = { id: nextComponentId++, name, fields };
+  TYPES[type.id] = type;
+  return type;
 }
 
 export type SystemPhase = 'fixed' | 'frame';
@@ -119,6 +125,24 @@ export class World {
   isAlive(e: Entity): boolean {
     const index = entityIndex(e);
     return this.inUse[index] === true && this.generations[index] === Math.floor(e / (INDEX_MASK + 1));
+  }
+
+  /** Every live entity, for tools (a debugger, a save); allocates, so not for a per-frame path. */
+  entities(): Entity[] {
+    const out: Entity[] = [];
+    for (let i = 0; i < this.inUse.length; i++) if (this.inUse[i]) out.push(this.generations[i]! * (INDEX_MASK + 1) + i);
+    return out;
+  }
+
+  /** The component types `e` holds, for tools; allocates. */
+  componentsOf(e: Entity): ComponentType<unknown>[] {
+    if (!this.isAlive(e)) return [];
+    const index = entityIndex(e);
+    const out: ComponentType<unknown>[] = [];
+    this.stores.forEach((store, id) => {
+      if (store?.has(index)) out.push(TYPES[id]!);
+    });
+    return out;
   }
 
   /** Live entities. */

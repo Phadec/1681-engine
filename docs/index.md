@@ -2,7 +2,7 @@
 layout: home
 
 hero:
-  name: Lantern Engine
+  name: 1681 Engine
   text: 2D games for the web, any art style
   tagline: Scenes, a fast ECS, Tiled maps, input on every device, rigged characters, light and music, and multiplayer that a server can replay bit for bit. Built on PixiJS 8, in TypeScript. Pixel art gets a module of its own.
   actions:
@@ -30,7 +30,7 @@ features:
   - title: Multiplayer that agrees
     details: An authoritative room for Node, client prediction and reconciliation over deterministic movement, interpolation for everyone else. In tests and over real sockets the server never has to correct a prediction.
   - title: Pixel art, as a module
-    details: lantern-engine/pixel adds pixel-perfect effects on the world's own grid, dithered lighting and bodies that evaporate into their own pixels. Games that don't use it don't ship it.
+    details: 1681-engine/pixel adds pixel-perfect effects on the world's own grid, dithered lighting and bodies that evaporate into their own pixels. Games that don't use it don't ship it.
   - title: Made for a real game
     details: Grown out of a shipped online action RPG; its rules come from profiling it on phones. Strict TypeScript, tested, MIT.
 ---

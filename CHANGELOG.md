@@ -5,6 +5,44 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.5
+
+### Changed
+
+- **Renamed to 1681 Engine**: the package is `1681-engine` (`1681-engine/pixel`, `1681-engine/ui`) and the repository
+  `Phadec/1681-engine`. The pixel module keeps its name, Dither.
+- `World.entities()` and `World.componentsOf(e)` list live entities and what they hold, for tools.
+
+### Added
+
+- **UI** (`1681-engine/ui`): canvas widgets on the stage's screen layer (`UiRoot`, `Panel` 9-slice or colour box,
+  `Button`, `Label`, `Bar` with a delayed drain, `Slider`, `Toggle`, `Stack`, `ScrollView`, `List`, modal `Dialog`),
+  keyboard and gamepad focus through `Actions`, screen anchoring that follows resizes, whole-pixel layout, presses on
+  widgets kept from the world (`UiPointerGate`); a DOM/React bridge (`DomOverlay`, `DomWorldAnchors`, `createStore`,
+  `InputShield`); pure layout maths shared by both (`stackLayout`, `anchorPosition`, `fitToViewport`,
+  `placeTooltip`, `wrapRow`, `listWidth`, scrolling, focus navigation).
+- **Physics**: `PhysicsWorld`, rigid circles and axis-aligned boxes (dynamic, static, kinematic) with restitution,
+  friction, damping, gravity scale, sensors and layers; a grid broad phase, warm-started impulses, sub-steps against
+  tunnelling, optional sleeping; contact events, `grounded`, `raycast`, a `preSolve` hook; `tileBodies` merges a tile
+  grid into static boxes; `syncToBody` draws a view between steps. Not deterministic across machines.
+- **Particles**: `Emitter` (bursts and rates, spread, gravity, drag, size/alpha/tint over life, normal or additive) on
+  one pooled `ParticleContainer`, a shared `ParticleBudget` that thins under `reducedFx`/`batterySaver`, culled off
+  screen; pure `ParticleSim` and curves.
+- **Navigation**: A* `findPath` on any tile grid or `CollisionGrid` (reach radius, extra cost, end-only tiles, no
+  corner cutting), `straightenPath`, `simplifyPath`, `floodFill`, `nearestOpen`, `MinHeap`.
+- **Saves**: `SaveStore` (versioned slots over a pluggable `SaveBackend`, a migration chain, a checksum, the last good
+  copy kept), `Autosaver`.
+- **Scene transitions**: `transitionTo(engine, next, transition, mode)` with `FadeTransition`,
+  `CrossfadeTransition`, `DitherWipeTransition`; `Letterbox`.
+- **Localisation**: `Translator` (English source as key, `|context`, plurals, missing-key callback, runtime switching),
+  `extractStrings`.
+- **Ambient**: `DayClock`, deterministic `weatherAt`, `WeatherLayer`, `ColorGrade`; pixel `NightShade`,
+  `paintWeatherArt`, `SwayProp` (sprites swaying by whole pixels), `DitherVignette`, `nineSlice`/`frameSvg` UI frames.
+- **Input**: `Keymap` (rebinding, reserved keys, saved sets), `AimGesture` (drag-to-aim), `TargetLock`.
+- **Diagnostics and debug**: `watchContextLoss`, `guardRender`, `bootWatch`, `maxTextureSize`, `FrameSampler`,
+  `captureErrors`; `DebugOverlay` (FPS graph, draw calls, entities, collision boxes, the last errors).
+- **`FloatingText`**: pooled bitmap labels for damage numbers and pickups, fonts baked ahead.
+
 ## 0.5.3
 
 ### Added
@@ -13,7 +51,7 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   each crossfaded on its own at its own level; `music.play` is the `'music'` channel. `music.configure({ route,
   pauseInBackground })`: the `<audio>` element's own volume by default, a Web Audio gain only where that volume is
   read-only (iOS) or when asked, and the music stopped while the page is hidden. `MusicChannel`, `elementVolumeLocked`.
-- `paintLayer(stage, { at, duration, paint, depth, alive, every, fps, onCreate })` in `lantern-engine/pixel`: one
+- `paintLayer(stage, { at, duration, paint, depth, alive, every, fps, onCreate })` in `1681-engine/pixel`: one
   effect as its own pixel layer redrawn at 12 fps, following its anchor, dithered away at the end and skipped off
   screen.
 - `Footsteps`: steps and hooves by the surface under the feet, the surface named by the game (`setSurfaceAt`).
@@ -33,8 +71,8 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   built-in one. `Material` is the built-in set (`BuiltinMaterial`) or any registered name; `MATERIALS` and
   `RAMP_FACTOR_SET` (now exported) include what is registered.
 - `registerHandRamps(…)`: ramps picked by hand for a game's own effect colours.
-- `lantern-engine/pixel/tone` and `lantern-engine/pixel/paint`: the pixel shapes and the colour/dither helpers as
-  named exports (`pixelPaint` and `pixelTone` remain namespaces of `lantern-engine/pixel`).
+- `1681-engine/pixel/tone` and `1681-engine/pixel/paint`: the pixel shapes and the colour/dither helpers as
+  named exports (`pixelPaint` and `pixelTone` remain namespaces of `1681-engine/pixel`).
 - `selectiveOutline(g, width, dark)` and `groundShadow(g, cx, cy, rx, ry, core, rim)` take their colours.
 - A test that fails on a game's names or language anywhere in the engine, and "The engine knows no game" in the
   architecture guide.
@@ -93,12 +131,12 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## 0.2.0
 
-The engine is now **Lantern Engine** (`lantern-engine`), for 2D games in any art style; the pixel-art tools moved to
-their own module, **Dither** (`lantern-engine/pixel`).
+The engine is now **1681 Engine** (`1681-engine`), for 2D games in any art style; the pixel-art tools moved to
+their own module, **Dither** (`1681-engine/pixel`).
 
 ### Breaking
 
-- Pixel-art exports moved to `lantern-engine/pixel`: `PixelLayer`, `pixelPaint`, `pixelTone`, the colour and pixel-grid
+- Pixel-art exports moved to `1681-engine/pixel`: `PixelLayer`, `pixelPaint`, `pixelTone`, the colour and pixel-grid
   helpers, `PALETTE`, the prop kit, `ramp`/`selectiveOutline`, `Darkness` and the transient lights, `Evaporation`,
   `spritePixels`.
 - `stage.add.pixels()` is gone: use `addPixelLayer(stage)` from the pixel module, or `stage.add.existing(obj)` for any

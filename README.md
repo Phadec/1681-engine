@@ -1,7 +1,7 @@
-# Lantern Engine
+# 1681 Engine
 
-[![CI](https://github.com/Phadec/lantern-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/Phadec/lantern-engine/actions/workflows/ci.yml)
-[![Docs](https://github.com/Phadec/lantern-engine/actions/workflows/docs.yml/badge.svg)](https://phadec.github.io/lantern-engine/)
+[![CI](https://github.com/Phadec/1681-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/Phadec/1681-engine/actions/workflows/ci.yml)
+[![Docs](https://github.com/Phadec/1681-engine/actions/workflows/docs.yml/badge.svg)](https://phadec.github.io/1681-engine/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A 2D game engine for the web, built on [PixiJS 8](https://pixijs.com) and written in TypeScript, for games in any
@@ -12,7 +12,7 @@ a fixed-step simulation a server can replay **bit for bit**, Tiled maps, input t
 gamepad and touch, and for pixel art, effects painted on the world's own pixel grid and dithered lighting.
 
 ```ts
-import { Engine, Scene, defineComponent, system } from 'lantern-engine';
+import { Engine, Scene, defineComponent, system } from '1681-engine';
 
 const Position = defineComponent<{ x: number; y: number }>('Position');
 
@@ -37,8 +37,8 @@ await engine.scenes.replace(new Level());
 
 | Import | For | Holds |
 |---|---|---|
-| `lantern-engine` | every 2D game | engine, scenes, ECS, rendering core, assets, Tiled maps, animation, input, camera, rig maths, audio, networking |
-| `lantern-engine/pixel` | pixel-art games | `PixelLayer`, `pixelPaint` shapes, colour ramps, dithered `Darkness` lighting, `Evaporation`, sprite pixel tools |
+| `1681-engine` | every 2D game | engine, scenes, ECS, rendering core, assets, Tiled maps, animation, input, camera, rig maths, audio, networking |
+| `1681-engine/pixel` | pixel-art games | `PixelLayer`, `pixelPaint` shapes, colour ramps, dithered `Darkness` lighting, `Evaporation`, sprite pixel tools |
 
 The core never imports the pixel module (a test holds it to that), so a game that does not use it does not ship it.
 Start a pixel-art game with `Engine.create({ pixelPerfect: true })`: sharp textures and a camera that lands on whole
@@ -65,7 +65,7 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 ## Install
 
 ```sh
-npm install lantern-engine pixi.js
+npm install 1681-engine pixi.js
 ```
 
 `pixi.js` (8.6 or later) is a peer dependency. The package is ESM only and ships its TypeScript types. On a server
@@ -77,7 +77,7 @@ path has.
 
 ## Documentation
 
-**https://phadec.github.io/lantern-engine/** — the guide, the API reference and the examples running live.
+**https://phadec.github.io/1681-engine/** — the guide, the API reference and the examples running live.
 
 The documentation site (guide, API reference generated from the source, live examples) is built with
 `npm run docs:build` and published to GitHub Pages by `.github/workflows/docs.yml`; `npm run docs:dev` serves it

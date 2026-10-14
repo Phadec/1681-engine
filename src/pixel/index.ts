@@ -1,5 +1,5 @@
 /**
- * Dither, Lantern Engine's pixel-art module: `import { … } from 'lantern-engine/pixel'`.
+ * Dither, 1681 Engine's pixel-art module: `import { … } from '1681-engine/pixel'`.
  *
  * Everything here works on the world's own pixel grid: rects batched into one texture, shapes shaded by hue-shifted
  * ramps and faded by ordered dither, dithered lighting, bodies that evaporate into their own pixels. Start the engine
@@ -54,3 +54,10 @@ export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './sprit
 
 export { Darkness, WARM_LIGHT, LAMP_DIM, CARRIED_LIGHT } from './Darkness';
 export { flashLight, carriedLight, liveLights, clearLights, type TransientLight } from './lights';
+export { NightShade, type NightShadeOptions } from './NightShade';
+export { paintWeatherArt, mistPixels, WEATHER_COLORS, type WeatherColors, type WeatherPixel } from './weatherArt';
+export { buildRig, trunkPivot, complement, tileHash, gustAt, swayOffset, type SwayDef, type SwayMode, type TuftRect, type SwayRig, type SwayStrip, type Rect as SwayRect } from './swayRig';
+export { SwayProp, opaqueRowWidths, type SwayPropOptions, type SwayWind } from './SwayProp';
+export { vignetteMask, heartbeat } from './vignetteMask';
+export { DitherVignette, ditherVignette, type DitherVignetteOptions } from './DitherVignette';
+export { nineSlice, frameSvg, FRAME_CORNERS, FRAME_TWINS, type NineSliceSpec, type NineSlice, type SliceInsets } from './nineSlice';

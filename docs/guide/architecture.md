@@ -33,11 +33,20 @@ frame, so without the guard one bad frame stops the game for good.
 | `anim/` | `ecs`, `core` | `Animator`, the animation system |
 | `rig/` | — (`RigView`: pixi.js) | skeleton, pose maths, `PosePlayer`, the humanoid's poses and clips, `RigView` |
 | `light/` | `core` | `LightLayer` |
-| `fx/` | — | hit-stop and recoil curves, view culling |
-| `audio/` | Web Audio | `sound`, synth, sample bank |
-| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection |
+| `fx/` | — (`FloatingText`: `core`) | hit-stop and recoil curves, view culling, pooled floating text |
+| `audio/` | Web Audio | `sound`, synth, sample bank, `music` in channels, `Footsteps` |
+| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock` |
+| `ambient/` | `core` | `DayClock`, `weatherAt`, `WeatherLayer`, `ColorGrade` |
+| `particles/` | `core`, pixi.js | `Emitter` on a `ParticleContainer`, `ParticleSim`, a shared `ParticleBudget` |
+| `physics/` | — (pure; `physicsSystem`: `ecs`) | `PhysicsWorld`: rigid circles and boxes, contacts, raycasts, `tileBodies` |
+| `nav/` | — | A* `findPath`, `straightenPath`, `floodFill`, `nearestOpen` |
+| `save/` | — (`WebStorageBackend`: DOM) | `SaveStore` slots with migrations and checksums, `Autosaver` |
+| `transitions/` | `engine`, `core` | `transitionTo` with fade, crossfade and dithered wipe, `Letterbox` |
+| `i18n/` | — | `Translator`, `formatMessage`, `extractStrings` |
+| `diagnostics/`, `debug/` | `core`, `engine` | context loss, boot watch, frame sampling, error capture; `DebugOverlay` |
+| `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, focus, the pure layout maths, the DOM/React bridge |
 | `net/` | — (pure; `Connection`: WebSocket) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
-| `pixel/` | the core | the pixel-art module (`lantern-engine/pixel`): `PixelLayer`, `pixelPaint`, ramps, `Darkness`, `Evaporation` |
+| `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |
 
 The core never imports `pixel/`; `src/architecture.test.ts` fails if it does. `ecs/`, `events/`, `net/`, `rig/` and
 the Tiled reader import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
@@ -45,7 +54,7 @@ where a server can import the movement and collision code from.
 
 ## The engine knows no game
 
-Lantern grew out of one game, and it stays useful to the next one only if nothing in it belongs to that game. What
+1681 Engine grew out of one game, and it stays useful to the next one only if nothing in it belongs to that game. What
 differs between games is a parameter or something the game hands in at start-up, never a table written into the
 engine:
 

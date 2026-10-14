@@ -7,7 +7,7 @@ const sidebarFile = fileURLToPath(new URL('../api/typedoc-sidebar.json', import.
 const apiSidebar = existsSync(sidebarFile) ? JSON.parse(readFileSync(sidebarFile, 'utf8')) : [];
 
 export default defineConfig({
-  title: 'Lantern Engine',
+  title: '1681 Engine',
   description: 'A 2D game engine for the web on PixiJS 8: scenes and a fast ECS, Tiled maps, input, rigs, light, music and multiplayer, with a pixel-art module.',
   // GitHub Pages serves a project site under its repository's name; set DOCS_BASE=/<repo>/ there
   base: process.env.DOCS_BASE ?? '/',
@@ -36,8 +36,8 @@ export default defineConfig({
       '/api/': [{ text: 'API reference', items: apiSidebar }],
     },
     search: { provider: 'local' },
-    socialLinks: [{ icon: 'github', link: 'https://github.com/Phadec/lantern-engine' }],
-    editLink: { pattern: 'https://github.com/Phadec/lantern-engine/edit/main/docs/:path', text: 'Edit this page on GitHub' },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/Phadec/1681-engine' }],
+    editLink: { pattern: 'https://github.com/Phadec/1681-engine/edit/main/docs/:path', text: 'Edit this page on GitHub' },
     outline: { level: [2, 3] },
     footer: { message: 'Released under the MIT License.' },
   },

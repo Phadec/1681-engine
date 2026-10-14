@@ -1,5 +1,5 @@
 /**
- * Lantern Engine: the core's public API, for 2D games in any art style. Pixel-art tools are `lantern-engine/pixel`.
+ * 1681 Engine: the core's public API, for 2D games in any art style. Pixel-art tools are `1681-engine/pixel`.
  * Anything not exported here or there is internal and may change in any release.
  */
 
@@ -84,6 +84,7 @@ export { LightLayer, type Light, type LightLayerOptions } from './light/LightLay
 
 // ── Game feel ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export { hitStopMs, recoilPx, recoilAt, RECOIL_MS, hurtFlashMs, hurtFlashGapMs, HEAVY_FLASH_GAP_MS } from './fx/hitStop';
+export { FloatingText, type FloatingTextStyle, type FloatingTextOptions, type FloatOptions } from './fx/FloatingText';
 export { inView, type CameraLike } from './fx/viewCull';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -102,8 +103,96 @@ export { Actions, PAD_BUTTONS, type Bindings, type ActionsOptions, type PadState
 export { aimAxis } from './input/aimAxis';
 export { stickVector, stickActive, stickToAxis, STICK_DEAD_ZONE, type StickVector } from './input/stickAxis';
 export { LongPress } from './input/longPress';
+export { AimGesture, aimPoint, spotReach, spotShare, dragSlop, AIM_TAP_SLOP, AIM_EARLY_SLOP, AIM_PRESS_MS, AIM_CENTRE, type AimGestureOptions, type AimShape, type AimEnd } from './input/AimGesture';
+export { TargetLock, pickTarget, nearestTarget, keptTarget, LOCK_PICK_RANGE, LOCK_KEEP_RANGE, LOCK_PICK_CONE, type LockBody, type TargetLockOptions } from './input/TargetLock';
+export { Keymap, mergeKeymap, keymapStorage, keyLabel } from './input/Keymap';
 export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch';
 export { detectTouch, type TouchEnv } from './input/touchDetect';
+
+// ── Ambient: time of day, weather, colour grade ───────────────────────────────────────────────────────────────────
+export { DayClock, clockText, tintNight, mixRgb, type DayClockOptions, type DayKey, type DayPhase, type DayState } from './ambient/DayClock';
+export { weatherAt, hash01, type WeatherTable, type WeatherEntry, type WeatherSky, type WeatherState } from './ambient/weather';
+export { WeatherLayer, type WeatherLook, type WeatherMotion, type WeatherLayerOptions } from './ambient/WeatherLayer';
+export { gradeAt, mixToWhite, type Grade, type GradeState } from './ambient/grade';
+export { ColorGrade, type ColorGradeOptions } from './ambient/ColorGrade';
+
+// ── Particles ─────────────────────────────────────────────────────────────────────────────────────────────────────
+export { Emitter, type EmitterOptions, type SpawnArea } from './particles/Emitter';
+export { ParticleSim } from './particles/ParticleSim';
+export { ParticleBudget, particleBudget } from './particles/ParticleBudget';
+export { sampleCurve, sampleColor, lerpColor, type Curve, type ColorCurve } from './particles/particleCurves';
+export { sampleRange, spreadAngle, dueParticles, scaleCount, seededRandom, type Range } from './particles/particleSampling';
+
+// ── Physics ───────────────────────────────────────────────────────────────────────────────────────────────────────
+export { PhysicsWorld } from './physics/PhysicsWorld';
+export type { PhysicsWorldOptions } from './physics/PhysicsWorldOptions';
+export type { SolverSettings } from './physics/ContactSolver';
+export { Body } from './physics/Body';
+export { Contact } from './physics/Contact';
+export { tileBodies, tileBodiesFromGrid, mergeTileRects, type TileBodiesOptions, type TileRect } from './physics/tileBodies';
+export { physicsSystem } from './physics/physicsSystem';
+export { syncToBody, type Positioned } from './physics/syncToBody';
+export {
+  FACE_LEFT,
+  FACE_RIGHT,
+  FACE_TOP,
+  FACE_BOTTOM,
+  type Shape,
+  type CircleShape,
+  type BoxShape,
+  type BodyType,
+  type BodyOptions,
+  type ContactInfo,
+  type PhysicsEvents,
+  type RayHit,
+  type RaycastOptions,
+} from './physics/types';
+
+// ── Navigation ────────────────────────────────────────────────────────────────────────────────────────────────────
+export { MinHeap } from './nav/MinHeap';
+export { navGrid, navGridFromCollision, isOpen, nearWallCost, canStep, NAV_STEPS, type NavGrid, type NavOptions, type TilePoint } from './nav/navGrid';
+export { nearestOpen } from './nav/nearestOpen';
+export { findPath, floodFill, reachedCount, octile, type NavGoal, type FindPathOptions } from './nav/findPath';
+export { straightenPath, simplifyPath } from './nav/straightenPath';
+
+// ── Saves ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+export { SaveStore, type SaveStoreOptions, type SaveInfo, type LoadResult, type LoadFailure } from './save/SaveStore';
+export type { SaveBackend } from './save/SaveBackend';
+export { MemoryBackend } from './save/MemoryBackend';
+export { WebStorageBackend } from './save/WebStorageBackend';
+export { migrateSave, MigrationError, type Migrations } from './save/migrateSave';
+export { checksum } from './save/checksum';
+export { Autosaver, type AutosaverOptions, type AutosaveTimers } from './save/Autosaver';
+
+// ── Scene transitions ─────────────────────────────────────────────────────────────────────────────────────────────
+export type { Transition, TransitionContext } from './transitions/Transition';
+export { transitionTo, type TransitionMode } from './transitions/transitionTo';
+export { tweenDone } from './transitions/tweenDone';
+export { FadeTransition, type FadeOptions } from './transitions/FadeTransition';
+export { CrossfadeTransition, type CrossfadeOptions } from './transitions/CrossfadeTransition';
+export { DitherWipeTransition, type DitherWipeOptions } from './transitions/DitherWipeTransition';
+export { BAYER4, DITHER_LEVELS, ditherCovered, wipeLevel } from './transitions/ditherMask';
+export { Letterbox, type LetterboxOptions } from './transitions/Letterbox';
+
+// ── Localisation ──────────────────────────────────────────────────────────────────────────────────────────────────
+export { Translator, type TranslatorOptions, type Catalog, type PluralForms } from './i18n/Translator';
+export { formatMessage, sourceText, CONTEXT_MARK } from './i18n/formatMessage';
+export { extractStrings, type ExtractedString, type ExtractOptions } from './i18n/extractStrings';
+
+// ── Diagnostics and debug ─────────────────────────────────────────────────────────────────────────────────────────
+export { watchContextLoss, noteContextLoss, rebuildDelayMs, type ContextLossPolicy, type ContextLossVerdict } from './diagnostics/contextLoss';
+export { bootWatch, type BootWatch, type BootStall } from './diagnostics/bootWatch';
+export { guardRender, describeError } from './diagnostics/renderGuard';
+export { maxTextureSize, gpuName } from './diagnostics/gpuInfo';
+export { summarizeFrames, percentile, countHitches, looksThrottled, type FrameSummary } from './diagnostics/frameStats';
+export { FrameSampler, type FrameSamplerOptions } from './diagnostics/FrameSampler';
+export { ErrorDeduper, trimStack } from './diagnostics/ErrorDeduper';
+export { captureErrors, type CapturedError, type CaptureErrorsOptions } from './diagnostics/captureErrors';
+export { DebugOverlay, type DebugOverlayOptions, type BoxDrawer } from './debug/DebugOverlay';
+export { FrameStats } from './debug/FrameStats';
+export { ErrorLog, type LoggedError } from './debug/ErrorLog';
+export { inspectWorld, type EntityRow } from './debug/inspectWorld';
+export { DrawCallCounter } from './debug/DrawCallCounter';
 
 // ── Networking and simulation ─────────────────────────────────────────────────────────────────────────────────────
 export {

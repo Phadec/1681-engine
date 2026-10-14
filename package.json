@@ -1,17 +1,21 @@
 {
-  "name": "lantern-engine",
-  "version": "0.5.3",
+  "name": "1681-engine",
+  "version": "0.5.5",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
-      "import": "./dist/lantern-engine.js"
+      "import": "./dist/1681-engine.js"
     },
     "./pixel": {
       "types": "./dist/types/pixel/index.d.ts",
       "import": "./dist/pixel.js"
+    },
+    "./ui": {
+      "types": "./dist/types/ui/index.d.ts",
+      "import": "./dist/ui.js"
     },
     "./pixel/tone": {
       "types": "./dist/types/pixel/pixelTone.d.ts",
@@ -65,7 +69,7 @@
     "typescript"
   ],
   "sideEffects": false,
-  "module": "./dist/lantern-engine.js",
+  "module": "./dist/1681-engine.js",
   "files": [
     "dist",
     "README.md",
@@ -80,11 +84,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Phadec/lantern-engine.git"
+    "url": "git+https://github.com/Phadec/1681-engine.git"
   },
-  "homepage": "https://phadec.github.io/lantern-engine/",
+  "homepage": "https://phadec.github.io/1681-engine/",
   "bugs": {
-    "url": "https://github.com/Phadec/lantern-engine/issues"
+    "url": "https://github.com/Phadec/1681-engine/issues"
   },
   "author": "Phadec"
 }

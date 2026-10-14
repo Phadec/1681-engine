@@ -1,7 +1,7 @@
 import { hex } from './pixel';
 
 /**
- * The default palette (`PALETTE` from `lantern-engine/pixel`): warm fantasy tones, readable on green ground. It is a
+ * The default palette (`PALETTE` from `1681-engine/pixel`): warm fantasy tones, readable on green ground. It is a
  * starting point, not a rule: a game brings its own colours, and the helpers that use one of these (an outline, a
  * shadow) take the colour as a parameter.
  */
