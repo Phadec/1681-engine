@@ -16,7 +16,7 @@ export default defineConfig({
     // local work.
     sourcemap: process.env.ENGINE_SOURCEMAP === '1',
     lib: {
-      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts'), updates: resolve(import.meta.dirname, 'src/updates/index.ts'), electron: resolve(import.meta.dirname, 'src/electron/index.ts') },
+      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts'), updates: resolve(import.meta.dirname, 'src/updates/index.ts'), electron: resolve(import.meta.dirname, 'src/electron/index.ts'), mobile: resolve(import.meta.dirname, 'src/mobile/index.ts') },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },

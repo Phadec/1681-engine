@@ -22,6 +22,20 @@ export {
   type SystemPhase,
   type ComponentValues,
 } from './ecs/World';
+export {
+  definePrefab,
+  prefabPart,
+  spawnPrefab,
+  isPrefabOf,
+  PrefabLibrary,
+  type Prefab,
+  type PrefabPart,
+  type PrefabValue,
+  type PrefabContext,
+  type PrefabOptions,
+  type SpawnOptions,
+  type PrefabData,
+} from './ecs/prefab';
 export type { FieldKind, FieldSpec, FieldsType, FieldValues, Columns, ArrayOf } from './ecs/fields';
 export { EventBus } from './events/EventBus';
 export { engineSettings, type EngineSettings, type SettingsListener } from './settings';
@@ -145,6 +159,7 @@ export { elementVolumeLocked } from './audio/music/musicVoice';
 export { registerSounds, type SoundTable } from './audio/soundTable';
 export { registerTakes, hasTakes } from './audio/sampleBank';
 export { Footsteps, type FootstepOptions, type SurfaceSounds } from './audio/Footsteps';
+export { SpatialAudio, spatialMix, type SpatialEmitter, type EmitterOptions as SpatialEmitterOptions, type SpatialMix, type SpatialMixOptions } from './audio/spatial';
 export { renderRecipe, SYNTH_RATE, type SynthRecipe, type SynthLayer } from './audio/synth';
 
 // ── Input and platform ────────────────────────────────────────────────────────────────────────────────────────────
@@ -242,6 +257,47 @@ export { navGrid, navGridFromCollision, isOpen, nearWallCost, canStep, NAV_STEPS
 export { nearestOpen } from './nav/nearestOpen';
 export { findPath, floodFill, reachedCount, octile, type NavGoal, type FindPathOptions } from './nav/findPath';
 export { straightenPath, simplifyPath } from './nav/straightenPath';
+export {
+  BehaviorTree,
+  BtAgent,
+  sequence,
+  selector,
+  reactiveSequence,
+  reactiveSelector,
+  parallel,
+  invert,
+  succeed,
+  repeat,
+  retry,
+  cooldown,
+  timeout,
+  wait,
+  condition,
+  action,
+  type BtStatus,
+  type BtNode,
+  type BtRun,
+  type BtTraceLine,
+  type ParallelPolicy,
+  type ActionOptions,
+} from './ai/behaviorTree';
+export { buildTree, type BtSpec, type BtRegistry } from './ai/buildTree';
+export { DialogueRunner, type DialogueOptions, type DialogueSave } from './dialogue/DialogueRunner';
+export { validateDialogue, type DialogueIssue, type ValidateOptions as DialogueValidateOptions } from './dialogue/validateDialogue';
+export { compileExpr, type CompiledExpr, type ExprScope, type ExprValue } from './dialogue/expr';
+export type {
+  DialogueScript,
+  DialogueNode,
+  DialogueLine,
+  DialogueChoice,
+  DialogueBranch,
+  DialogueCommand,
+  DialogueStep,
+  ShownLine,
+  ShownChoice,
+  ShownChoices,
+  DialogueEnd,
+} from './dialogue/script';
 
 // ── Saves ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 export { SaveStore, type SaveStoreOptions, type SaveInfo, type LoadResult, type LoadFailure } from './save/SaveStore';

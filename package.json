@@ -53,6 +53,10 @@
         "default": "./dist/cjs/electron/index.js"
       }
     },
+    "./mobile": {
+      "types": "./dist/types/mobile/index.d.ts",
+      "import": "./dist/mobile.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {

@@ -14,6 +14,19 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   snapshots goes out and blended as `InterpolationBuffer` blends, so a shot is judged against what the shooter saw:
   `at`, `all`, `near`, `alongRay`. `RoomHost.rewindTime(claimed)` and `LagCompensator.clampTime` hold a client's
   claim within the window; `InterpolationBuffer.viewTime(now)` is the time a client sends with a shot.
+- **Behaviour trees**: `BehaviorTree` and `BtAgent` (one tree, many agents, each with its own memory), `sequence`,
+  `selector`, `reactiveSequence`, `reactiveSelector`, `parallel`, `invert`, `succeed`, `repeat`, `retry`, `cooldown`,
+  `timeout`, `wait`, `condition`, `action` with `onHalt`, a trace for debugging, and `buildTree` from JSON.
+- **Dialogue**: `DialogueRunner` runs a branching script written as data (lines, choices with conditions, `once`
+  and locked choices, variables, commands, `{…}` in text, translation, save and restore); `validateDialogue` checks
+  a script; `compileExpr` is its safe expression language.
+- **Prefabs**: `definePrefab`, `prefabPart`, `spawnPrefab` and `isPrefabOf`, with variants laid over their base
+  field by field; `PrefabLibrary` loads them from data.
+- **Sounds in the world**: `SpatialAudio` places any buffer at a point, panned, faded and muffled by distance from a
+  moving listener, loops paused out of range and picked up where they would be; `spatialMix` is the mix on its own.
+- **`1681-engine/mobile`**: `capacitorConfig` (a Capacitor config with a game's defaults), `BackStack`,
+  `doubleBackToExit` and `installBackButton` for Android's back button, `safeAreaInsets`, `keepScreenOn`, and
+  `nativeBuildOf` for `pickWebUpdate`. Capacitor is handed in, never imported.
 
 ### Fixed
 

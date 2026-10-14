@@ -130,11 +130,43 @@ steps.step(rider.x, rider.y, false, true); // a mount: `hoof`, else `step`
 A step plays through `sound` with `minor: true`, so it is the first thing dropped when the mix is busy. An unknown
 surface falls back to `fallback`'s sounds. The sound names are ordinary `registerSounds` recipes or takes.
 
+## Sounds in the world
+
+`sound` is for short effects. For sounds that sit in the world and play on, a waterfall, a campfire, a machine
+humming, `SpatialAudio` places any `AudioBuffer` at a point and mixes it from where the listener stands: panned to its
+side, quieter with distance, duller far away.
+
+```ts
+import { SpatialAudio, sound, engineSettings } from '1681-engine';
+
+const ctx = sound.audioContext!; // once the first gesture opened it, or an AudioContext of your own
+const ambience = new SpatialAudio(ctx);
+ambience.output.gain.value = engineSettings.getState().sfxVolume;
+
+const falls = ambience.emitter(fallsBuffer, 320, 96, { range: 400, volume: 0.6 }); // loops by default
+ambience.play(splashBuffer, 300, 110, { range: 200 }); // a one-shot
+
+// each frame
+ambience.update(hero);
+falls.x = boat.x; // emitters move by writing x and y
+```
+
+- The mix is `spatialMix(listener, source, options)`, exported on its own: `gain` falls as `(1 − d / range) ^ rolloff`
+  (`rolloff` 1.5), `pan` reaches `maxPan` (0.8) at `panWidth` (half the range) to one side, and a low-pass runs from
+  `muffle[0]` beside the listener to `muffle[1]` at the edge (18 000 → 1 800 Hz; `null` for none).
+- Changes are eased over 50 ms each `update`, so a source moving past does not click.
+- A loop out of range stops its source to save the voice, and starts again at the point it would have reached, so it
+  seems to have played on. A one-shot out of range is skipped.
+- `stop(fadeMs)` fades an emitter out; `stopAll` and `destroy` end every one. `output` is the bus they all go through:
+  the place for a volume setting.
+
 ## Pitfalls
 
 - **Nothing plays before the first gesture.** The `AudioContext` is made inside the first pointer, touch or key event,
   and `sound.play` while it is not running is dropped, not queued. Music is queued instead: a refused start is retried
   on the next gesture.
+- **`SpatialAudio` needs a running context.** Make it from `sound.audioContext` once that is not null (after the first
+  gesture), or resume a context of your own inside a gesture.
 - **iOS** counts `touchend`, not `pointerdown`, as a gesture, and leaves the context interrupted after the app comes
   back from the background. The engine listens again while the context is not running, and sets the audio session to
   `ambient`, so sound follows the silent switch and mixes with the player's own music.

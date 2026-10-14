@@ -178,6 +178,49 @@ await engine.scenes.replace(new Field());
 [`examples/walk-room`](/examples#walk-room) and [`examples/night-garden`](/examples#night-garden) use object
 components with `each`.
 
+## Prefabs
+
+A prefab is a template for entities: the components each gets and their starting values.
+
+```ts
+import { definePrefab, prefabPart, spawnPrefab } from '1681-engine';
+
+const Monster = definePrefab('monster', [
+  prefabPart(Health, { hp: 10, max: 10 }),
+  prefabPart(Stats, { speed: 2, resist: { fire: 0, ice: 0 } }),
+  prefabPart(Brain, () => monsterTree.agent()), // a factory: one per entity
+  prefabPart(Position, ({ args }: { args: { x: number; y: number } }) => ({ x: args.x, y: args.y })),
+]);
+// a variant: plain objects are laid over the base's field by field; null takes a component away
+const FireImp = definePrefab('fire-imp', [prefabPart(Stats, { resist: { fire: 1 } }), prefabPart(Flying, null)], { extends: Monster });
+
+const e = spawnPrefab(world, FireImp, { args: { x: 40, y: 80 }, with: [prefabPart(Name, 'Ember')], without: [Loot] });
+```
+
+- Plain data (numbers, strings, plain objects and arrays) is copied for every entity with `structuredClone`, so no two
+  entities share one object. Anything that cannot be copied (a class instance, a sprite, a tree agent) or must differ
+  per entity is a factory, called once per spawn with `{ entity, args }`.
+- A variant's plain-object values merge over its base's field by field; arrays and everything else replace. `null`
+  removes a component the base has. `isPrefabOf(prefab, base)` follows the chain.
+- `prefabPart(type, value)` checks the value against the component's type (a field component takes its fields); a
+  bare `[type, value]` tuple works too, unchecked.
+
+`PrefabLibrary` loads prefabs from data a designer edits. Name the components it may use, give factories in code (data
+cannot hold a function), and load; bases may come in any order, or from prefabs added in code:
+
+```ts
+const prefabs = new PrefabLibrary().component('Health', Health).component('Stats', Stats).add(Monster);
+prefabs.factory('goblin', Brain, () => goblinTree.agent());
+prefabs.load({
+  goblin: { extends: 'monster', components: { Health: { hp: 6, max: 6 } } },
+  'goblin-chief': { extends: 'goblin', components: { Health: { hp: 30 } } },
+});
+prefabs.spawn(world, 'goblin-chief', { args: { x, y } });
+```
+
+`load` throws, naming the prefab, on an unknown component or base, or a prefab that extends itself; nothing of a load
+that failed is kept.
+
 ## Performance
 
 Measured numbers for `query`/`each`/`slots` at 10,000 to 200,000 bodies are in
@@ -220,4 +263,6 @@ uses it; it allocates, so keep it out of per-frame code.
 [`World`](/api/index/classes/World) · [`defineComponent`](/api/index/functions/defineComponent) ·
 [`defineFields`](/api/index/functions/defineFields) · [`system`](/api/index/functions/system) ·
 [`entityIndex`](/api/index/functions/entityIndex) · [`SystemContext`](/api/index/interfaces/SystemContext) ·
-[`FixedLoop`](/api/index/classes/FixedLoop) · [`inspectWorld`](/api/index/functions/inspectWorld)
+[`FixedLoop`](/api/index/classes/FixedLoop) · [`inspectWorld`](/api/index/functions/inspectWorld) ·
+[`definePrefab`](/api/index/functions/definePrefab) · [`spawnPrefab`](/api/index/functions/spawnPrefab) ·
+[`PrefabLibrary`](/api/index/classes/PrefabLibrary)
