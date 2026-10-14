@@ -29,6 +29,7 @@ export { engineSettings, type EngineSettings, type SettingsListener } from './se
 export { Stage } from './core/Stage';
 export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
 export { Clock } from './core/Clock';
+export { runDue, type DueCall } from './core/runDue';
 export { Tweener, Tween, type TweenConfig, type TweenTarget, type Steppable } from './core/Tweener';
 export { Timeline, type TimelineOptions } from './core/Timeline';
 export { TimelineBuilder, type TimelineProps, type TimelineTweenOptions } from './core/TimelineBuilder';
