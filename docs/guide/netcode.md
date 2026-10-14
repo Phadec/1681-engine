@@ -193,6 +193,12 @@ a player with more than `backlog` steps waiting catches up a few a tick, never f
 for tests or a server that drives its own loop. Each `RoomPlayer` has `aim`, `anim`, `hp` and `flags` for the game to
 set (in `onStep` or its own systems), `params` to change per player, and `strikes`.
 
+## REST: `ApiClient`
+
+`ApiClient` sends JSON with a bearer token and a timeout (`timeoutSignal`), refreshes a 401 once through `refresher`
+and sends the request again, and calls `onStatus[status]` / `onError` before throwing an `ApiError` (an "update
+required" gate on 426). Routes and types stay the game's: subclass it or wrap `request`.
+
 ## Pitfalls
 
 - **Movement must be deterministic.** Never read the clock, `Math.random` or a frame's `dt` inside the fixed movement:

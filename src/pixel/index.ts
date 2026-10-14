@@ -57,6 +57,7 @@ export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './sprit
 export { Darkness, WARM_LIGHT, LAMP_DIM, CARRIED_LIGHT, type DarknessOptions } from './Darkness';
 export { flashLight, carriedLight, liveLights, clearLights, type TransientLight } from './lights';
 export { NightShade, type NightShadeOptions } from './NightShade';
+export { paintLifeArt, puffPixels, LIFE_COLORS, PUFF_FRAMES, type LifeArt, type LifeColors, type LifePixel } from './lifeArt';
 export { paintWeatherArt, mistPixels, WEATHER_COLORS, type WeatherColors, type WeatherPixel } from './weatherArt';
 export { buildRig, trunkPivot, complement, tileHash, gustAt, swayOffset, type SwayDef, type SwayMode, type TuftRect, type SwayRig, type SwayStrip, type Rect as SwayRect } from './swayRig';
 export { SwayProp, opaqueRowWidths, type SwayPropOptions, type SwayWind } from './SwayProp';

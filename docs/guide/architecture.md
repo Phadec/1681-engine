@@ -28,15 +28,15 @@ frame, so without the guard one bad frame stops the game for good.
 | `ecs/` | — | `World` (sparse sets), field components, systems |
 | `events/` | — | `EventBus` |
 | `core/` | pixi.js | `Stage`, `Camera`, display objects, textures, atlas, `Tweener` and `Timeline` |
-| `assets/` | `tilemap`, `audio` (the sound context) | `AssetLoader`, the TexturePacker atlas reader |
+| `assets/` | `tilemap`, `audio` (the sound context) | `AssetLoader`, the TexturePacker atlas reader, `Prepainter` and `workerPainter` (big textures painted ahead in a worker) |
 | `tilemap/` | `net` (collision), `core` (view) | the Tiled and LDtk readers, collision, autotiling rules, `TilemapView` |
 | `anim/` | `ecs`, `core` | `Animator`, the animation system, Aseprite import (`parseAseprite`), `AnimStateMachine` |
 | `rig/` | — (`RigView`: pixi.js) | skeleton, pose maths, `PosePlayer`, the humanoid's poses and clips, `RigView` |
 | `light/` | `core` | `LightLayer` |
 | `fx/` | — (`FloatingText`: `core`) | hit-stop and recoil curves, view culling, pooled floating text |
 | `audio/` | Web Audio | `sound`, synth, sample bank, `music` in channels, `Footsteps` |
-| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, rumble, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock`; fullscreen, orientation, pointer lock, reduced motion, `onAppResume`, `timeoutSignal` |
-| `ambient/` | `core` | `DayClock`, `weatherAt`, `WeatherLayer`, `ColorGrade` |
+| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, rumble, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock`, `Haptics`; fullscreen, orientation, pointer lock, reduced motion, `onAppResume`, `timeoutSignal` |
+| `ambient/` | `core` | `DayClock`, `weatherAt`, `WeatherLayer`, `ColorGrade`; the life on screen: `Drift`, `Birds`, `Butterflies`, `Fireflies`, `ChimneySmoke` |
 | `parallax/` | `core` | `Parallax`, `ParallaxLayer` (scenery scrolling at a share of the camera's travel), pure `parallaxMath` |
 | `particles/` | `core`, pixi.js | `Emitter` on a `ParticleContainer`, `ParticleSim`, a shared `ParticleBudget` |
 | `physics/` | — (pure; `physicsSystem`: `ecs`) | `PhysicsWorld`: rigid circles and boxes, contacts, raycasts, `tileBodies` |
@@ -47,7 +47,7 @@ frame, so without the guard one bad frame stops the game for good.
 | `diagnostics/`, `debug/` | `core`, `engine` | context loss, boot watch, frame sampling, error capture; `DebugOverlay` |
 | `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, rich text, focus, the pure layout maths, the DOM/React bridge |
 | `react/` | `ui` (layout maths, `createStore`), `platform`, React 19 (optional peer) | the React kit (`1681-engine/react`): `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`, `TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, `baseCss` themed by custom properties |
-| `net/` | — (pure; `Connection`: WebSocket, `platform/appResume`) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
+| `net/` | — (pure; `Connection`: WebSocket, `platform/appResume`) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection`, the REST `ApiClient` |
 | `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |
 
 The core never imports `pixel/`, and nothing outside `react/` imports React or the kit; `src/architecture.test.ts`

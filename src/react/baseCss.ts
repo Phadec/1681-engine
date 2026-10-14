@@ -106,6 +106,7 @@ export const baseCss = `
 .e1681-button { padding: 2px 10px; cursor: pointer; min-height: 28px; }
 .e1681-button.small { padding: 0 6px; min-height: 22px; }
 .e1681-button.ghost { background-color: transparent; }
+.e1681-button.e1681-armed { color: var(--e1681-accent); }
 .e1681-button:hover:not(:disabled) { color: var(--e1681-accent); }
 /* pressed: the same face a pixel lower, never a transform */
 .e1681-button:active:not(:disabled) { padding-top: 3px; padding-bottom: 1px; }

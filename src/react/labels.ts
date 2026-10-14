@@ -17,6 +17,8 @@ export interface UiLabels {
   quantity: string;
   /** The choice dialog's confirm button. */
   choose: string;
+  /** What an armed `ConfirmButton` says when the game gives it no words of its own. */
+  confirmAgain: string;
 }
 
 export const DEFAULT_LABELS: UiLabels = {
@@ -28,6 +30,7 @@ export const DEFAULT_LABELS: UiLabels = {
   ok: 'OK',
   quantity: 'Quantity',
   choose: 'Choose',
+  confirmAgain: 'Sure?',
 };
 
 /** `{0}`, `{1}`… replaced by the arguments, in order. */

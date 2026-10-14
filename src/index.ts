@@ -61,6 +61,8 @@ export { tagFrames, tagDirection, tagRepeat } from './anim/asepriteTags';
 export { sliceNamed, sliceAt, sliceBorders } from './anim/asepriteSlices';
 export type { AsepriteJson, AsepriteJsonFrame, AsepriteJsonTag, AsepriteJsonSlice, AsepriteJsonSliceKey, AsepriteJsonLayer, AsepriteRect, AsepriteSheet, AsepriteFrame, AsepriteTag, AsepriteDirection, AsepriteSlice, AsepriteSliceKey, AsepriteLayer, AsepriteCue, ClipMarker } from './anim/asepriteTypes';
 export { loadAseprite, addAsepriteTextures, type AsepriteTextureSink, type AsepriteLoadOptions } from './assets/loadAseprite';
+export { Prepainter, type PrepainterOptions, type PrepainterTextures, type Painter, type PaintedPixels } from './assets/Prepainter';
+export { workerPainter, type WorkerPainterOptions, type PaintReply } from './assets/workerPainter';
 export { AnimStateMachine } from './anim/AnimStateMachine';
 export type { AnimStateMachineOptions, AnimStateDef, AnimTransition, AnimCondition, AnimParams, AnimParamDecl, CompareOp } from './anim/animStateTypes';
 export { AnimStateComponent, animStateSystem } from './anim/animStateSystem';
@@ -159,18 +161,40 @@ export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch
 export { onAppResume, type ResumeEnv } from './platform/appResume';
 export { timeoutSignal } from './platform/timeoutSignal';
 export { rumble, rumblePad, stopRumble, rumbleParams, type RumbleOptions, type RumblePad } from './input/rumble';
+export { Haptics, HapticGate, vibrate, type HapticsOptions, type HapticGaps } from './input/haptics';
 export { enterFullscreen, exitFullscreen, toggleFullscreen, isFullscreen, fullscreenSupported, onFullscreenChange, type FullscreenDocument } from './platform/fullscreen';
 export { lockOrientation, unlockOrientation, currentOrientationKind, type OrientationLock, type OrientationTarget } from './platform/orientation';
 export { prefersReducedMotion, onReducedMotionChange, followReducedMotion, type MotionQuery } from './platform/reducedMotion';
 export { requestPointerLock, exitPointerLock, isPointerLocked, onPointerLockChange, type PointerLockDocument } from './platform/pointerLock';
 export { detectTouch, type TouchEnv } from './input/touchDetect';
 
-// ── Ambient: time of day, weather, colour grade ───────────────────────────────────────────────────────────────────
+// ── Ambient: time of day, weather, colour grade, life ─────────────────────────────────────────────────────────────
 export { DayClock, clockText, tintNight, mixRgb, type DayClockOptions, type DayKey, type DayPhase, type DayState } from './ambient/DayClock';
 export { weatherAt, hash01, type WeatherTable, type WeatherEntry, type WeatherSky, type WeatherState } from './ambient/weather';
 export { WeatherLayer, type WeatherLook, type WeatherMotion, type WeatherLayerOptions } from './ambient/WeatherLayer';
 export { gradeAt, mixToWhite, type Grade, type GradeState } from './ambient/grade';
 export { ColorGrade, type ColorGradeOptions, type GradePlacement } from './ambient/ColorGrade';
+export {
+  boxInView,
+  pickInView,
+  sourceOf,
+  birdFrame,
+  flockSlot,
+  fireflyGlow,
+  fireflyOffset,
+  firefliesOut,
+  puffOffset,
+  type LifePoint,
+  type LifeBox,
+  type LifeAir,
+  type LifeSource,
+  type PuffMotion,
+} from './ambient/life/lifeMotion';
+export { Drift, type DriftKind, type DriftOptions } from './ambient/life/Drift';
+export { Birds, type BirdsOptions } from './ambient/life/Birds';
+export { Butterflies, type ButterfliesOptions } from './ambient/life/Butterflies';
+export { Fireflies, type FirefliesOptions } from './ambient/life/Fireflies';
+export { ChimneySmoke, type ChimneySmokeOptions } from './ambient/life/ChimneySmoke';
 
 // ── Parallax ──────────────────────────────────────────────────────────────────────────────────────────────────────
 export { Parallax, type ParallaxOptions } from './parallax/Parallax';
@@ -300,6 +324,7 @@ export { InterpolationBuffer, type InterpolatedState } from './net/Interpolation
 export { Room, type RoomPlayer, type RoomOptions } from './net/Room';
 export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';
 export { Connection, CLOSE_NO_ANSWER, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export { ApiClient, ApiError, type ApiClientOptions, type ApiRequestOptions, type ApiErrorInfo, type ApiMethod, type RefreshResult } from './net/ApiClient';
 export { reconnectDelay, shouldReconnect } from './net/reconnect';
 export {
   LobbyHost,
