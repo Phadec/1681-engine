@@ -1,4 +1,6 @@
 import { easeByName } from './eases';
+import { Timeline, type TimelineOptions } from './Timeline';
+import { readProp as read, writeProp as write } from './tweenProps';
 
 export type TweenTarget = Record<string, unknown> & { destroyed?: boolean };
 
@@ -119,23 +121,21 @@ export class Tween {
   }
 }
 
-function read(target: TweenTarget, prop: string): number {
-  const v = prop === 'scale' ? target['scaleX'] : target[prop];
-  return typeof v === 'number' ? v : 0;
-}
-
-function write(target: TweenTarget, prop: string, value: number): void {
-  if (prop === 'scale') {
-    target['scaleX'] = value;
-    target['scaleY'] = value;
-  } else target[prop] = value;
+/**
+ * Anything the manager can step each frame: a `Tween`, or a `Timeline` it drives. `step` answers false once finished
+ * (the manager then drops it); `remove` stops it for good; `targets` is what `killTweensOf` matches against.
+ */
+export interface Steppable {
+  step(dt: number): boolean;
+  remove(): void;
+  readonly targets: readonly object[];
 }
 
 /** Frame-driven tween manager (the renderer's replacement for Phaser's TweenManager). */
 export class Tweener {
   /** Global speed factor; hit-stop slows every tween at once. */
   timeScale = 1;
-  private tweens: Tween[] = [];
+  private tweens: Steppable[] = [];
 
   add(cfg: TweenConfig): Tween {
     const ends: Record<string, number> = { ...(cfg.props ?? {}) };
@@ -155,6 +155,20 @@ export class Tweener {
     const tween = new Tween(cfg, ends);
     this.tweens.push(tween);
     return tween;
+  }
+
+  /**
+   * Steps `item` every frame from the next one on, at this manager's `timeScale`, until its `step` answers false or
+   * the manager is cleared (a stage's manager is cleared when the stage is destroyed).
+   */
+  run<T extends Steppable>(item: T): T {
+    this.tweens.push(item);
+    return item;
+  }
+
+  /** A `Timeline` driven by this manager: it follows `timeScale` and stops with `clear`. */
+  timeline(options: Omit<TimelineOptions, 'tweens'> = {}): Timeline {
+    return new Timeline({ ...options, tweens: this });
   }
 
   killTweensOf(target: object | object[]): void {

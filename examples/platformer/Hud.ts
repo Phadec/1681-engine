@@ -56,10 +56,12 @@ export class Hud {
     if (this.clock.boxWidth !== width) this.ui.layout();
   }
 
-  showBanner(text: string): void {
+  /** Shows the "level clear" line; returned so the scene can animate it in. */
+  showBanner(text: string): Container {
     this.banner.setText(text);
     this.banner.visible = true;
     this.ui.layout();
+    return this.banner;
   }
 
   /** Stops listening to the language; the UI itself is the scene's and goes with it. */

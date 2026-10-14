@@ -2,7 +2,9 @@
   "$schema": "https://typedoc-plugin-markdown.org/schema.json",
   "entryPoints": [
     "src/index.ts",
-    "src/pixel/index.ts"
+    "src/pixel/index.ts",
+    "src/ui/index.ts",
+    "src/react/index.ts"
   ],
   "tsconfig": "tsconfig.build.json",
   "out": "docs/api",

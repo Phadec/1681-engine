@@ -23,6 +23,16 @@ faded scene transitions, English and French through a `Translator`, a `DayClock`
 
 [Run platformer ↗](./examples/platformer/index.html){target="_blank"}
 
+## aseprite
+
+An Aseprite export read by `parseAseprite`: its tags become clips, the cel data on an "events" layer becomes frame
+markers, a slice's pivot stands the sprite on its feet. An `AnimStateMachine` moves the figure between idle, run, jump,
+fall and land from parameters the movement sets each step, and the footsteps and the landing's thud are the artist's
+markers, listed under the canvas as they fire. The sheet and its JSON are made in code (`sheet.ts`), so the example
+ships no image.
+
+[Run aseprite ↗](./examples/aseprite/index.html){target="_blank"}
+
 ## night-garden
 
 The core with smooth vector art and no pixel module: a rigged character animated by blended poses (walk, run with

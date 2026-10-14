@@ -281,4 +281,10 @@ is the whole thing: `npm run example:server`, then open it in two tabs.
 ## Next
 
 - [Architecture](architecture.md) for how the pieces fit together.
-- `src/index.ts` and `src/pixel/index.ts`: everything exported there is public API.
+- Playing: [input](input.md) (chords, rebinding, touch aiming), [physics](physics.md), [navigation](navigation.md).
+- Looks: [particles](particles.md), [game feel](game-feel.md), [time of day, weather and colour](ambient.md),
+  [scene transitions](transitions.md).
+- Interface: [UI](ui.md) (canvas widgets and the DOM bridge), the [React kit](react.md), [localisation](i18n.md).
+- Shipping: [saves](saves.md), [diagnostics and debug](diagnostics-and-debug.md).
+- `src/index.ts`, `src/pixel/index.ts`, `src/ui/index.ts` and `src/react/index.ts`: everything exported there is public
+  API, listed in the [API reference](/api/).

@@ -29,7 +29,10 @@ export { engineSettings, type EngineSettings, type SettingsListener } from './se
 export { Stage } from './core/Stage';
 export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
 export { Clock } from './core/Clock';
-export { Tweener, Tween, type TweenConfig, type TweenTarget } from './core/Tweener';
+export { Tweener, Tween, type TweenConfig, type TweenTarget, type Steppable } from './core/Tweener';
+export { Timeline, type TimelineOptions } from './core/Timeline';
+export { TimelineBuilder, type TimelineProps, type TimelineTweenOptions } from './core/TimelineBuilder';
+export type { TimelinePosition } from './core/timelinePlace';
 export { easeByName, type EaseFn } from './core/eases';
 export { ObjectFactory } from './core/ObjectFactory';
 export { Graphics, type Vec2 } from './core/Graphics';
@@ -47,6 +50,14 @@ export type { WorldObject } from './core/types';
 // ── Assets, animation, tilemaps ─────────────────────────────────────────────────────────────────────────────────
 export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LoadProgress, type TextureSink } from './assets/AssetLoader';
 export { Animator, type AnimationClip, type AnimationClips } from './anim/Animator';
+export { parseAseprite, frameNamed, clipMarkers } from './anim/parseAseprite';
+export { tagFrames, tagDirection, tagRepeat } from './anim/asepriteTags';
+export { sliceNamed, sliceAt, sliceBorders } from './anim/asepriteSlices';
+export type { AsepriteJson, AsepriteJsonFrame, AsepriteJsonTag, AsepriteJsonSlice, AsepriteJsonSliceKey, AsepriteJsonLayer, AsepriteRect, AsepriteSheet, AsepriteFrame, AsepriteTag, AsepriteDirection, AsepriteSlice, AsepriteSliceKey, AsepriteLayer, AsepriteCue, ClipMarker } from './anim/asepriteTypes';
+export { loadAseprite, addAsepriteTextures, type AsepriteTextureSink, type AsepriteLoadOptions } from './assets/loadAseprite';
+export { AnimStateMachine } from './anim/AnimStateMachine';
+export type { AnimStateMachineOptions, AnimStateDef, AnimTransition, AnimCondition, AnimParams, AnimParamDecl, CompareOp } from './anim/animStateTypes';
+export { AnimStateComponent, animStateSystem } from './anim/animStateSystem';
 export { animationSystem, SpriteComponent, AnimationComponent } from './anim/animationSystem';
 export {
   parseTiled,
@@ -116,6 +127,11 @@ export { weatherAt, hash01, type WeatherTable, type WeatherEntry, type WeatherSk
 export { WeatherLayer, type WeatherLook, type WeatherMotion, type WeatherLayerOptions } from './ambient/WeatherLayer';
 export { gradeAt, mixToWhite, type Grade, type GradeState } from './ambient/grade';
 export { ColorGrade, type ColorGradeOptions, type GradePlacement } from './ambient/ColorGrade';
+
+// ── Parallax ──────────────────────────────────────────────────────────────────────────────────────────────────────
+export { Parallax, type ParallaxOptions } from './parallax/Parallax';
+export { ParallaxLayer, type ParallaxLayerOptions, type ParallaxCamera } from './parallax/ParallaxLayer';
+export { parallaxOrigin, wrap, spanVisible, placeAxis, type AxisPlacement, type AxisInput } from './parallax/parallaxMath';
 
 // ── Particles ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export { Emitter, type EmitterOptions, type SpawnArea } from './particles/Emitter';

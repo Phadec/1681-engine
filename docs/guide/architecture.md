@@ -27,16 +27,17 @@ frame, so without the guard one bad frame stops the game for good.
 | `engine/` | `core`, `ecs`, `events` | `Engine`, `Scene`, `SceneManager`, `FixedLoop` |
 | `ecs/` | — | `World` (sparse sets), field components, systems |
 | `events/` | — | `EventBus` |
-| `core/` | pixi.js | `Stage`, `Camera`, display objects, textures, atlas |
+| `core/` | pixi.js | `Stage`, `Camera`, display objects, textures, atlas, `Tweener` and `Timeline` |
 | `assets/` | `tilemap` | `AssetLoader` |
 | `tilemap/` | `net` (collision), `core` (view) | the Tiled reader, collision, `TilemapView` |
-| `anim/` | `ecs`, `core` | `Animator`, the animation system |
+| `anim/` | `ecs`, `core` | `Animator`, the animation system, Aseprite import (`parseAseprite`), `AnimStateMachine` |
 | `rig/` | — (`RigView`: pixi.js) | skeleton, pose maths, `PosePlayer`, the humanoid's poses and clips, `RigView` |
 | `light/` | `core` | `LightLayer` |
 | `fx/` | — (`FloatingText`: `core`) | hit-stop and recoil curves, view culling, pooled floating text |
 | `audio/` | Web Audio | `sound`, synth, sample bank, `music` in channels, `Footsteps` |
 | `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock` |
 | `ambient/` | `core` | `DayClock`, `weatherAt`, `WeatherLayer`, `ColorGrade` |
+| `parallax/` | `core` | `Parallax`, `ParallaxLayer` (scenery scrolling at a share of the camera's travel), pure `parallaxMath` |
 | `particles/` | `core`, pixi.js | `Emitter` on a `ParticleContainer`, `ParticleSim`, a shared `ParticleBudget` |
 | `physics/` | — (pure; `physicsSystem`: `ecs`) | `PhysicsWorld`: rigid circles and boxes, contacts, raycasts, `tileBodies` |
 | `nav/` | — | A* `findPath`, `straightenPath`, `floodFill`, `nearestOpen` |

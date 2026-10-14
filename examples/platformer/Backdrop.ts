@@ -1,5 +1,5 @@
 import { Container } from 'pixi.js';
-import { DayClock, Graphics, mixRgb, type Camera, type DayState } from '../../src';
+import { DayClock, Graphics, mixRgb, Parallax, type Camera, type DayState, type ParallaxLayer } from '../../src';
 import { LEVEL_PX_H, LEVEL_PX_W } from './level';
 
 /** Sky colours at the top and the horizon, by day and by night. */
@@ -11,7 +11,7 @@ const DAY_MS = 120_000;
 const PAGE_START = Date.now();
 
 /**
- * The sky behind the level and two rows of hills that scroll slower than the ground (parallax), all coloured by a
+ * The sky behind the level and two rows of hills that scroll slower than the ground (a `Parallax`), all coloured by a
  * `DayClock`: a whole day passes in a couple of minutes, so the light can be watched changing. The clock also feeds
  * the scene's `ColorGrade`, which tints the level itself the same way.
  */
@@ -35,11 +35,16 @@ export class Backdrop {
   private readonly sky = new Graphics();
   private readonly far = new Graphics();
   private readonly near = new Graphics();
+  private readonly hills = new Parallax();
+  // the further row moves a third of the camera's travel, the nearer half; both stay at their height, and land on
+  // whole world pixels like the level
+  private readonly farLayer: ParallaxLayer = this.hills.add({ display: this.far, factorX: 0.34, factorY: 1, snap: true });
+  private readonly nearLayer: ParallaxLayer = this.hills.add({ display: this.near, factorX: 0.5, factorY: 1, snap: true });
   private lastNight = -1;
 
   constructor() {
     this.view.zIndex = -1000;
-    this.view.addChild(this.sky, this.far, this.near);
+    this.view.addChild(this.sky, this.hills.view);
   }
 
   /** The day as it stands now. */
@@ -55,9 +60,8 @@ export class Backdrop {
       this.lastNight = night;
       this.paint(night);
     }
-    // hills further away move less: a third and a half of the camera's travel
-    this.far.x = Math.round(camera.scrollX * 0.66);
-    this.near.x = Math.round(camera.scrollX * 0.5);
+    // the hills never drift on their own: no time to give
+    this.hills.update(camera, 0);
   }
 
   private paint(night: number): void {
@@ -68,11 +72,14 @@ export class Backdrop {
     const h = LEVEL_PX_H + 64;
     const g = this.sky.clear();
     for (let i = 0; i < BANDS; i++) g.fillStyle(mixRgb(top, low, i / (BANDS - 1))).fillRect(-200, -32 + Math.floor((i * h) / BANDS), LEVEL_PX_W + 400, Math.ceil(h / BANDS) + 1);
-    this.hills(this.far, mixRgb(0x9cc8d8, 0x2a2c58, night), 70, 22, 0.05);
-    this.hills(this.near, mixRgb(0x6aa68a, 0x22284a, night), 92, 30, 0.08);
+    this.ridge(this.far, mixRgb(0x9cc8d8, 0x2a2c58, night), 70, 22, 0.05);
+    this.ridge(this.near, mixRgb(0x6aa68a, 0x22284a, night), 92, 30, 0.08);
+    // the layers cull by their content's size, measured again once there is something drawn
+    this.farLayer.remeasure();
+    this.nearLayer.remeasure();
   }
 
-  private hills(g: Graphics, color: number, base: number, height: number, freq: number): void {
+  private ridge(g: Graphics, color: number, base: number, height: number, freq: number): void {
     g.clear().fillStyle(color);
     // one column per 4 px, stepped like the ground's tiles
     for (let x = -200; x < LEVEL_PX_W + 200; x += 4) {

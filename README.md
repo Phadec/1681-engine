@@ -56,7 +56,7 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Assets** | `AssetLoader`: images, sprite sheets, JSON, text and Tiled maps with their tilesets, with progress and a concurrency limit. |
 | **Tilemaps** | Tiled JSON maps (CSV or base64 layers, groups, objects, properties, flipped tiles), drawn in culled chunks by `TilemapView`, with collision from a layer or a tile property. |
 | **Animation** | `Animator` clips (fps or per-frame durations, looping or finishing) and an animation system for sprites. |
-| **Input** | `Actions`: named actions bound to keys, gamepad buttons and sticks, and on-screen touch buttons, with per-step edges and analog values. `Keyboard`, stick maths, long press, touch detection. |
+| **Input** | `Actions`: named actions bound to keys, chords, gamepad buttons and sticks, and on-screen touch buttons, with per-step edges and analog values. `Keymap` rebinding, `AimGesture` and `TargetLock` for touch, stick maths, touch detection. [Guide](docs/guide/input.md) |
 | **Camera** | Zoom, bounds, shake, flash, and `track` with a soft follow that is the same at any frame rate, a deadzone and an offset. |
 | **Rendering** | `Stage` with world and screen layers, display objects, tweens, timers, bitmap labels, a texture atlas that splits pages by the GPU's limit, guards that keep one bad frame from stopping the loop. |
 | **Characters** | A 2D skeleton rig drawn by `RigView` from cut-out images or vector shapes, `PosePlayer` blending key poses with crossfades, and a built-in humanoid with 72 poses and ready clips (idle, walk, run, roll, slash, thrust, cast, throw, emotes). |
@@ -64,6 +64,17 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Audio** | Web Audio `sound` engine (synthesized recipes, recorded takes cleaned in a worker, voice limiting, distance muffling, panning) and `music`: streamed tracks crossfaded and looped. iOS unlock handled. |
 | **Multiplayer** | An authoritative `Room` and its socket host for Node, a client `Connection`, `PredictedMover` (prediction and reconciliation over deterministic movement: in tests and in the example the server never has to correct it), `InterpolationBuffer` for everyone else, binary snapshots, clock sync, input validation and flood limits, cadence rules. |
 | **Pixel art** (`/pixel`) | `PixelLayer` (thousands of pixel rects in one pooled texture), `pixelPaint` shapes shaded from hue-shifted ramps and faded by ordered dither, `Darkness` with dithered lamps and transient lights, `Evaporation`, the selective outline. |
+| **UI** (`/ui`) | Canvas widgets with keyboard and gamepad focus, the pure layout maths, and a DOM/React bridge laid over the canvas. [Guide](docs/guide/ui.md) |
+| **React kit** (`/react`) | Windows, tabs, split panes, drop-downs, tooltips and dialogs that never overflow the screen, themed by `--e1681-*` properties. [Guide](docs/guide/react.md) |
+| **Physics** | `PhysicsWorld`: circles and boxes, sensors, layers, kinematic platforms, one-way `preSolve`, raycasts, tiles merged into boxes. [Guide](docs/guide/physics.md) |
+| **Particles** | `Emitter` on one pooled `ParticleContainer`, curves over life, a shared budget that thins under reduced effects. [Guide](docs/guide/particles.md) |
+| **Navigation** | A* `findPath` with reach, costs and end-only tiles, `straightenPath`, `floodFill`, `nearestOpen`. [Guide](docs/guide/navigation.md) |
+| **Saves** | `SaveStore` slots with migrations, checksums and a backup, pluggable backends, `Autosaver`. [Guide](docs/guide/saves.md) |
+| **Transitions** | `transitionTo` with fade, crossfade and dithered wipe, `Letterbox`. [Guide](docs/guide/transitions.md) |
+| **Localisation** | `Translator` with the English source as key, contexts, plurals, live switching; `extractStrings`. [Guide](docs/guide/i18n.md) |
+| **Ambient** | `DayClock`, deterministic `weatherAt` and `WeatherLayer`, `ColorGrade`; in `/pixel`, `NightShade`, `SwayProp`, `DitherVignette`. [Guide](docs/guide/ambient.md) |
+| **Game feel** | Pooled `FloatingText` for damage numbers, hit-stop, recoil and flash curves. [Guide](docs/guide/game-feel.md) |
+| **Diagnostics** | Error capture, WebGL context loss, a boot watch, frame sampling, and a `DebugOverlay` with collision boxes. [Guide](docs/guide/diagnostics-and-debug.md) |
 
 ### A React UI
 
@@ -115,6 +126,10 @@ locally.
 - [Getting started](docs/guide/getting-started.md): an engine, a scene, entities and systems, assets, a Tiled map, input,
   the camera, a rigged character, light and music, and multiplayer, step by step.
 - [Architecture](docs/guide/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
+- A page per module: [input](docs/guide/input.md), [physics](docs/guide/physics.md), [navigation](docs/guide/navigation.md),
+  [particles](docs/guide/particles.md), [game feel](docs/guide/game-feel.md), [ambient](docs/guide/ambient.md),
+  [transitions](docs/guide/transitions.md), [UI](docs/guide/ui.md), [React kit](docs/guide/react.md),
+  [localisation](docs/guide/i18n.md), [saves](docs/guide/saves.md), [diagnostics and debug](docs/guide/diagnostics-and-debug.md).
 - [Examples](examples/), run with `npm run dev`:
   - `top-down`: a Tiled map, asset loading, an animated hero, input actions on keyboard, gamepad and touch, camera follow.
   - `platformer`: physics from a tile grid (crates, a moving platform, one-way planks, sensor coins), particles, a canvas

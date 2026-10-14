@@ -15,6 +15,7 @@ import {
   type Actions,
   type Contact,
 } from '../../src';
+import type { Container } from 'pixi.js';
 import { COIN, CRATE, FLAG, GROUND, PLATFORM } from './art';
 import { Backdrop } from './Backdrop';
 import type { PlayAction } from './Controls';
@@ -234,12 +235,34 @@ export class LevelScene extends Scene {
       sound.play('coin', { local: true });
     } else if (other.userData === 'goal' && this.clearLeft < 0) {
       this.clearLeft = CLEAR_HOLD;
-      this.display.showBanner(this.game.tr('Level clear! {0}', formatTime(this.elapsed * 1000)));
+      const banner = this.display.showBanner(this.game.tr('Level clear! {0}', formatTime(this.elapsed * 1000)));
       sound.play('clear', { local: true });
+      this.celebrate(banner);
     }
   }
 
-  private add<T extends Body>(...bodies: T[]): T {
+  /**
+   * The flag hops twice while the banner fades in, then the banner blinks once: a timeline on the stage's tweens, so
+   * it follows the stage's time scale, and the flag (destroyed with the scene) is simply skipped if it outlives it.
+   */
+  private celebrate(banner: Container): void {
+    const flag = this.flag;
+    const y = flag.y;
+    banner.alpha = 0;
+    this.engine.stage.tweens
+      .timeline()
+      .parallel((t) => {
+        t.to(banner, { alpha: 1 }, { duration: 300, ease: 'Sine.InOut' });
+        t.to(flag, { y: y - 10 }, { duration: 140, ease: 'Quad.Out' }).to(flag, { y }, { duration: 160, ease: 'Quad.In', at: '>' });
+      })
+      .label('settled')
+      .to(flag, { y: y - 5 }, { duration: 110, ease: 'Quad.Out' })
+      .to(flag, { y }, { duration: 130, ease: 'Quad.In' })
+      .to(banner, { alpha: 0.4 }, { duration: 120, ease: 'Linear', at: 'settled+=200' })
+      .to(banner, { alpha: 1 }, { duration: 120, ease: 'Linear' });
+  }
+
+    private add<T extends Body>(...bodies: T[]): T {
     for (const b of bodies) this.physics.add(b);
     return bodies[0]!;
   }

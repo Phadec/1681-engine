@@ -5,6 +5,33 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.7
+
+### Added
+
+- **Aseprite import**: `parseAseprite` reads Aseprite's sprite-sheet JSON (hash or array frames) into `Animator`
+  clips, one per tag, with every tag direction and repeat count, per-frame durations, trimmed frames, slices with their
+  9-slice centre and pivot (`sliceAt`, `sliceBorders`), layers, and cel user data as frame markers (`clipMarkers`);
+  `loadAseprite` / `addAsepriteTextures` register the sheet's frames as textures.
+- **`AnimStateMachine`** drives an `Animator` from named states: transitions on bool, number and trigger parameters,
+  clip-end and exit-time transitions, any-state transitions by priority, events on frame markers (a footstep on
+  frame 3), no allocation per update; `AnimStateComponent` and `animStateSystem` run it in the ECS.
+- **`Timeline`**: sequenced and overlapping tweens and calls with positions (`'<'`, `'+=200'`, labels), `parallel`
+  groups, nesting, repeat/yoyo/repeatDelay, timeScale, pause/seek/reverse/restart, `finished`; made with
+  `stage.tweens.timeline()` or stepped by hand. `Tweener` gains `run(steppable)` and `timeline()`.
+- **`Parallax` / `ParallaxLayer`**: scenery that scrolls at a share of the camera's travel on x and y, tiled textures
+  repeating forever (covering only the view), offset and drift, whole-pixel snapping on pixel-perfect engines,
+  culling and depth; works with the camera's zoom.
+- Examples: `aseprite` (a generated sheet, the state machine and its events); the platformer's hills are a
+  `Parallax` and reaching the goal plays a `Timeline`.
+- Documentation: a guide page for every module (input, animation, physics, navigation, particles, game feel, ambient,
+  tweens and parallax, transitions, UI, React kit, localisation, saves, diagnostics and debug); the API reference
+  covers `1681-engine/ui` and `1681-engine/react`.
+
+### Fixed
+
+- The docs build no longer fails on `{{` quoted in inline code of the API reference.
+
 ## 0.5.6
 
 ### Added
