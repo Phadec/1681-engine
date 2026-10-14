@@ -95,6 +95,14 @@ export class SoundEngine {
     });
   }
 
+  /**
+   * The effects' audio context once something opened it (the first gesture does), else null: never created here, so
+   * asking does not open a context the browser would hold suspended. `AssetLoader.audio` decodes through it.
+   */
+  get audioContext(): AudioContext | null {
+    return this.ctx;
+  }
+
   play(name: string | undefined, opts: SoundOptions = {}): void {
     if (!name || (!SOUNDS.recipes[name] && !hasTakes(name))) return;
     if (engineSettings.getState().sfxVolume <= 0) return;

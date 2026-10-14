@@ -1,5 +1,24 @@
 import { CanvasSource, Rectangle, Texture } from 'pixi.js';
 
+/** A frame packed on an atlas page (TexturePacker and the like), as `assets/textureAtlas.ts` parses it. */
+export interface PackedFrame {
+  name: string;
+  /** The rect on the page (already swapped to its on-page size when `rotated`). */
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Stored turned 90° clockwise on the page (Pixi's `rotate: 2`). */
+  rotated: boolean;
+  /** The untrimmed size of the sprite. */
+  sourceW: number;
+  sourceH: number;
+  /** Where the trimmed pixels sit inside the untrimmed sprite; absent when the frame was not trimmed. */
+  trim?: { x: number; y: number; w: number; h: number };
+  /** The frame's pivot, 0–1, when the packer wrote one. */
+  anchor?: { x: number; y: number };
+}
+
 /** A canvas-backed texture with named frames; repaint the canvas, then `refresh()` to upload it. */
 export class CanvasTexture {
   readonly frames = new Map<string, Texture>();
@@ -30,6 +49,23 @@ export class CanvasTexture {
   add(name: string, _source: number, x: number, y: number, w: number, h: number): void {
     this.frames.get(name)?.destroy();
     this.frames.set(name, new Texture({ source: this.source, frame: new Rectangle(x, y, w, h) }));
+  }
+
+  /**
+   * Adds a packed frame cut from `page` (this texture's canvas by default): trimmed frames keep their untrimmed size
+   * (`orig`) so they line up when drawn, and frames the packer turned are turned back (Pixi's `rotate: 2`).
+   */
+  addPacked(frame: PackedFrame, page: CanvasTexture = this): void {
+    this.frames.get(frame.name)?.destroy();
+    const texture = new Texture({
+      source: page.source,
+      frame: new Rectangle(frame.x, frame.y, frame.w, frame.h),
+      orig: new Rectangle(0, 0, frame.sourceW, frame.sourceH),
+      ...(frame.trim ? { trim: new Rectangle(frame.trim.x, frame.trim.y, frame.trim.w, frame.trim.h) } : {}),
+      rotate: frame.rotated ? 2 : 0,
+      ...(frame.anchor ? { defaultAnchor: frame.anchor } : {}),
+    });
+    this.frames.set(frame.name, texture);
   }
 
   /**
@@ -127,6 +163,27 @@ export class TextureRegistry {
       tex.add(String(i), 0, (i % cols) * size.frameWidth, Math.floor(i / cols) * size.frameHeight, size.frameWidth, size.frameHeight);
     }
     return tex;
+  }
+
+  /**
+   * A packed atlas (TexturePacker JSON, `AssetLoader.atlas`): the first page under `key`, the others as `key~1`,
+   * `key~2`… like `AtlasBuilder`'s pages, and every frame of every page found under `key` by its name.
+   */
+  addAtlas(key: string, pages: readonly { canvas: HTMLCanvasElement; frames: readonly PackedFrame[] }[]): CanvasTexture {
+    if (pages.length === 0) throw new Error(`TextureRegistry: atlas "${key}" has no pages`);
+    for (let i = 1; ; i++) {
+      if (!this.textures.has(`${key}~${i}`)) break;
+      this.remove(`${key}~${i}`);
+    }
+    const first = this.addCanvas(key, pages[0]!.canvas);
+    pages.forEach((p, i) => {
+      const page = i === 0 ? first : this.addCanvas(`${key}~${i}`, p.canvas);
+      for (const f of p.frames) {
+        if (page !== first) page.addPacked(f);
+        first.addPacked(f, page);
+      }
+    });
+    return first;
   }
 
   createCanvas(key: string, width: number, height: number): CanvasTexture {

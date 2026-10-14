@@ -1,5 +1,6 @@
 import type { Keyboard } from './Keyboard';
 import { chordHeld, parseChord, type KeyChord } from './keyChord';
+import { rumblePad, type RumbleOptions, type RumblePad } from './rumble';
 
 /**
  * Named actions bound to any input: keys, gamepad buttons and sticks, and virtual buttons a touch UI presses. Game
@@ -34,7 +35,7 @@ export const PAD_BUTTONS = ['a', 'b', 'x', 'y', 'lb', 'rb', 'lt', 'rt', 'select'
 const PAD_AXES = ['lx', 'ly', 'rx', 'ry'] as const;
 
 /** What the actions read from a gamepad; `navigator.getGamepads()` entries satisfy it. */
-export interface PadState {
+export interface PadState extends RumblePad {
   readonly buttons: readonly { readonly pressed: boolean; readonly value: number }[];
   readonly axes: readonly number[];
 }
@@ -89,6 +90,17 @@ export class Actions<A extends string> {
 
   release(name: string): void {
     this.virtual.delete(name);
+  }
+
+  /**
+   * Rumbles the gamepads the actions read: every connected one, or only `padIndex` among them. Resolves true when any
+   * played; a pad without rumble is skipped silently.
+   */
+  async rumble(options: RumbleOptions, padIndex?: number): Promise<boolean> {
+    const pads = this.gamepads();
+    const chosen = padIndex === undefined ? pads : [pads[padIndex] ?? null];
+    const played = await Promise.all(chosen.map((p) => (p ? rumblePad(p, options) : Promise.resolve(false))));
+    return played.includes(true);
   }
 
   /** Reads every device once; call at the start of each simulation step. */

@@ -3,7 +3,9 @@ import { Stage } from '../core/Stage';
 import { TextureRegistry } from '../core/TextureRegistry';
 import { patchPixi } from '../core/pixiPatches';
 import { EventBus } from '../events/EventBus';
+import { followReducedMotion } from '../platform/reducedMotion';
 import { FixedLoop } from './FixedLoop';
+import { HiddenPause } from './HiddenPause';
 import { SceneManager } from './SceneManager';
 import type { Scene } from './Scene';
 
@@ -34,6 +36,16 @@ export interface EngineOptions {
    * `erase` blend `Darkness` cuts lights with, the fill filters) have only been profiled on WebGL.
    */
   preference?: 'webgl' | 'webgpu';
+  /**
+   * Pause simulating and drawing while the page is hidden (another tab, the phone's home screen) and resume when it
+   * is shown, with no catch-up burst of steps (default false). A pause the game made itself is left alone.
+   */
+  pauseWhenHidden?: boolean;
+  /**
+   * Mirror the system's "reduce motion" setting into `engineSettings.reducedFx`, now and on every change (default
+   * false). Leave it off when the game has its own reduced-effects toggle and mirrors that instead.
+   */
+  followReducedMotion?: boolean;
 }
 
 export interface EngineEvents {
@@ -74,6 +86,9 @@ export class Engine {
   readonly events = new EventBus<EngineEvents>();
   private running = true;
   private destroyed = false;
+  /** Pauses through the loop's own switch, so a hidden tab never counts as the game's own pause (`forget`). */
+  private readonly hiddenPause = this.makeHiddenPause();
+  private readonly unwatch: (() => void)[] = [];
   private readonly onTick = (t: { deltaMS: number }) => this.stage.frame(t.deltaMS);
 
   private constructor(
@@ -91,6 +106,8 @@ export class Engine {
     this.scenes = new SceneManager(this);
     Stage.onCaught = (where, error) => this.events.emit('error', { where, error });
     app.ticker.add(this.onTick);
+    if (options.pauseWhenHidden === true) this.unwatch.push(this.hiddenPause.watch());
+    if (options.followReducedMotion === true) this.unwatch.push(followReducedMotion());
   }
 
   static async create(options: EngineOptions): Promise<Engine> {
@@ -119,14 +136,38 @@ export class Engine {
 
   /** Stops simulating and drawing; the canvas keeps its last frame. */
   pause(): void {
+    this.hiddenPause.forget();
+    this.pauseLoop();
+  }
+
+  resume(): void {
+    this.hiddenPause.forget();
+    this.resumeLoop();
+  }
+
+  private makeHiddenPause(): HiddenPause {
+    // the getter below needs the engine, not the object literal it sits in
+    const engine = this;
+    return new HiddenPause({
+      get paused() {
+        return !engine.running;
+      },
+      pause: () => engine.pauseLoop(),
+      resume: () => engine.resumeLoop(),
+    });
+  }
+
+  private pauseLoop(): void {
     if (!this.running) return;
     this.running = false;
     this.app.ticker.stop();
   }
 
-  resume(): void {
+  private resumeLoop(): void {
     if (this.running || this.destroyed) return;
     this.running = true;
+    // the time away is not owed: the loop starts with no debt, and Pixi's ticker measures its next frame from the
+    // moment it starts again (`start` resets its last time), so the first frame back is an ordinary one
     this.loop.reset();
     this.app.ticker.start();
   }
@@ -145,6 +186,7 @@ export class Engine {
   async destroy(): Promise<void> {
     if (this.destroyed) return;
     this.destroyed = true;
+    for (const off of this.unwatch.splice(0)) off();
     await this.scenes.clear();
     this.app.ticker.remove(this.onTick);
     if (Stage.onCaught) Stage.onCaught = null;

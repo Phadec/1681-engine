@@ -75,6 +75,8 @@ export default defineConfig({
         {
           text: 'Shipping',
           items: [
+            { text: 'Assets', link: '/guide/assets' },
+            { text: 'Platform: fullscreen, orientation, rumble', link: '/guide/platform' },
             { text: 'Saves', link: '/guide/saves' },
             { text: 'Diagnostics and debug', link: '/guide/diagnostics-and-debug' },
           ],
