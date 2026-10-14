@@ -5,6 +5,11 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+### Fixed
+
+- `WebPatcher.tidy` called while the tidy `startEntry` began was still running deleted the same folders twice at
+  once; one failed, and the old webs after it were left on disk. Calls now run one after another.
+
 ## 0.5.10
 
 ### Added

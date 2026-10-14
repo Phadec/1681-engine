@@ -54,6 +54,7 @@ export class WebPatcher {
   private loaded: { dir: string; version: string } | null = null;
   /** The tidy a start began: a build waits for it, or it could delete the `.part` folder being filled. */
   private tidying: Promise<void> = Promise.resolve();
+  private tidyChain: Promise<void> = Promise.resolve();
 
   constructor(private readonly options: WebPatcherOptions) {
     this.o = {
@@ -222,8 +223,15 @@ export class WebPatcher {
     return !!p && p.shell === this.shell && isNewer(p.version, this.o.appVersion) && existsSync(join(this.o.root, p.version, this.o.entry));
   }
 
-  /** Removes every patched web but the active, pending and previous one, and any half-made folder. */
-  async tidy(): Promise<void> {
+  /** Removes every patched web but the active, pending and previous one, and any half-made folder. A call made while
+   * one is running waits for it and then runs once more, so two never delete the same folder at once. */
+  tidy(): Promise<void> {
+    const next = this.tidyChain.then(() => this.tidyOnce());
+    this.tidyChain = next;
+    return next;
+  }
+
+  private async tidyOnce(): Promise<void> {
     try {
       const names = ['active', 'pending', 'previous'] as const;
       const keep = new Set([...names.map((n) => this.pointers.read(n)?.version), this.loaded?.version].filter((v): v is string => !!v));
