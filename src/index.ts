@@ -292,6 +292,7 @@ export { InterpolationBuffer, type InterpolatedState } from './net/Interpolation
 export { Room, type RoomPlayer, type RoomOptions } from './net/Room';
 export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';
 export { Connection, CLOSE_NO_ANSWER, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export { ApiClient, ApiError, type ApiClientOptions, type ApiRequestOptions, type ApiErrorInfo, type ApiMethod, type RefreshResult } from './net/ApiClient';
 export { reconnectDelay, shouldReconnect } from './net/reconnect';
 export {
   LobbyHost,
