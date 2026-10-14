@@ -42,6 +42,8 @@ export {
   type Ramp,
 } from './ramp';
 export { selectiveOutline } from './selout';
+export { ringPixels, discRuns, ellipsePixels, chevronPixels, type PixelPoint, type PixelRun } from './aimPixels';
+export { PixelMarks, type MarkTone, type PixelMarksOptions } from './PixelMarks';
 
 /** Pixel shapes on the 1-px world grid: `pixelPaint.ring(g, …)`, `pixelPaint.arc(g, …)`… */
 export * as pixelPaint from './pixelPaint';
