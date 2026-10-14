@@ -41,3 +41,9 @@ export { worldToScreen, onScreen, type LayerTransform } from './dom/worldToScree
 export { createStore, type Store, type StoreListener } from './dom/createStore';
 export { InputShield } from './dom/InputShield';
 export { shouldShield, isEditable, isInside, type ShieldFacts, type ShieldOptions, type ElementLike } from './dom/shieldDecision';
+
+// ── Rich text ──────────────────────────────────────────────────────────────────────────────────────────────────────
+export { RichText, type RichTextOptions } from './rich/RichText';
+export { CanvasRichFont, BitmapRichFont, type RichFont, type RichFontOptions, type BitmapRichFontOptions } from './rich/richFonts';
+export { parseRichText, escapeRichText, stripRichText, type RichSpan, type RichTextSpan, type RichIconSpan, type RichStyle, type RichMarkupOptions } from './rich/richMarkup';
+export { layoutRichText, type RichMeasure, type RichLayoutOptions, type RichLayout, type RichLine, type RichItem, type RichTextItem, type RichIconItem, type RichAlign } from './rich/richLayout';
