@@ -9,6 +9,8 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 - `WebPatcher.tidy` called while the tidy `startEntry` began was still running deleted the same folders twice at
   once; one failed, and the old webs after it were left on disk. Calls now run one after another.
+- `ScrollView.measure` read the content as no taller than the view (Pixi cuts a masked container's bounds to its
+  mask), so a view measured that way never scrolled. It now measures the content without the clip.
 
 ## 0.5.10
 

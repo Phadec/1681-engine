@@ -78,7 +78,12 @@ export class ScrollView extends Widget implements UiTicking {
 
   /** Measures the content's drawn height; call after filling it. */
   measure(): this {
+    // measured without the clip: Pixi cuts a masked container's bounds to its mask, so the content always read as
+    // no taller than the box and a measured view never scrolled
+    const mask = this.content.mask;
+    this.content.mask = null;
     const b = this.content.getLocalBounds();
+    this.content.mask = mask;
     return this.setContentHeight(b.maxY);
   }
 
