@@ -17,6 +17,12 @@ export interface TilemapViewOptions {
   baseDepth?: number;
   /** Where the layers go (default the stage's world layer); a scene passes its `root` so they leave with it. */
   parent?: Container;
+  /**
+   * World position of the map's top-left corner (default 0, 0): an LDtk level's `worldX`/`worldY`, or any map laid
+   * beside another. Culling in `update` counts it.
+   */
+  x?: number;
+  y?: number;
 }
 
 let nextView = 0;
@@ -35,6 +41,8 @@ export class TilemapView {
   private readonly chunkTiles: number;
   private readonly textureFor: (ts: Tileset) => string;
   private readonly drawn = new Map<string, TileLayer>();
+  private readonly originX: number;
+  private readonly originY: number;
 
   constructor(
     private readonly stage: Stage,
@@ -47,6 +55,8 @@ export class TilemapView {
     const wanted = options.layers ? new Set(options.layers) : null;
     const layers = map.layers.filter((l): l is TileLayer => l.kind === 'tiles' && (wanted ? wanted.has(l.name) : l.visible));
     const parent = options.parent ?? stage.world;
+    this.originX = options.x ?? 0;
+    this.originY = options.y ?? 0;
     layers.forEach((layer, n) => {
       const depth = typeof layer.properties.depth === 'number' ? layer.properties.depth : base + n;
       const holder = new Container();
@@ -54,7 +64,7 @@ export class TilemapView {
       // chunks lower on the map draw over the overhang of tall tiles from the ones above, even after a repaint
       holder.sortableChildren = true;
       holder.alpha = layer.opacity;
-      holder.position.set(layer.offsetX, layer.offsetY);
+      holder.position.set(this.originX + layer.offsetX, this.originY + layer.offsetY);
       this.layers.set(layer.name, holder);
       this.drawn.set(layer.name, layer);
       parent.addChild(holder);
@@ -161,6 +171,6 @@ export class TilemapView {
     sprite.position.set(cx * tw, cy * th - pad);
     sprite.zIndex = cy * map.width + cx;
     holder.addChild(sprite);
-    this.chunks.push({ sprite, x: sprite.x + layer.offsetX, y: sprite.y + layer.offsetY, w: cw * tw, h: ch * th + pad, key });
+    this.chunks.push({ sprite, x: sprite.x + holder.x, y: sprite.y + holder.y, w: cw * tw, h: ch * th + pad, key });
   }
 }
