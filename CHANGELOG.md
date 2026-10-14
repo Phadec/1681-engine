@@ -3,7 +3,7 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
-## Unreleased
+## 0.6.0
 
 ### Added
 
@@ -39,6 +39,13 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 - **`1681-engine/mobile`**: `capacitorConfig` (a Capacitor config with a game's defaults), `BackStack`,
   `doubleBackToExit` and `installBackButton` for Android's back button, `safeAreaInsets`, `keepScreenOn`, and
   `nativeBuildOf` for `pickWebUpdate`. Capacitor is handed in, never imported.
+
+### Changed
+
+- `RoomInterest.canSee(viewer, other)` gets a `RoomSeen` (a player or a body the server moves), told apart by
+  `other.kind`; `RoomPlayer` has `kind: 'player'`. `Room` and `RoomHost` take a second type parameter for bodies' data.
+- `Keymap.bind` replaces the action's first binding of the same device (a pad input its first pad input, a key its
+  first key) instead of its first binding of any kind. Keymaps of keys only behave as before.
 
 ### Fixed
 
