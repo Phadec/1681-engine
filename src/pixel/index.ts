@@ -52,7 +52,7 @@ export { paintLayer, type PaintLayerOptions } from './paintLayer';
 export { Evaporation, type DeathPixels } from './Evaporation';
 export { spritePixels, NO_PIXELS, PackedPixels, type SpritePixel } from './spritePixels';
 
-export { Darkness, WARM_LIGHT, LAMP_DIM, CARRIED_LIGHT } from './Darkness';
+export { Darkness, WARM_LIGHT, LAMP_DIM, CARRIED_LIGHT, type DarknessOptions } from './Darkness';
 export { flashLight, carriedLight, liveLights, clearLights, type TransientLight } from './lights';
 export { NightShade, type NightShadeOptions } from './NightShade';
 export { paintWeatherArt, mistPixels, WEATHER_COLORS, type WeatherColors, type WeatherPixel } from './weatherArt';

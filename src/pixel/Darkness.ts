@@ -1,5 +1,4 @@
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
-import { TILE_SIZE } from '../net/constants';
 import type { Stage } from '../core/Stage';
 import { lightRadius, liveLights } from './lights';
 import { isTouchUi } from '../platform/touch';
@@ -154,11 +153,16 @@ export class Darkness {
   /** A phone redraws the night at most `PHONE_MS` apart, whatever moves (`isTouchUi`). */
   private readonly phone = isTouchUi();
 
+  /** The radius `update` uses when it is given none (`DarknessOptions.carriedLight`). */
+  readonly carriedLight: number;
+
   constructor(
     private readonly stage: Stage,
     private color: number,
     private alpha: number,
+    options: DarknessOptions = {},
   ) {
+    this.carriedLight = options.carriedLight ?? CARRIED_LIGHT;
     // a flat sheet of night over the whole window: one white pixel, tinted and stretched
     this.sheet = new Sprite({ texture: Texture.WHITE });
     this.scratch.addChild(this.sheet, this.holes, this.washes);
@@ -229,8 +233,11 @@ export class Darkness {
     return true;
   }
 
-  /** Redraws the night with this frame's holes in it, when anything in it changed. `px`/`py` is where the player stands. */
-  update(now: number, px: number, py: number, carriedRadius: number): void {
+  /**
+   * Redraws the night with this frame's holes in it, when anything in it changed. `px`/`py` is where the player stands;
+   * `carriedRadius` is the light they carry (default the `carriedLight` option, 0 for none).
+   */
+  update(now: number, px: number, py: number, carriedRadius = this.carriedLight): void {
     if (!this.layer.visible) return;
     const cam = this.stage.cameras.main;
     const zoom = cam.zoom || 1;
@@ -332,5 +339,13 @@ export class Darkness {
 /** What is left of a lamp's glow and colour while lamps are dimmed (`setLampsDimmed`). */
 export const LAMP_DIM = 0.35;
 
-/** World units of light the player carries underground — about five tiles of certainty in any direction. */
-export const CARRIED_LIGHT = TILE_SIZE * 5;
+/**
+ * The default radius of light the player carries underground, world px: five 16-px tiles of certainty in any
+ * direction. A game with other tiles passes its own as `DarknessOptions.carriedLight`.
+ */
+export const CARRIED_LIGHT = 80;
+
+export interface DarknessOptions {
+  /** The light the player carries when `update` is given no radius, world px (default `CARRIED_LIGHT`, 80). */
+  carriedLight?: number;
+}
