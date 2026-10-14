@@ -61,6 +61,8 @@ export { tagFrames, tagDirection, tagRepeat } from './anim/asepriteTags';
 export { sliceNamed, sliceAt, sliceBorders } from './anim/asepriteSlices';
 export type { AsepriteJson, AsepriteJsonFrame, AsepriteJsonTag, AsepriteJsonSlice, AsepriteJsonSliceKey, AsepriteJsonLayer, AsepriteRect, AsepriteSheet, AsepriteFrame, AsepriteTag, AsepriteDirection, AsepriteSlice, AsepriteSliceKey, AsepriteLayer, AsepriteCue, ClipMarker } from './anim/asepriteTypes';
 export { loadAseprite, addAsepriteTextures, type AsepriteTextureSink, type AsepriteLoadOptions } from './assets/loadAseprite';
+export { Prepainter, type PrepainterOptions, type PrepainterTextures, type Painter, type PaintedPixels } from './assets/Prepainter';
+export { workerPainter, type WorkerPainterOptions, type PaintReply } from './assets/workerPainter';
 export { AnimStateMachine } from './anim/AnimStateMachine';
 export type { AnimStateMachineOptions, AnimStateDef, AnimTransition, AnimCondition, AnimParams, AnimParamDecl, CompareOp } from './anim/animStateTypes';
 export { AnimStateComponent, animStateSystem } from './anim/animStateSystem';

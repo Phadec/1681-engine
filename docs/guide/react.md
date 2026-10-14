@@ -272,6 +272,10 @@ function HealthText() {
 The game writes the store as often as it likes; a patch that changes nothing notifies nobody. A `select` must return
 something stable (a field, a number), not a new object each call, or React renders forever.
 
+`useJsonSelector(useHook, select)` (and `useStoreJson(store, select)`) selects a small piece of a store by its content,
+so a store that hands out fresh arrays for unchanged data re-renders nothing. `ConfirmButton` is a button asked twice:
+the first click arms it (`e1681-armed`), the second acts; buttons sharing `armed`/`setArmed` disarm each other.
+
 ## Pure placement helpers
 
 The decisions the components make are exported and tested under node, for a component of your own: `windowStyle`

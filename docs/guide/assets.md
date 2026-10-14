@@ -38,6 +38,26 @@ const { frames, animations } = assets.getAtlas('props');
 
 The parser is pure and exported (`parseAtlas`, `collectAtlasPages`) for tools that want to read atlases themselves.
 
+## Painting ahead: `Prepainter`
+
+A big texture painted from data (a map's whole ground) is seconds of work on a phone. `Prepainter` paints the ones a
+player may need next in a worker while they play, and frees the ones they walked away from:
+
+```ts
+import { Prepainter, workerPainter } from '1681-engine';
+
+const ahead = new Prepainter<MapData>({
+  textures: stage.textures,
+  id: (m) => m.id,
+  key: (id) => `ground_${id}`,
+  painter: workerPainter({ create: () => new Worker(new URL('./groundWorker.ts', import.meta.url), { type: 'module' }), message: (map) => ({ map }) }),
+});
+ahead.enter(current, mapsBeyondItsDoors);
+```
+
+The worker answers `{ id, w, h, pixels }` (RGBA, the buffer transferred) for each request. Whatever is not ready on
+arrival is still painted there by the game; `painting(id)` tells whether waiting a moment is worth it.
+
 ## Fonts
 
 `font(family, url, descriptors?)` loads a web font into a `FontFace` and adds it to `document.fonts`. Load fonts before

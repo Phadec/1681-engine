@@ -184,6 +184,16 @@ marks.end(); // hides whatever was shown last frame and not this one
 
 The pixel shapes underneath are pure and exported: `ringPixels`, `discRuns`, `ellipsePixels`, `chevronPixels`.
 
+## Haptics
+
+`Haptics` buzzes a phone per kind of moment, at most once per kind's gap, so six bodies struck by one cleave are one
+buzz. The default player is `navigator.vibrate`; a native shell hands in its plugin:
+
+```ts
+const haptics = new Haptics<'crit' | 'hurt'>({ gaps: { crit: 120, hurt: 300 }, enabled: () => settings.haptics });
+haptics.buzz('crit');
+```
+
 ## Touch detection
 
 `isTouchUi()` says whether the game is played with fingers, decided once per launch (`detectTouch`): a native shell,

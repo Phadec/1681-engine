@@ -174,10 +174,41 @@ else edge.hide();
 The texture is made off the first frame that needs it (a full-screen dither is a few ms on a phone) and only again when
 the window or the zoom changes. Offer a "reduce flashes" setting that hides it.
 
+## Life on screen: drift, birds, butterflies, fireflies, smoke
+
+Small pools of painted bodies that live only inside the camera's view: `Drift` (leaves falling from canopies, seeds
+blown across, embers and ash lifting off the ground, motes hanging underground), `Birds` (a flock crossing now and
+then, with shadows), `Butterflies` (round flowers by day), `Fireflies` (by night) and `ChimneySmoke`. None of them knows
+a map: where they live comes from a `LifeSource` callback (`sourceOf(list)` picks from a fixed list), and the air from
+a `LifeAir` (`{ night, wind }`) the game reads off its own clock and weather. `paintLifeArt` (pixel module) paints a
+set of whole-pixel art and returns the keys each class takes.
+
+```ts
+import { Birds, Drift, Fireflies, sourceOf } from '1681-engine';
+import { paintLifeArt } from '1681-engine/pixel';
+
+const art = paintLifeArt(stage.textures, { bird: '#2c2830' });
+const leaves = new Drift(stage, { kind: 'leaf', count: 26, looks: art.leaves, from: (view, r) => crownInView(view, r) });
+const birds = new Birds(stage, { flock: [2, 6], everyS: [10, 26], frames: art.bird, shadow: art.birdShadow });
+const flies = new Fireflies(stage, { count: 26, frames: art.firefly, home: sourceOf(waterEdge) }); // after the darkness
+// each frame
+const air = { night: clock.night, wind };
+leaves.update(now, dt, view, air, !reducedFx);
+birds.update(now, dt, view, air, !reducedFx);
+flies.update(now, view, air);
+```
+
+Fireflies are a light: by default their layer sits on the screen layer and follows the camera, so a `NightShade` or
+`Darkness` drawn there does not darken them (create them after it). Pass `enabled: false` (the last argument) for a
+reduced-effects setting; everything hides and is re-used, nothing is freed until `destroy`.
+
 ## API
 
 [`DayClock`](/api/index/classes/DayClock) · [`weatherAt`](/api/index/functions/weatherAt) ·
 [`WeatherLayer`](/api/index/classes/WeatherLayer) · [`ColorGrade`](/api/index/classes/ColorGrade) ·
 [`gradeAt`](/api/index/functions/gradeAt) · [`NightShade`](/api/pixel/classes/NightShade) ·
 [`paintWeatherArt`](/api/pixel/functions/paintWeatherArt) · [`SwayProp`](/api/pixel/classes/SwayProp) ·
-[`DitherVignette`](/api/pixel/classes/DitherVignette)
+[`DitherVignette`](/api/pixel/classes/DitherVignette) · [`Drift`](/api/index/classes/Drift) ·
+[`Birds`](/api/index/classes/Birds) · [`Butterflies`](/api/index/classes/Butterflies) ·
+[`Fireflies`](/api/index/classes/Fireflies) · [`ChimneySmoke`](/api/index/classes/ChimneySmoke) ·
+[`paintLifeArt`](/api/pixel/functions/paintLifeArt)
