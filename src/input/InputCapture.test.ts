@@ -11,10 +11,10 @@ function pad(): PadState & { press(i: number, v?: number): void; tilt(i: number,
   return {
     buttons,
     axes,
-    press(i, v = 1) {
+    press(i: number, v = 1) {
       buttons[i] = { pressed: v > 0.5, value: v };
     },
-    tilt(i, v) {
+    tilt(i: number, v: number) {
       axes[i] = v;
     },
   } as never;
