@@ -41,7 +41,7 @@ export interface RoomHostOptions<D> {
  * host.start();
  * ```
  */
-export class RoomHost<D = unknown> {
+export class RoomHost<D = unknown, B = unknown> {
   private readonly sockets = new Map<number, HostSocket>();
   private readonly joined = new Set<number>();
   private nextId = 1;
@@ -53,7 +53,7 @@ export class RoomHost<D = unknown> {
   private readonly now: () => number;
 
   constructor(
-    readonly room: Room<D>,
+    readonly room: Room<D, B>,
     private readonly options: RoomHostOptions<D> = {},
   ) {
     this.stepMs = 1000 / (options.stepRate ?? 60);

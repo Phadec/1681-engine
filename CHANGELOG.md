@@ -14,6 +14,9 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   snapshots goes out and blended as `InterpolationBuffer` blends, so a shot is judged against what the shooter saw:
   `at`, `all`, `near`, `alongRay`. `RoomHost.rewindTime(claimed)` and `LagCompensator.clampTime` hold a client's
   claim within the window; `InterpolationBuffer.viewTime(now)` is the time a client sends with a shot.
+- **Server bodies**: `Room.addBody(data, x, y)` and `removeBody` for monsters, projectiles and crates the server
+  moves, sent beside the players with the same interest and rewind history (`RoomBody`, `RoomSeen`, `BODY_ID_BASE`).
+  `canSee` now gets either kind.
 - **Behaviour trees**: `BehaviorTree` and `BtAgent` (one tree, many agents, each with its own memory), `sequence`,
   `selector`, `reactiveSequence`, `reactiveSelector`, `parallel`, `invert`, `succeed`, `repeat`, `retry`, `cooldown`,
   `timeout`, `wait`, `condition`, `action` with `onHalt`, a trace for debugging, and `buildTree` from JSON.

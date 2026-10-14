@@ -377,7 +377,7 @@ export { CADENCE, cadenceEarly, cadenceNext } from './net/cadence';
 export { serverNow, serverOffset, noteServerTime, resetServerClock } from './net/serverClock';
 export { PredictedMover } from './net/PredictedMover';
 export { InterpolationBuffer, type InterpolatedState } from './net/InterpolationBuffer';
-export { Room, type RoomPlayer, type RoomOptions, type RoomInterest } from './net/Room';
+export { Room, BODY_ID_BASE, type RoomPlayer, type RoomBody, type RoomSeen, type RoomOptions, type RoomInterest } from './net/Room';
 export { SpatialHash } from './net/SpatialHash';
 export { LagCompensator, type RewoundBody, type RewoundHit } from './net/LagCompensator';
 export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';

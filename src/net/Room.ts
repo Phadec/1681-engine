@@ -5,6 +5,7 @@ import { moverToWire, type Snapshot } from './protocol';
 import { SpatialHash } from './SpatialHash';
 
 export interface RoomPlayer<D = unknown> {
+  readonly kind: 'player';
   readonly id: number;
   readonly mover: MoverState;
   /** The game's own data for this player (sent to others in `sp` when they first see it). */
@@ -23,8 +24,31 @@ export interface RoomPlayer<D = unknown> {
   strikes: number;
 }
 
+/**
+ * A body the server moves itself (a monster, a projectile, a crate): no input, no prediction, sent to players beside
+ * them in the same snapshots. The game writes `x`, `y` and the rest as its own simulation runs.
+ */
+export interface RoomBody<B = unknown> {
+  readonly kind: 'body';
+  readonly id: number;
+  x: number;
+  y: number;
+  aim: number;
+  anim: number;
+  hp: number;
+  flags: number;
+  /** The game's own description of it, sent in `sp` when a player first sees it. */
+  data: B;
+}
+
+/** Anything a snapshot carries: a player or a body the server moves. */
+export type RoomSeen<D = unknown, B = unknown> = RoomPlayer<D> | RoomBody<B>;
+
+/** Server bodies get ids from here up unless given one, far above the ids `RoomHost` hands players. */
+export const BODY_ID_BASE = 1 << 24;
+
 /** Who a player is sent: the bodies near it, not the whole room. */
-export interface RoomInterest<D> {
+export interface RoomInterest<D, B = unknown> {
   /** A body comes into view within this many px of the player (centre to centre). */
   radius: number;
   /**
@@ -33,10 +57,10 @@ export interface RoomInterest<D> {
    */
   leaveMargin?: number;
   /** A further test, for what distance alone does not decide (a team's own always, a hidden enemy never). */
-  canSee?: (viewer: RoomPlayer<D>, other: RoomPlayer<D>) => boolean;
+  canSee?: (viewer: RoomPlayer<D>, other: RoomSeen<D, B>) => boolean;
 }
 
-export interface RoomOptions<D> {
+export interface RoomOptions<D, B = unknown> {
   grid: CollisionGrid;
   /** Movement rules a new player starts with. */
   params: MovementParams;
@@ -50,7 +74,7 @@ export interface RoomOptions<D> {
   /** Called after each step a player takes (set aim, anim, flags from it). */
   onStep?: (player: RoomPlayer<D>, step: InputStep) => void;
   /** Send each player only the bodies near it (default: everyone to everyone). */
-  interest?: RoomInterest<D>;
+  interest?: RoomInterest<D, B>;
   /**
    * Keep this many ms of positions for lag compensation (`history`), recorded as each round of snapshots goes out
    * (`record`). Off by default.
@@ -66,8 +90,10 @@ export interface RoomOptions<D> {
  * Every step a player sends is applied once, in order; a client cannot move faster by sending more (the queue is
  * capped and drained at most `maxStepsPerTick` a tick), and nonsense input is refused and counted.
  */
-export class Room<D = unknown> {
+export class Room<D = unknown, B = unknown> {
   readonly players = new Map<number, RoomPlayer<D>>();
+  /** The bodies the server moves (`addBody`). */
+  readonly bodies = new Map<number, RoomBody<B>>();
   tick = 0;
   /** Past positions for judging shots against what a client saw, when the room was made with `rewindMs`. */
   readonly history: LagCompensator | null;
@@ -79,8 +105,9 @@ export class Room<D = unknown> {
   private readonly maxQueue: number;
   private readonly maxSteps: number;
   private readonly backlog: number;
+  private nextBodyId = BODY_ID_BASE;
 
-  constructor(private readonly options: RoomOptions<D>) {
+  constructor(private readonly options: RoomOptions<D, B>) {
     this.maxQueue = options.maxQueue ?? 30;
     this.maxSteps = options.maxStepsPerTick ?? 3;
     this.backlog = options.backlog ?? 4;
@@ -94,8 +121,10 @@ export class Room<D = unknown> {
 
   join(id: number, data: D): RoomPlayer<D> {
     if (this.players.has(id)) throw new Error(`Room: player ${id} has already joined`);
+    if (this.bodies.has(id)) throw new Error(`Room: id ${id} is a body's`);
     const at = this.options.spawn(id, data);
     const player: RoomPlayer<D> = {
+      kind: 'player',
       id,
       mover: createMover(at.x, at.y),
       data,
@@ -126,7 +155,34 @@ export class Room<D = unknown> {
    * snapshots goes out, so the history holds exactly the positions clients interpolate between.
    */
   record(time: number): void {
-    this.history?.record(time, [...this.players.values()].map((p) => ({ id: p.id, x: p.mover.x, y: p.mover.y })));
+    if (!this.history) return;
+    const at = [...this.players.values()].map((p) => ({ id: p.id, x: p.mover.x, y: p.mover.y }));
+    for (const b of this.bodies.values()) at.push({ id: b.id, x: b.x, y: b.y });
+    this.history.record(time, at);
+  }
+
+  /**
+   * Adds a body the server moves, at (x, y), with the game's `data` (what players are told it looks like). Its id
+   * is `id`, or the next from `BODY_ID_BASE` up; an id a player or body has is refused.
+   */
+  addBody(data: B, x: number, y: number, id?: number): RoomBody<B> {
+    let bid = id;
+    if (bid === undefined) {
+      while (this.bodies.has(this.nextBodyId) || this.players.has(this.nextBodyId)) this.nextBodyId++;
+      bid = this.nextBodyId++;
+    } else if (this.bodies.has(bid) || this.players.has(bid)) throw new Error(`Room: id ${bid} is taken`);
+    if (!Number.isInteger(bid) || bid < 0 || bid > 0x7fffffff) throw new Error(`Room: a body id must fit an i32 (got ${bid})`);
+    const body: RoomBody<B> = { kind: 'body', id: bid, x, y, aim: 0, anim: 0, hp: 0, flags: 0, data };
+    this.bodies.set(bid, body);
+    this.hash?.set(bid, x, y);
+    return body;
+  }
+
+  /** Takes a body out: players who saw it get it in `rm` with their next snapshot. */
+  removeBody(id: number): void {
+    if (!this.bodies.delete(id)) return;
+    this.hash?.delete(id);
+    this.history?.forget(id);
   }
 
   /**
@@ -183,6 +239,7 @@ export class Room<D = unknown> {
       // every body, moved by a step or by the game's own hand (a teleport): a write when it stays in its cell
       this.hash?.set(p.id, p.mover.x, p.mover.y);
     }
+    if (this.hash) for (const b of this.bodies.values()) this.hash.set(b.id, b.x, b.y);
   }
 
   /**
@@ -191,9 +248,14 @@ export class Room<D = unknown> {
    */
   place(id: number, x: number, y: number): void {
     const p = this.players.get(id);
-    if (!p) return;
-    p.mover.x = x;
-    p.mover.y = y;
+    const b = this.bodies.get(id);
+    if (p) {
+      p.mover.x = x;
+      p.mover.y = y;
+    } else if (b) {
+      b.x = x;
+      b.y = y;
+    } else return;
     this.hash?.set(id, x, y);
   }
 
@@ -207,7 +269,8 @@ export class Room<D = unknown> {
     const seen = new Set<number>();
     for (const p of this.visibleTo(me, known)) {
       seen.add(p.id);
-      up.push([p.id, p.mover.x, p.mover.y, p.aim, p.anim, p.hp, p.flags]);
+      const at = where(p);
+      up.push([p.id, at.x, at.y, p.aim, p.anim, p.hp, p.flags]);
       if (!known.has(p.id)) {
         known.add(p.id);
         sp.push({ id: p.id, data: p.data });
@@ -226,21 +289,22 @@ export class Room<D = unknown> {
     return snap;
   }
 
-  /** The players `me` is sent: itself always; with interest, the others in range (a known one until past the margin). */
-  private visibleTo(me: RoomPlayer<D>, known: ReadonlySet<number>): Iterable<RoomPlayer<D>> {
+  /** What `me` is sent: itself always; with interest, the rest in range (a known one until past the margin). */
+  private visibleTo(me: RoomPlayer<D>, known: ReadonlySet<number>): RoomSeen<D, B>[] {
     const interest = this.options.interest;
-    if (!interest || !this.hash) return this.players.values();
+    if (!interest || !this.hash) return [...this.players.values(), ...this.bodies.values()];
     const enter = interest.radius;
     const leave = enter + (interest.leaveMargin ?? enter / 4);
     const near = this.nearby;
     near.length = 0;
     this.hash.near(me.mover.x, me.mover.y, leave, near);
-    const out: RoomPlayer<D>[] = [me];
+    const out: RoomSeen<D, B>[] = [me];
     for (const id of near) {
       if (id === me.id) continue;
-      const p = this.players.get(id);
+      const p = this.players.get(id) ?? this.bodies.get(id);
       if (!p) continue;
-      const d2 = (p.mover.x - me.mover.x) ** 2 + (p.mover.y - me.mover.y) ** 2;
+      const at = where(p);
+      const d2 = (at.x - me.mover.x) ** 2 + (at.y - me.mover.y) ** 2;
       if (d2 > enter * enter && !known.has(id)) continue;
       if (interest.canSee && !interest.canSee(me, p)) continue;
       out.push(p);
@@ -249,3 +313,5 @@ export class Room<D = unknown> {
     return out.sort((a, b) => a.id - b.id);
   }
 }
+
+const where = (s: RoomSeen<unknown, unknown>): { x: number; y: number } => (s.kind === 'player' ? s.mover : s);

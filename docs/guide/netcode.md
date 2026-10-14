@@ -194,6 +194,27 @@ for tests or a server that drives its own loop. Each `RoomPlayer` has `aim`, `an
 set (in `onStep` or its own systems), `params` to change per player, and `strikes`. `room.place(id, x, y)` moves a
 player by hand (a respawn, a teleport).
 
+## Bodies the server moves
+
+Monsters, projectiles and crates take no input and are not predicted: the server moves them and sends them beside
+the players, in the same snapshots.
+
+```ts
+const room = new Room<PlayerInfo, MonsterInfo>({ grid: GRID, params: PARAMS, spawn });
+const wolf = room.addBody({ kind: 'wolf' }, 320, 96); // id from BODY_ID_BASE (2^24) up, or pass one
+// in the server's own simulation, every step
+wolf.x += vx;
+wolf.anim = 1;
+wolf.hp = 7;
+room.removeBody(wolf.id); // players who saw it get it in `rm`
+```
+
+A `RoomBody` has `x`, `y`, `aim`, `anim`, `hp`, `flags` and the game's `data` (sent in `sp` when a player first sees
+it). On the client it is one more id in `up`: interpolate it with the other bodies. Bodies are under `interest` and in
+the lag-compensation `history` like players; `canSee(viewer, other)` gets either, told apart by `other.kind`
+(`'player'` or `'body'`). `room.place(id, x, y)` moves either at once. Body and player ids never clash: an id one
+holds is refused to the other.
+
 ## Interest: send each player what is near it
 
 By default a `Room` sends every body to every player. Give it `interest` and each player is sent itself and the
@@ -283,5 +304,7 @@ required" gate on 426). Routes and types stay the game's: subclass it or wrap `r
   their own codec.
 - **`RoomHost` reads text only.** Clients send JSON; a binary message is ignored. Validate a player's data in `admit`:
   it is whatever the client sent.
+- **Bodies the server moves are positions only.** `Room` does not step them: their movement, collisions and AI are
+  the server's own code.
 - **A `Room` sends every body to every player unless given `interest`.** A large world wants `interest`; a
   small arena does not need it.

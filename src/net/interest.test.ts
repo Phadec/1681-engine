@@ -5,7 +5,7 @@ import { InterpolationBuffer } from './InterpolationBuffer.ts';
 import { LagCompensator } from './LagCompensator.ts';
 import { createCollisionGrid } from './movement.ts';
 import type { Snapshot } from './protocol.ts';
-import { Room } from './Room.ts';
+import { BODY_ID_BASE, Room } from './Room.ts';
 import { RoomHost } from './RoomHost.ts';
 import { decodeSnapshotFrame } from './snapshotCodec.ts';
 import { SpatialHash } from './SpatialHash.ts';
@@ -304,4 +304,79 @@ test('through a real host, the server rewinds to the very spot the client drew a
   const plain = new RoomHost(new Room({ grid, params, spawn: () => ({ x: 100, y: 100 }) }), { now: () => now });
   assert.equal(plain.rewindTime(now - 100), now, 'no history: no rewind');
   assert.equal(plain.room.history, null);
+});
+
+test('bodies the server moves go out beside the players: spawned with their data, updated, removed', () => {
+  const room = new Room<{ name: string }, { kind: string }>({ grid, params, spawn: () => ({ x: 100, y: 100 }) });
+  room.join(100, { name: 'a' });
+  const wolf = room.addBody({ kind: 'wolf' }, 140, 100);
+  assert.equal(wolf.id, BODY_ID_BASE);
+  wolf.hp = 7;
+  let s = room.snapshotFor(100, 0)!;
+  assert.deepEqual(ids(s), [100, wolf.id]);
+  assert.deepEqual(s.sp!.find((x) => x.id === wolf.id)!.data, { kind: 'wolf' });
+  assert.deepEqual(s.up!.find((u) => u[0] === wolf.id), [wolf.id, 140, 100, 0, 0, 7, 0]);
+  wolf.x = 150;
+  s = room.snapshotFor(100, 1)!;
+  assert.equal(s.sp, undefined);
+  assert.equal(s.up!.find((u) => u[0] === wolf.id)![1], 150);
+  room.removeBody(wolf.id);
+  s = room.snapshotFor(100, 2)!;
+  assert.deepEqual(s.rm, [wolf.id]);
+  assert.deepEqual(ids(s), [100]);
+  // the codec carries a body id above 2^24 whole
+  const host = new RoomHost(room, { now: () => 0 });
+  const frames: (string | Uint8Array)[] = [];
+  const sock = host.connect({ send: (d) => frames.push(d), close: () => undefined });
+  host.message(sock, JSON.stringify({ t: 'hello', data: { name: 'b' } }));
+  const big = room.addBody({ kind: 'crow' }, 120, 90);
+  host.sendTo(sock, room.snapshotFor(sock, 5)!);
+  const decoded = decodeSnapshotFrame(frames.at(-1) as Uint8Array) as Snapshot;
+  assert.ok(decoded.up!.some((u) => u[0] === big.id));
+});
+
+test('ids are kept apart: a player cannot take a body id, nor a body a player one', () => {
+  const room = new Room({ grid, params, spawn: () => ({ x: 0, y: 0 }) });
+  room.join(5, {});
+  assert.throws(() => room.addBody({}, 0, 0, 5), /taken/);
+  const b = room.addBody({}, 0, 0, 77);
+  assert.throws(() => room.join(77, {}), /body's/);
+  assert.throws(() => room.addBody({}, 0, 0, 2 ** 31), /i32/);
+  assert.equal(room.addBody({}, 0, 0).id, BODY_ID_BASE);
+  assert.equal(b.id, 77);
+  room.removeBody(999); // nothing
+});
+
+test('bodies are under interest too, by distance and by canSee, and moved by place or by hand', () => {
+  const room = new Room<unknown, { hidden: boolean }>({
+    grid,
+    params,
+    spawn: () => ({ x: 100, y: 100 }),
+    interest: { radius: 100, canSee: (_me, other) => other.kind === 'player' || !other.data.hidden },
+  });
+  room.join(1, {});
+  const near = room.addBody({ hidden: false }, 150, 100);
+  const far = room.addBody({ hidden: false }, 400, 100);
+  const sneaky = room.addBody({ hidden: true }, 120, 100);
+  assert.deepEqual(ids(room.snapshotFor(1, 0)), [1, near.id]);
+  room.place(far.id, 180, 100);
+  assert.deepEqual(ids(room.snapshotFor(1, 1)), [1, near.id, far.id]);
+  near.x = 900; // by hand: found there after the next step
+  room.step();
+  assert.deepEqual(ids(room.snapshotFor(1, 2)), [1, far.id]);
+  sneaky.data.hidden = false;
+  assert.deepEqual(ids(room.snapshotFor(1, 3)), [1, far.id, sneaky.id]);
+});
+
+test('the rewind history holds the bodies, so a shot at a monster is judged where it was seen', () => {
+  const room = new Room({ grid, params, spawn: () => ({ x: 100, y: 100 }), rewindMs: 200 });
+  room.join(1, {});
+  const imp = room.addBody({}, 200, 100);
+  room.record(1000);
+  imp.x = 260;
+  room.record(1100);
+  assert.deepEqual(room.history!.at(imp.id, 1050), { x: 230, y: 100 });
+  assert.deepEqual(room.history!.alongRay(1000, 100, 100, 1, 0, 300, 6, 1).map((h) => h.id), [imp.id]);
+  room.removeBody(imp.id);
+  assert.equal(room.history!.at(imp.id, 1050), null);
 });
