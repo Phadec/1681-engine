@@ -135,12 +135,33 @@ export { prefersReducedMotion, onReducedMotionChange, followReducedMotion, type 
 export { requestPointerLock, exitPointerLock, isPointerLocked, onPointerLockChange, type PointerLockDocument } from './platform/pointerLock';
 export { detectTouch, type TouchEnv } from './input/touchDetect';
 
-// ── Ambient: time of day, weather, colour grade ───────────────────────────────────────────────────────────────────
+// ── Ambient: time of day, weather, colour grade, life ─────────────────────────────────────────────────────────────
 export { DayClock, clockText, tintNight, mixRgb, type DayClockOptions, type DayKey, type DayPhase, type DayState } from './ambient/DayClock';
 export { weatherAt, hash01, type WeatherTable, type WeatherEntry, type WeatherSky, type WeatherState } from './ambient/weather';
 export { WeatherLayer, type WeatherLook, type WeatherMotion, type WeatherLayerOptions } from './ambient/WeatherLayer';
 export { gradeAt, mixToWhite, type Grade, type GradeState } from './ambient/grade';
 export { ColorGrade, type ColorGradeOptions, type GradePlacement } from './ambient/ColorGrade';
+export {
+  boxInView,
+  pickInView,
+  sourceOf,
+  birdFrame,
+  flockSlot,
+  fireflyGlow,
+  fireflyOffset,
+  firefliesOut,
+  puffOffset,
+  type LifePoint,
+  type LifeBox,
+  type LifeAir,
+  type LifeSource,
+  type PuffMotion,
+} from './ambient/life/lifeMotion';
+export { Drift, type DriftKind, type DriftOptions } from './ambient/life/Drift';
+export { Birds, type BirdsOptions } from './ambient/life/Birds';
+export { Butterflies, type ButterfliesOptions } from './ambient/life/Butterflies';
+export { Fireflies, type FirefliesOptions } from './ambient/life/Fireflies';
+export { ChimneySmoke, type ChimneySmokeOptions } from './ambient/life/ChimneySmoke';
 
 // ── Parallax ──────────────────────────────────────────────────────────────────────────────────────────────────────
 export { Parallax, type ParallaxOptions } from './parallax/Parallax';
