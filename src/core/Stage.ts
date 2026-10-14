@@ -32,6 +32,8 @@ export abstract class Stage {
     app.stage.addChild(this.world, this.screen);
     this.cameras = { main: new Camera(this.world, this.screen) };
     this.input = { activePointer: new Pointer(app.canvas) };
+    // a timer's throw is a fault like any guarded step's: logged once and told to `onCaught`
+    this.time.onError = (err) => this.caught('timers', err);
     this.syncSize();
   }
 

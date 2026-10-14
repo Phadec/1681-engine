@@ -29,7 +29,9 @@ export { engineSettings, type EngineSettings, type SettingsListener } from './se
 // ── Rendering core ────────────────────────────────────────────────────────────────────────────────────────────────
 export { Stage } from './core/Stage';
 export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
+export { worldZoom, baseZoom, zoomSteps, zoomResolution, fitScale, type PixelZoomOptions } from './core/pixelZoom';
 export { Clock } from './core/Clock';
+export { runDue, type DueCall } from './core/runDue';
 export { Tweener, Tween, type TweenConfig, type TweenTarget, type Steppable } from './core/Tweener';
 export { Timeline, type TimelineOptions } from './core/Timeline';
 export { TimelineBuilder, type TimelineProps, type TimelineTweenOptions } from './core/TimelineBuilder';
@@ -38,7 +40,9 @@ export { easeByName, type EaseFn } from './core/eases';
 export { ObjectFactory } from './core/ObjectFactory';
 export { Graphics, type Vec2 } from './core/Graphics';
 export { Image } from './core/Image';
+export { solidSilhouette, fillSolid, clearSilhouettes } from './core/silhouette';
 export { Group } from './core/Group';
+export { blendLayer, type BlendLayerOptions } from './core/blendLayer';
 export { Rectangle } from './core/Rectangle';
 export { Text, type TextStyle } from './core/Text';
 export { BitmapLabel, installLabelFont, addLabelGlyphs } from './core/BitmapLabel';
@@ -99,6 +103,7 @@ export { LightLayer, type Light, type LightLayerOptions } from './light/LightLay
 export { hitStopMs, recoilPx, recoilAt, RECOIL_MS, hurtFlashMs, hurtFlashGapMs, HEAVY_FLASH_GAP_MS } from './fx/hitStop';
 export { FloatingText, type FloatingTextStyle, type FloatingTextOptions, type FloatOptions } from './fx/FloatingText';
 export { inView, type CameraLike } from './fx/viewCull';
+export { Afterimages, type AfterimagesOptions } from './fx/Afterimages';
 
 // ── Audio ─────────────────────────────────────────────────────────────────────────────────────────────────────────
 export { sound, SoundEngine, type SoundOptions } from './audio/SoundEngine';

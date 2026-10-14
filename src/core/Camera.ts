@@ -32,7 +32,7 @@ export class Camera {
   zoom = 1;
   /** The zoom `reset` goes back to: the engine sets it from its `zoom` option (default 1). */
   defaultZoom = 1;
-  /** Backing pixels per screen pixel (the renderer's resolution, `zoomResolution`): what `snap` rounds to. */
+  /** Backing pixels per screen pixel (the renderer's resolution, `zoomResolution(zoom, devicePixelRatio)`): what `snap` rounds to. */
   resolution = 1;
   /** Lands the view on whole backing pixels (pixel art); off, the world moves smoothly between them. */
   roundPixels = false;

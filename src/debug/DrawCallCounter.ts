@@ -1,6 +1,11 @@
 import type { Renderer } from 'pixi.js';
 
-const DRAW_CALLS = ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced'] as const;
+/**
+ * Every draw entry point of a WebGL context. On WebGL1 Pixi puts `drawElementsInstanced`/`drawArraysInstanced` on the
+ * context itself, forwarding to ANGLE_instanced_arrays, so wrapping the context counts instanced draws on both
+ * versions. `drawRangeElements` (WebGL2) is unused by Pixi but counted for a renderer of a game's own.
+ */
+const DRAW_CALLS = ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced', 'drawRangeElements'] as const;
 
 /**
  * Counts WebGL draw calls by wrapping the context's draw functions while it is installed, since Pixi 8 keeps no
@@ -23,18 +28,23 @@ export class DrawCallCounter {
     const gl = glOf(this.renderer);
     if (!gl || this.restore) return;
     const target = gl as unknown as Record<string, unknown>;
-    const saved: [string, unknown][] = [];
+    const saved: [string, unknown, unknown][] = [];
+    let counting = true;
     for (const name of DRAW_CALLS) {
       const fn = target[name];
       if (typeof fn !== 'function') continue;
-      saved.push([name, fn]);
-      target[name] = (...args: unknown[]) => {
-        this.calls++;
+      const wrapper = (...args: unknown[]) => {
+        if (counting) this.calls++;
         return (fn as (...a: unknown[]) => unknown).apply(gl, args);
       };
+      saved.push([name, fn, wrapper]);
+      target[name] = wrapper;
     }
     this.restore = () => {
-      for (const [name, fn] of saved) target[name] = fn;
+      // only where ours is still the function: a probe that wrapped after us keeps working (it then calls ours,
+      // which still forwards to the original and no longer counts)
+      counting = false;
+      for (const [name, fn, wrapper] of saved) if (target[name] === wrapper) target[name] = fn;
     };
   }
 
