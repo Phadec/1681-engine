@@ -69,7 +69,7 @@ test('a repaint after the data changed shows the new tiles, and a chunk emptied 
   const m = map(data);
   const view = new TilemapView(stage, m, { chunkTiles: 4 });
   expect(draw().at(4, 4)).toEqual(rgb(0xff0000));
-  const layer = m.layers[0] as { data: number[] };
+  const layer = m.layers[0] as unknown as { data: number[] };
   layer.data[0] = 3;
   // a chunk of 4×4 tiles: clear one of them out entirely
   for (let y = 0; y < 4; y++) for (let x = 4; x < 8; x++) layer.data[y * 8 + x] = 0;

@@ -25,7 +25,7 @@ test('the animation system steps each animator and shows its frame, only when it
   const sprite = fakeSprite();
   const e = world.create();
   world.add(e, SpriteComponent, sprite as unknown as Image);
-  world.add(e, AnimationComponent, new Animator({ walk: { frames: ['a', 'b', 'c'], fps: 10 } }, 'walk'));
+  world.add(e, AnimationComponent, new Animator({ walk: { frames: ['a', 'b', 'c'], fps: 10 } }, 'walk') as Animator);
   run(world, 0.01);
   assert.equal(sprite.frameName, 'a', 'the first frame is shown at once');
   assert.equal(sprite.sets, 1);
@@ -55,7 +55,7 @@ test('the state system updates each machine, shows its frame, and leaves a still
   const sprite = fakeSprite();
   const e = world.create();
   world.add(e, SpriteComponent, sprite as unknown as Image);
-  world.add(e, AnimStateComponent, sm);
+  world.add(e, AnimStateComponent, sm as unknown as AnimStateMachine);
   run(world, 0.05);
   assert.equal(sprite.frameName, '0');
   const sets = sprite.sets;
