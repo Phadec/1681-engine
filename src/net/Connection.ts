@@ -1,8 +1,13 @@
 import { EventBus } from '../events/EventBus';
+import { onAppResume } from '../platform/appResume';
 import type { InputStep } from './constants';
 import { noteServerTime } from './serverClock';
 import { decodeSnapshotFrame } from './snapshotCodec';
 import type { ClientMessage, ServerMessage, Snapshot } from './protocol';
+import { reconnectDelay, shouldReconnect } from './reconnect';
+
+/** The close code `Connection` reports when it gave up on a socket that did not answer after a resume. */
+export const CLOSE_NO_ANSWER = 4408;
 
 export interface ConnectionEvents {
   open: undefined;
@@ -24,6 +29,19 @@ export interface ConnectionOptions {
   hello?: () => unknown;
   /** The WebSocket class (default the global one; Node 22+ and browsers have it). */
   WebSocket?: typeof WebSocket;
+  /**
+   * Close codes after which it must not reconnect (default none): the server's "kicked", "banned", "update required"…
+   * The close event then says `willRetry: false`.
+   */
+  fatalCloseCodes?: readonly number[];
+  /**
+   * After the app returns from the background, ping and give the server this long to answer (default 0: off). A phone
+   * that froze the tab can come back to a socket that still says it is open and is dead; with no pong in time the
+   * socket is dropped (close code `CLOSE_NO_ANSWER`) and reconnected as after any drop.
+   */
+  resumeProbeMs?: number;
+  /** How the probe hears of a resume (default `onAppResume`); returns the unsubscribe. */
+  onResume?: (cb: () => void) => () => void;
 }
 
 /**
@@ -41,6 +59,8 @@ export class Connection {
   private attempt = 0;
   private pingTimer: ReturnType<typeof setInterval> | null = null;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
+  private probeTimer: ReturnType<typeof setTimeout> | null = null;
+  private stopResume: (() => void) | null = null;
 
   constructor(
     readonly url: string,
@@ -67,16 +87,12 @@ export class Connection {
     };
     ws.onmessage = (e) => this.receive(e.data);
     ws.onclose = (e) => {
-      if (this.pingTimer) clearInterval(this.pingTimer);
-      this.pingTimer = null;
-      this.socket = null;
-      const willRetry = !this.closedByUs && this.options.reconnect !== false;
-      this.events.emit('close', { code: e.code, reason: e.reason, willRetry });
-      if (willRetry) {
-        const wait = Math.min(this.options.maxBackoffMs ?? 10_000, 250 * 2 ** this.attempt++);
-        this.retryTimer = setTimeout(() => this.connect(), wait);
-      }
+      // a socket already replaced by a newer one has nothing left to report
+      if (this.socket === ws || this.socket === null) this.closed(e.code, e.reason);
     };
+    if ((this.options.resumeProbeMs ?? 0) > 0 && !this.stopResume) {
+      this.stopResume = (this.options.onResume ?? onAppResume)(() => this.probe());
+    }
     return this;
   }
 
@@ -102,8 +118,46 @@ export class Connection {
     this.closedByUs = true;
     if (this.retryTimer) clearTimeout(this.retryTimer);
     if (this.pingTimer) clearInterval(this.pingTimer);
+    this.clearProbe();
+    this.stopResume?.();
+    this.stopResume = null;
     this.socket?.close();
     this.socket = null;
+  }
+
+  /** The socket is gone (closed, or given up on): report it and reconnect unless told not to. */
+  private closed(code: number, reason: string): void {
+    if (this.pingTimer) clearInterval(this.pingTimer);
+    this.pingTimer = null;
+    this.clearProbe();
+    this.socket = null;
+    const willRetry = shouldReconnect(code, { closedByUs: this.closedByUs, reconnect: this.options.reconnect, fatalCloseCodes: this.options.fatalCloseCodes });
+    this.events.emit('close', { code, reason, willRetry });
+    if (willRetry) this.retryTimer = setTimeout(() => this.connect(), reconnectDelay(this.attempt++, this.options.maxBackoffMs));
+  }
+
+  /** Back from the background: a pong within `resumeProbeMs` proves the socket alive, none drops it. */
+  private probe(): void {
+    const ws = this.socket;
+    if (!ws || ws.readyState !== 1 || this.probeTimer) return;
+    this.probeTimer = setTimeout(() => {
+      this.probeTimer = null;
+      if (this.socket !== ws) return;
+      // a dead socket's close() may not fire onclose for a minute: stop listening to it and move on now
+      ws.onopen = ws.onmessage = ws.onclose = null;
+      try {
+        ws.close();
+      } catch {
+        // already closing
+      }
+      this.closed(CLOSE_NO_ANSWER, 'no answer after resume');
+    }, this.options.resumeProbeMs);
+    this.ping();
+  }
+
+  private clearProbe(): void {
+    if (this.probeTimer) clearTimeout(this.probeTimer);
+    this.probeTimer = null;
   }
 
   private ping(): void {
@@ -121,6 +175,7 @@ export class Connection {
     switch (msg.t) {
       case 'pong': {
         const m = msg as Extract<ServerMessage, { t: 'pong' }>;
+        this.clearProbe();
         this.rtt = Date.now() - m.c;
         noteServerTime(m.st, this.rtt);
         return;

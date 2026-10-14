@@ -119,6 +119,8 @@ export { AimGesture, aimPoint, spotReach, spotShare, dragSlop, AIM_TAP_SLOP, AIM
 export { TargetLock, pickTarget, nearestTarget, keptTarget, LOCK_PICK_RANGE, LOCK_KEEP_RANGE, LOCK_PICK_CONE, type LockBody, type TargetLockOptions } from './input/TargetLock';
 export { Keymap, mergeKeymap, keymapStorage, keyLabel } from './input/Keymap';
 export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch';
+export { onAppResume, type ResumeEnv } from './platform/appResume';
+export { timeoutSignal } from './platform/timeoutSignal';
 export { detectTouch, type TouchEnv } from './input/touchDetect';
 
 // ── Ambient: time of day, weather, colour grade ───────────────────────────────────────────────────────────────────
@@ -255,7 +257,8 @@ export { PredictedMover } from './net/PredictedMover';
 export { InterpolationBuffer, type InterpolatedState } from './net/InterpolationBuffer';
 export { Room, type RoomPlayer, type RoomOptions } from './net/Room';
 export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';
-export { Connection, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export { Connection, CLOSE_NO_ANSWER, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export { reconnectDelay, shouldReconnect } from './net/reconnect';
 export {
   LobbyHost,
   LobbyClient,
