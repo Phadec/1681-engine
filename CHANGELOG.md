@@ -17,6 +17,9 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 - **Server bodies**: `Room.addBody(data, x, y)` and `removeBody` for monsters, projectiles and crates the server
   moves, sent beside the players with the same interest and rewind history (`RoomBody`, `RoomSeen`, `BODY_ID_BASE`).
   `canSee` now gets either kind.
+- **Rebinding the gamepad**: `Keymap` keeps a first binding per device, so pad buttons are rebindable beside keys
+  (`keysFor(action, device)`); `InputCapture` waits for the next key, pad button or stick push for a settings
+  screen; `padLabel` and `deviceOf`.
 - **Crowds**: `flowField` and `followField` (one search for a crowd, by `findPath`'s own rules), and steering:
   `seek`, `flee`, `arrive`, `separation`, `alignment`, `cohesion`, `followFlow`, `combineSteering`, `applySteering`.
 - **Behaviour trees**: `BehaviorTree` and `BtAgent` (one tree, many agents, each with its own memory), `sequence`,

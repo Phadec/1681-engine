@@ -172,6 +172,7 @@ export { LongPress } from './input/longPress';
 export { AimGesture, aimPoint, spotReach, spotShare, dragSlop, AIM_TAP_SLOP, AIM_EARLY_SLOP, AIM_PRESS_MS, AIM_CENTRE, type AimGestureOptions, type AimShape, type AimEnd } from './input/AimGesture';
 export { TargetLock, pickTarget, nearestTarget, keptTarget, LOCK_PICK_RANGE, LOCK_KEEP_RANGE, LOCK_PICK_CONE, type LockBody, type TargetLockOptions } from './input/TargetLock';
 export { Keymap, mergeKeymap, keymapStorage, keyLabel } from './input/Keymap';
+export { InputCapture, padLabel, deviceOf, type CaptureOptions, type InputDevice } from './input/InputCapture';
 export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch';
 export { onAppResume, type ResumeEnv } from './platform/appResume';
 export { timeoutSignal } from './platform/timeoutSignal';

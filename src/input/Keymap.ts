@@ -1,10 +1,12 @@
 import type { Actions } from './Actions';
+import { deviceOf, type InputDevice } from './InputCapture';
 
 /**
  * Which keys each action sits on, as the player has rebound them: one table the input, the key hints on screen and
  * a settings screen all read. A binding is a `KeyboardEvent.code` (`KeyW`, `Digit1`), so it means the same physical
  * key on every layout. Each action keeps a list (W and ArrowUp, 1 and Q); a settings screen edits the **first** and
- * leaves the alternates alone.
+ * leaves the alternates alone. Gamepad inputs (`pad:a`, `pad:lx-`) may be the player's too: each device keeps its own
+ * first binding, so a settings screen with a keys column and a pad column edits each without touching the other.
  *
  * Two rules: one key serves one action at a time (a key bound twice would fire both, and the player could not tell
  * which they meant), and reserved keys (Escape, Enter, Tab by default: the interface's own) are never taken.
@@ -57,9 +59,13 @@ export class Keymap<A extends string> {
     return this.reserved.has(code);
   }
 
-  /** The keys of one action; the first is the one a settings screen shows and edits. */
-  keysFor(action: A): readonly string[] {
-    return this.binds[action] ?? [];
+  /**
+   * The bindings of one action, or only those of one device; the first of a device is the one a settings screen
+   * shows and edits.
+   */
+  keysFor(action: A, device?: InputDevice): readonly string[] {
+    const all = this.binds[action] ?? [];
+    return device ? all.filter((c) => deviceOf(c) === device) : all;
   }
 
   /** The inputs an action always has besides the player's keys (the constructor's `fixed`). */
@@ -74,9 +80,10 @@ export class Keymap<A extends string> {
   }
 
   /**
-   * Puts `code` first on `action`, taking it off whatever else held it; returns the actions that lost it (to tell the
-   * player). A reserved key is refused (returns null). An action stripped of its last key keeps none: it is unbound
-   * until something is put back on it.
+   * Puts `code` first on `action` in place of the action's first binding of the same device (a key replaces its first
+   * key, a pad input its first pad input), taking it off whatever else held it; returns the actions that lost it (to
+   * tell the player). A reserved key is refused (returns null). An action stripped of its last key keeps none: it is
+   * unbound until something is put back on it.
    */
   bind(action: A, code: string): A[] | null {
     if (this.reserved.has(code) || !(action in this.binds)) return null;
@@ -86,7 +93,9 @@ export class Keymap<A extends string> {
       this.binds[id] = this.binds[id].filter((c) => c !== code);
       lost.push(id);
     }
-    const rest = this.binds[action].slice(1).filter((c) => c !== code);
+    const device = deviceOf(code);
+    const replaced = this.binds[action].find((c) => deviceOf(c) === device);
+    const rest = this.binds[action].filter((c) => c !== replaced && c !== code);
     this.binds[action] = [code, ...rest];
     this.changed();
     return lost;

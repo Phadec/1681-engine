@@ -78,6 +78,33 @@ Listen for the next `keydown` on `window` in the **capture** phase and stop it t
 nor the level's sees the key being chosen. The platformer's pause menu does exactly that.
 :::
 
+### Gamepad buttons and "press a key"
+
+A gamepad binding (`pad:a`, `pad:lx-`) may be the player's to change too: put it in the keymap's defaults rather
+than in `fixed`. Each device keeps its own first binding, so `bind('jump', 'pad:b')` replaces the jump's first pad
+binding and leaves its keys alone, and `keysFor('jump', 'pad')` is what a pad column shows. One input still serves
+one action, pad buttons included.
+
+`InputCapture` waits for the player's next input, for a settings row's "press a key for Jump":
+
+```ts
+import { InputCapture, keyLabel, padLabel } from '1681-engine';
+
+const capture = new InputCapture({ devices: ['keys', 'pad'] }); // Escape cancels
+// every frame while it is open
+capture.poll();
+const binding = await capture.result; // 'KeyJ', 'pad:x', 'pad:ly-', or null when cancelled
+if (binding) {
+  const lost = keys.bind('jump', binding);
+  if (lost?.length) toast(`Taken from ${lost.join(', ')}`);
+}
+label.text = binding?.startsWith('pad:') ? padLabel(binding) : keyLabel(binding ?? '');
+```
+
+What is already held when the capture opens (the Enter or pad A that chose the row) does not count until it is let
+go; a stick counts once pushed past `axisThreshold` (0.6), so drift never binds; a captured key never reaches the
+game's own handlers. `padLabel` names pad bindings ("A", "Left stick left"); pass `names` for a game's own.
+
 ## Stale presses: `Actions.flush` and `Scene.useInput`
 
 While a pause menu sits over a level, the level's `Actions` is not polled. A key pressed in the menu would otherwise
