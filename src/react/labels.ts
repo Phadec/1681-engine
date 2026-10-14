@@ -18,7 +18,7 @@ export interface UiLabels {
   /** The choice dialog's confirm button. */
   choose: string;
   /** What an armed `ConfirmButton` says when the game gives it no words of its own. */
-  confirmAgain: string;
+  confirmAgain?: string;
 }
 
 export const DEFAULT_LABELS: UiLabels = {

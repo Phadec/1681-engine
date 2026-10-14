@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useCx, useUi } from './UiProvider';
+import { DEFAULT_LABELS } from './labels';
 
 export interface ConfirmButtonProps {
   /** What this button arms, among the ones sharing `armed` (a name, "disband"…). */
@@ -45,7 +46,7 @@ export function ConfirmButton({ armKey = 'armed', armed, setArmed, onConfirm, la
       }}
       title={title}
     >
-      {on ? (armedLabel ?? ui.labels.confirmAgain) : label}
+      {on ? (armedLabel ?? ui.labels.confirmAgain ?? DEFAULT_LABELS.confirmAgain) : label}
     </button>
   );
 }
