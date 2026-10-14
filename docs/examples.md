@@ -10,6 +10,15 @@ keyboard, gamepad and touch, and a camera that follows softly. The map opens in 
 
 [Run top-down ↗](./examples/top-down/index.html){target="_blank"}
 
+## ldtk
+
+An LDtk project whose two rooms are saved in their own level files, laid side by side by its linear world layout: the
+IntGrid "Walls" layer is the collision and, through its auto-layer tiles, the look; the chests' fields show as you walk
+by. Click a cell to raise or dig out a wall: the cell and its neighbours are autotiled again with 47-tile blob rules
+and only the chunks touched are repainted. The assets are written by `make-assets.ts`.
+
+[Run ldtk ↗](./examples/ldtk/index.html){target="_blank"}
+
 ## platformer
 
 A small side-scrolling platformer, the engine's newer modules working together with every sprite painted in code: a

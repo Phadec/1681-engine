@@ -29,7 +29,7 @@ frame, so without the guard one bad frame stops the game for good.
 | `events/` | — | `EventBus` |
 | `core/` | pixi.js | `Stage`, `Camera`, display objects, textures, atlas, `Tweener` and `Timeline` |
 | `assets/` | `tilemap`, `audio` (the sound context) | `AssetLoader`, the TexturePacker atlas reader |
-| `tilemap/` | `net` (collision), `core` (view) | the Tiled reader, collision, `TilemapView` |
+| `tilemap/` | `net` (collision), `core` (view) | the Tiled and LDtk readers, collision, autotiling rules, `TilemapView` |
 | `anim/` | `ecs`, `core` | `Animator`, the animation system, Aseprite import (`parseAseprite`), `AnimStateMachine` |
 | `rig/` | — (`RigView`: pixi.js) | skeleton, pose maths, `PosePlayer`, the humanoid's poses and clips, `RigView` |
 | `light/` | `core` | `LightLayer` |
@@ -51,8 +51,8 @@ frame, so without the guard one bad frame stops the game for good.
 | `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |
 
 The core never imports `pixel/`, and nothing outside `react/` imports React or the kit; `src/architecture.test.ts`
-fails if either does. `ecs/`, `events/`, `net/`, `rig/` and
-the Tiled reader import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
+fails if either does. `ecs/`, `events/`, `net/`, `rig/`,
+the Tiled and LDtk readers and the autotiling rules import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
 where a server can import the movement and collision code from.
 
 ## The engine knows no game
