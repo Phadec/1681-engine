@@ -166,7 +166,7 @@ export function stepMover(s: MoverState, step: InputStep, p: MovementParams, gri
     s.lastDy = my;
   }
 
-  if ((step[2] & INPUT_FLAG_DASH) !== 0 && p.canDash && p.canMove && s.dashLeft === 0 && s.dashCd === 0) {
+  if ((step[2] & (p.dashFlag ?? INPUT_FLAG_DASH)) !== 0 && p.canDash && p.canMove && s.dashLeft === 0 && s.dashCd === 0) {
     s.dashLeft = p.dashSteps;
     s.dashCd = p.dashCooldownSteps;
     s.dashDx = s.lastDx;
@@ -184,6 +184,7 @@ export function stepMover(s: MoverState, step: InputStep, p: MovementParams, gri
     vy = my * p.speed;
   }
 
-  s.x = moveX(grid, s.x, s.y, vx * INPUT_STEP_DT);
-  s.y = moveY(grid, s.x, s.y, vy * INPUT_STEP_DT);
+  const dt = p.stepDt ?? INPUT_STEP_DT;
+  s.x = moveX(grid, s.x, s.y, vx * dt);
+  s.y = moveY(grid, s.x, s.y, vy * dt);
 }

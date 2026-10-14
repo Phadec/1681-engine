@@ -76,3 +76,26 @@ test('a shot flies over the tiles named for it and stops on every other solid ti
 test('a collision string of the wrong length is refused', () => {
   assert.throws(() => createCollisionGrid(4, 4, 16, '0000'), /length/);
 });
+
+test('the dash bit and the step length are params, defaulting to INPUT_FLAG_DASH and 1/60 s', () => {
+  const grid = createCollisionGrid(10, 10, 16, room());
+  const custom: MovementParams = { ...params, dashFlag: 4 };
+  const a = createMover(40, 80);
+  stepMover(a, [1, 0, INPUT_FLAG_DASH], custom, grid);
+  assert.equal(a.dashLeft, 0, 'the default bit started a dash under a custom one');
+  stepMover(a, [1, 0, 4], custom, grid);
+  assert.equal(a.dashLeft, params.dashSteps - 1);
+
+  const half = createMover(40, 80);
+  const whole = createMover(40, 80);
+  stepMover(half, [1, 0, 0], { ...params, stepDt: 1 / 120 }, grid);
+  stepMover(whole, [1, 0, 0], params, grid);
+  assert.ok(Math.abs((half.x - 40) * 2 - (whole.x - 40)) < 1e-9);
+});
+
+test('the tile size is the grid\'s own', () => {
+  const grid = createCollisionGrid(10, 10, 32, room());
+  const m = createMover(160, 160);
+  for (let i = 0; i < 600; i++) stepMover(m, [1, 0, 0], params, grid);
+  assert.ok(m.x + grid.bodyHalfWidth < 288 && m.x + grid.bodyHalfWidth > 287.9, `stopped at ${m.x}`);
+});

@@ -1,15 +1,20 @@
-/** World and movement constants. A game that needs other numbers forks these; client and server must agree. */
+/**
+ * The movement defaults. Every one of them can be changed without forking: the tile size and the body's half extents
+ * are fields of the `CollisionGrid` (`createCollisionGrid`'s `tileSize` and options), the dash bit and the step length
+ * are optional fields of `MovementParams`. Client and server must agree on whichever numbers a game picks.
+ */
 
+/** The default tile size, px; a grid carries its own (`CollisionGrid.tileSize`). */
 export const TILE_SIZE = 16;
 
-/** Fixed input steps a second; movement is simulated per step on both sides. */
+/** The default fixed input steps a second (`MovementParams.stepDt` overrides the step's length). */
 export const INPUT_STEP_RATE = 60;
 export const INPUT_STEP_DT = 1 / INPUT_STEP_RATE;
 
-/** Bit of an input step's flags that asks for a dodge roll. */
+/** The default bit of an input step's flags that asks for a dash (`MovementParams.dashFlag` overrides it). */
 export const INPUT_FLAG_DASH = 1;
 
-/** The body's collision box, half extents (px). */
+/** The default collision box, half extents (px); `createCollisionGrid`'s `bodyHalfWidth`/`bodyHalfHeight` override them. */
 export const BODY_HALF_WIDTH = 5;
 export const BODY_HALF_HEIGHT = 3;
 export const COLLISION_EPSILON = 0.01;
@@ -24,6 +29,10 @@ export interface MovementParams {
   dashCooldownSteps: number;
   canMove: boolean;
   canDash: boolean;
+  /** The bit of an input step's flags that starts a dash (default `INPUT_FLAG_DASH`). */
+  dashFlag?: number;
+  /** Seconds one input step lasts (default `INPUT_STEP_DT`); speeds are px a second. */
+  stepDt?: number;
 }
 
 /** One body's state in a snapshot: [id, x, y, aim, anim, hp, flags]. */
