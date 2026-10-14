@@ -1,4 +1,4 @@
-import { Container, Graphics, Sprite, Texture, type Application } from 'pixi.js';
+import { Container, Graphics, Sprite, Texture, type Application, type Filter } from 'pixi.js';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { BloomFilter } from '../../src/postfx/BloomFilter';
 import { ChromaticAberrationFilter } from '../../src/postfx/ChromaticAberrationFilter';
@@ -40,6 +40,8 @@ function fill(color: number, x = 0, y = 0, w = W, h = H): Sprite {
 const near = (a: number[], b: number[], tol = 3) => a.slice(0, 3).every((v, i) => Math.abs(v - b[i]!) <= tol);
 const lum = (c: number[]) => (c[0]! + c[1]! + c[2]!) / 3;
 const read = () => renderAndRead(app);
+/** The target's filters as a list: Pixi before 8.7 types `filters` as one filter or a list. */
+const filtersOn = (c: Container): Filter[] => [c.filters ?? []].flat();
 function countDiff(a: ReturnType<typeof read>, b: ReturnType<typeof read>): number {
   let n = 0;
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (a.at(x, y)[0] !== b.at(x, y)[0]) n++;
@@ -175,8 +177,8 @@ test('a shockwave bends the picture at its ring and is gone, and freed, when it 
   post = new PostFx(app.stage, app.screen);
   const flat = read();
   post.shockwave(32, 32, { amplitude: 6, width: 0.15, reach: 0.6, ms: 100 });
-  expect(app.stage.filters!.length).toBe(1);
-  expect(app.stage.filters![0]).toBeInstanceOf(ShockwaveFilter);
+  expect(filtersOn(app.stage).length).toBe(1);
+  expect(filtersOn(app.stage)[0]).toBeInstanceOf(ShockwaveFilter);
   post.update(40);
   expect(countDiff(flat, read())).toBeGreaterThan(20);
   post.update(100);
@@ -211,7 +213,7 @@ test('reduced effects skip flashes and shockwaves, unless told not to honour the
   post = new PostFx(app.stage, app.screen, { honourReducedFx: false });
   post.flash();
   post.shockwave(10, 10);
-  expect(app.stage.filters!.length).toBe(2);
+  expect(filtersOn(app.stage).length).toBe(2);
 });
 
 test('animate eases any number by name, and calls done at the end', () => {
