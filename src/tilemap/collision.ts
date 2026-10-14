@@ -1,4 +1,5 @@
 import { createCollisionGrid, type CollisionGrid, type CollisionGridOptions } from '../net/movement';
+import type { LdtkIntGrid } from './ldtk';
 import { gidOf, tileAt, type TileMap } from './tiled';
 
 export interface TiledCollisionOptions extends Omit<CollisionGridOptions, 'ground'> {
@@ -34,4 +35,24 @@ export function collisionFromTiled(map: TileMap, options: TiledCollisionOptions 
   for (let i = 0; i < cells; i++) s += solid[i] ? '1' : '0';
   const { solid: _rule, ...gridOptions } = options;
   return createCollisionGrid(map.width, map.height, map.tileWidth, s, gridOptions);
+}
+
+/** Which IntGrid cells are solid: a list of values, or a test given the value and the name LDtk gives it. */
+export type IntGridSolid = readonly number[] | ((value: number, name: string | undefined) => boolean);
+
+/**
+ * The `CollisionGrid` of an LDtk IntGrid layer, for `stepMover`: the same grid `collisionFromTiled` builds, so movement,
+ * `navGridFromCollision` and `tileBodiesFromGrid` treat both editors' maps alike. `solid` says which values block.
+ */
+export function collisionFromIntGrid(grid: LdtkIntGrid, solid: IntGridSolid, options: Omit<CollisionGridOptions, 'ground'> = {}): CollisionGrid {
+  const blocks = typeof solid === 'function' ? solid : (v: number) => solid.includes(v);
+  const cache = new Map<number, boolean>();
+  let s = '';
+  for (let i = 0; i < grid.values.length; i++) {
+    const v = grid.values[i]!;
+    let b = cache.get(v);
+    if (b === undefined) cache.set(v, (b = v !== 0 && blocks(v, grid.names.get(v))));
+    s += b ? '1' : '0';
+  }
+  return createCollisionGrid(grid.width, grid.height, grid.gridSize, s, options);
 }

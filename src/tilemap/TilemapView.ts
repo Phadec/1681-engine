@@ -32,14 +32,17 @@ export class TilemapView {
   readonly layers = new Map<string, Container>();
   private readonly chunks: { sprite: Sprite; x: number; y: number; w: number; h: number; key: string }[] = [];
   private readonly id = nextView++;
+  private readonly chunkTiles: number;
+  private readonly textureFor: (ts: Tileset) => string;
+  private readonly drawn = new Map<string, TileLayer>();
 
   constructor(
     private readonly stage: Stage,
     readonly map: TileMap,
     options: TilemapViewOptions = {},
   ) {
-    const textureFor = options.textureFor ?? ((ts: Tileset) => ts.name);
-    const chunk = Math.max(1, options.chunkTiles ?? 32);
+    const textureFor = (this.textureFor = options.textureFor ?? ((ts: Tileset) => ts.name));
+    const chunk = (this.chunkTiles = Math.max(1, options.chunkTiles ?? 32));
     const base = options.baseDepth ?? -1_000_000;
     const wanted = options.layers ? new Set(options.layers) : null;
     const layers = map.layers.filter((l): l is TileLayer => l.kind === 'tiles' && (wanted ? wanted.has(l.name) : l.visible));
@@ -48,9 +51,12 @@ export class TilemapView {
       const depth = typeof layer.properties.depth === 'number' ? layer.properties.depth : base + n;
       const holder = new Container();
       holder.zIndex = depth;
+      // chunks lower on the map draw over the overhang of tall tiles from the ones above, even after a repaint
+      holder.sortableChildren = true;
       holder.alpha = layer.opacity;
       holder.position.set(layer.offsetX, layer.offsetY);
       this.layers.set(layer.name, holder);
+      this.drawn.set(layer.name, layer);
       parent.addChild(holder);
       for (let cy = 0; cy < map.height; cy += chunk) {
         for (let cx = 0; cx < map.width; cx += chunk) {
@@ -67,6 +73,34 @@ export class TilemapView {
     const v = this.stage.cameras.main.worldView;
     for (const c of this.chunks) {
       c.sprite.visible = c.x < v.right + margin && c.x + c.w > v.x - margin && c.y < v.bottom + margin && c.y + c.h > v.y - margin;
+    }
+  }
+
+  /**
+   * Repaints the chunks holding these cells (row-major indices) of a drawn layer, after its `data` changed: a door
+   * opening, a wall dug out, a cell autotiled again (`updateAutotile` returns exactly the indices to pass). Costs one
+   * chunk's painting per chunk touched, so keep it out of every frame.
+   */
+  refreshTiles(layerName: string, cells: Iterable<number>): void {
+    const layer = this.drawn.get(layerName);
+    const holder = this.layers.get(layerName);
+    if (!layer || !holder) return;
+    const { map, chunkTiles: chunk } = this;
+    const todo = new Set<string>();
+    for (const i of cells) {
+      if (i < 0 || i >= map.width * map.height) continue;
+      todo.add(`${Math.floor((i % map.width) / chunk) * chunk},${Math.floor(Math.floor(i / map.width) / chunk) * chunk}`);
+    }
+    for (const at of todo) {
+      const [cx, cy] = at.split(',').map(Number) as [number, number];
+      const key = `tilemap:${this.id}:${layer.name}:${cx},${cy}`;
+      const n = this.chunks.findIndex((c) => c.key === key);
+      if (n >= 0) {
+        const [old] = this.chunks.splice(n, 1);
+        old!.sprite.destroy();
+        this.stage.textures.remove(key);
+      }
+      this.paintChunk(layer, holder, cx, cy, Math.min(chunk, map.width - cx), Math.min(chunk, map.height - cy), this.textureFor);
     }
   }
 
@@ -125,6 +159,7 @@ export class TilemapView {
     tex.refresh();
     const sprite = new Sprite(tex.whole);
     sprite.position.set(cx * tw, cy * th - pad);
+    sprite.zIndex = cy * map.width + cx;
     holder.addChild(sprite);
     this.chunks.push({ sprite, x: sprite.x + layer.offsetX, y: sprite.y + layer.offsetY, w: cw * tw, h: ch * th + pad, key });
   }

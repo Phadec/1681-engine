@@ -1,5 +1,7 @@
 import { sound } from '../audio/SoundEngine';
 import type { CanvasTexture } from '../core/TextureRegistry';
+import type { LdtkProject } from '../tilemap/ldtk';
+import { ldtkExternalLevels, parseLdtk } from '../tilemap/ldtkParse';
 import { parseTiled, type TileMap, type Tileset } from '../tilemap/tiled';
 import { collectAtlasPages, duplicateFrames, parseAtlas, type AtlasFrame } from './textureAtlas';
 
@@ -51,6 +53,14 @@ export interface TilemapAssetOptions {
   textureKey?: (tileset: Tileset) => string;
 }
 
+export interface LdtkAssetOptions extends TilemapAssetOptions {
+  /**
+   * Which external level files to fetch with the project (by level identifier); default every one. A level left out
+   * stays `loaded: false`, to be fetched later and read with `loadLdtkLevel`.
+   */
+  levels?: readonly string[];
+}
+
 export interface LoadProgress {
   done: number;
   total: number;
@@ -71,6 +81,13 @@ export function resolveUrl(url: string, base: string): string {
     else if (p !== '.') out.push(p);
   }
   return out.join('/');
+}
+
+/** Whether the external level file `rel` belongs to a level named in `wanted`. */
+function levelNamed(json: unknown, rel: string, wanted: Set<string>): boolean {
+  const p = json as { levels?: { identifier?: string; externalRelPath?: string }[]; worlds?: { levels?: { identifier?: string; externalRelPath?: string }[] }[] };
+  const levels = [...(p.levels ?? []), ...(p.worlds ?? []).flatMap((w) => w.levels ?? [])];
+  return levels.some((l) => l.externalRelPath === rel && l.identifier !== undefined && wanted.has(l.identifier));
 }
 
 async function defaultToCanvas(blob: Blob): Promise<HTMLCanvasElement> {
@@ -113,6 +130,7 @@ export class AssetLoader {
   private readonly queue: Job[] = [];
   private readonly data = new Map<string, unknown>();
   private readonly maps = new Map<string, TileMap>();
+  private readonly ldtks = new Map<string, LdtkProject>();
   private readonly atlases = new Map<string, AtlasInfo>();
   /** Decoded audio by key; a key with bytes only waits for a context (`decodeAudio`). */
   private readonly audioBuffers = new Map<string, AudioBuffer>();
@@ -164,6 +182,31 @@ export class AssetLoader {
       const textureKey = options.textureKey ?? ((ts: Tileset) => ts.name);
       for (const ts of map.tilesets) this.image(textureKey(ts), resolveUrl(ts.image, url));
     });
+  }
+
+  /**
+   * An LDtk project: the `.ldtk` file, the `.ldtkl` file of each level it saves apart (resolved beside the project),
+   * then every tileset image (resolved beside the project, as LDtk writes `relPath`). Counts as one asset, plus one
+   * per tileset image. Read it back with `ldtkProject(key)`; each level's `map` goes to `TilemapView` as it is.
+   */
+  ldtk(key: string, url: string, options: LdtkAssetOptions = {}): this {
+    return this.add(key, async () => {
+      const json = await (await this.request(url)).json();
+      const wanted = options.levels ? new Set(options.levels) : null;
+      const files = ldtkExternalLevels(json).filter((rel) => !wanted || levelNamed(json, rel, wanted));
+      const bodies = await Promise.all(files.map(async (rel) => [rel, await (await this.request(resolveUrl(rel, url))).json()] as const));
+      const project = parseLdtk(json, { levels: Object.fromEntries(bodies) });
+      this.ldtks.set(key, project);
+      const textureKey = options.textureKey ?? ((ts: Tileset) => ts.name);
+      for (const ts of project.tilesets) this.image(textureKey(ts), resolveUrl(ts.image, url));
+    });
+  }
+
+  /** A loaded LDtk project. */
+  ldtkProject(key: string): LdtkProject {
+    const p = this.ldtks.get(key);
+    if (!p) throw new Error(`AssetLoader: no LDtk project loaded as "${key}"`);
+    return p;
   }
 
   /**

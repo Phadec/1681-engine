@@ -53,7 +53,7 @@ export { planAtlas, atlasPageLimit, type AtlasSize, type AtlasPlan, type AtlasPa
 export type { WorldObject } from './core/types';
 
 // ── Assets, animation, tilemaps ─────────────────────────────────────────────────────────────────────────────────
-export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LoadProgress, type TextureSink, type AssetResponse, type AtlasInfo } from './assets/AssetLoader';
+export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LdtkAssetOptions, type LoadProgress, type TextureSink, type AssetResponse, type AtlasInfo } from './assets/AssetLoader';
 export { parseAtlas, collectAtlasPages, duplicateFrames, type AtlasFrame, type PackedAtlasPage } from './assets/textureAtlas';
 export { Animator, type AnimationClip, type AnimationClips } from './anim/Animator';
 export { parseAseprite, frameNamed, clipMarkers } from './anim/parseAseprite';
@@ -84,7 +84,37 @@ export {
   type Properties,
   type TiledPropertyValue,
 } from './tilemap/tiled';
-export { collisionFromTiled, type TiledCollisionOptions } from './tilemap/collision';
+export { collisionFromTiled, collisionFromIntGrid, type TiledCollisionOptions, type IntGridSolid } from './tilemap/collision';
+export { levelByName, levelAt, intGridAt, entitiesOf, type LdtkProject, type LdtkWorld, type LdtkWorldLayout, type LdtkLevel, type LdtkIntGrid, type LdtkEntity, type LdtkFieldValue } from './tilemap/ldtk';
+export { parseLdtk, ldtkExternalLevels, loadLdtkLevel, type LdtkParseOptions } from './tilemap/ldtkParse';
+export {
+  autotile,
+  autotileAt,
+  updateAutotile,
+  paintTerrain,
+  edgeMask,
+  blobMask,
+  reduceBlobMask,
+  blob47Index,
+  BLOB47_MASKS,
+  EDGE_N,
+  EDGE_E,
+  EDGE_S,
+  EDGE_W,
+  BLOB_N,
+  BLOB_NE,
+  BLOB_E,
+  BLOB_SE,
+  BLOB_S,
+  BLOB_SW,
+  BLOB_W,
+  BLOB_NW,
+  type TerrainGrid,
+  type AutotileMode,
+  type AutotileRule,
+  type AutotileRuleSet,
+  type MaskOptions,
+} from './tilemap/autotile';
 export { TilemapView, type TilemapViewOptions } from './tilemap/TilemapView';
 
 // ── Skeleton rig ──────────────────────────────────────────────────────────────────────────────────────────────────
