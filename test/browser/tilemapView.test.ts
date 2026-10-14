@@ -77,9 +77,11 @@ test('a repaint after the data changed shows the new tiles, and a chunk emptied 
   view.refreshTiles('ground', cells);
   const f = draw();
   expect(f.at(4, 4)).toEqual(rgb(0x0000ff));
-  expect(f.at(12, 4)).toEqual(rgb(0xff0000), 'the rest of the chunk is still there');
+  // the rest of the chunk is still there
+  expect(f.at(12, 4)).toEqual(rgb(0xff0000));
   expect(f.at(40, 4)).toEqual([0, 0, 0, 255]);
-  expect(f.at(40, 40)).toEqual(rgb(0xff0000), 'chunks not touched stay');
+  // chunks not touched stay
+  expect(f.at(40, 40)).toEqual(rgb(0xff0000));
   view.refreshTiles('nope', [0]);
   view.refreshTiles('ground', [-1, 9999]);
   view.destroy();
