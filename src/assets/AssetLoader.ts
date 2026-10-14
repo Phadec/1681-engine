@@ -68,6 +68,10 @@ export interface LoadProgress {
   key: string;
 }
 
+function messageOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 type Job = { key: string; run: () => Promise<void> };
 
 /** `url` resolved against `base` the way a browser would (a bare file name sits beside its map). */
@@ -151,14 +155,14 @@ export class AssetLoader {
 
   image(key: string, url: string): this {
     return this.add(key, async () => {
-      this.textures.addCanvas(key, await this.toCanvas(await this.blob(url)));
+      this.textures.addCanvas(key, await this.canvas(url));
     });
   }
 
   /** An image cut into equal frames named 0, 1, 2…, left to right, then row by row. */
   spritesheet(key: string, url: string, size: { frameWidth: number; frameHeight: number }): this {
     return this.add(key, async () => {
-      this.textures.addSpriteSheet(key, await this.toCanvas(await this.blob(url)), size);
+      this.textures.addSpriteSheet(key, await this.canvas(url), size);
     });
   }
 
@@ -224,7 +228,7 @@ export class AssetLoader {
         async (u) => parseAtlas(await (await this.request(u)).json(), u),
         resolveUrl,
       );
-      const canvases = await Promise.all(pages.map((p) => this.blob(resolveUrl(p.page.image, p.url)).then((b) => this.toCanvas(b))));
+      const canvases = await Promise.all(pages.map((p) => this.canvas(resolveUrl(p.page.image, p.url))));
       const dupes = duplicateFrames(pages.map((p) => p.page));
       if (dupes.length) console.warn(`[assets] atlas "${key}" names ${dupes.length} frame(s) on more than one page: ${dupes.slice(0, 5).join(', ')}`);
       add(key, pages.map((p, i) => ({ canvas: canvases[i]!, frames: p.page.frames })));
@@ -241,7 +245,13 @@ export class AssetLoader {
   font(family: string, url: string, descriptors?: FontFaceDescriptors): this {
     const install = this.options.addFont ?? defaultAddFont;
     return this.add(family, async () => {
-      await install(family, await this.bytes(url), descriptors);
+      const data = await this.bytes(url);
+      try {
+        await install(family, data, descriptors);
+      } catch (err) {
+        // the browser's own message ("Invalid font data in ArrayBuffer.") names neither the font nor the file
+        throw new Error(`AssetLoader: could not load font "${family}" from ${this.full(url)}: ${messageOf(err)}`);
+      }
     });
   }
 
@@ -340,13 +350,17 @@ export class AssetLoader {
     return this;
   }
 
+  private full(url: string): string {
+    return resolveUrl(url, this.options.baseUrl ?? '');
+  }
+
   private async request(url: string) {
-    const full = resolveUrl(url, this.options.baseUrl ?? '');
+    const full = this.full(url);
     let res;
     try {
       res = await this.fetcher(full);
     } catch (err) {
-      throw new Error(`AssetLoader: could not fetch ${full}: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`AssetLoader: could not fetch ${full}: ${messageOf(err)}`);
     }
     if (!res.ok) throw new Error(`AssetLoader: ${full} answered ${res.status}`);
     return res;
@@ -354,6 +368,18 @@ export class AssetLoader {
 
   private async blob(url: string): Promise<Blob> {
     return (await this.request(url)).blob();
+  }
+
+  /** An image file decoded into a canvas; a file that is not an image fails naming its URL. */
+  private async canvas(url: string): Promise<HTMLCanvasElement> {
+    const blob = await this.blob(url);
+    try {
+      return await this.toCanvas(blob);
+    } catch (err) {
+      // `createImageBitmap` says only "The source image could not be decoded.", which in a load of fifty images
+      // left no way to tell which one was broken
+      throw new Error(`AssetLoader: could not decode image ${this.full(url)}: ${messageOf(err)}`);
+    }
   }
 
   private async bytes(url: string): Promise<ArrayBuffer> {
@@ -366,7 +392,7 @@ export class AssetLoader {
       // decodeAudioData detaches what it is given: hand it a copy so the bytes survive a failed decode
       return await ctx.decodeAudioData(data.slice(0));
     } catch (err) {
-      throw new Error(`AssetLoader: could not decode audio ${where}: ${err instanceof Error ? err.message : String(err)}`);
+      throw new Error(`AssetLoader: could not decode audio ${where}: ${messageOf(err)}`);
     }
   }
 }

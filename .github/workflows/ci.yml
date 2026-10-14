@@ -34,3 +34,18 @@ jobs:
       - run: npm run check
       # the examples are built for the docs site: an API change that breaks one fails here, not on the next docs deploy
       - run: npm run docs:examples
+
+  # the paths only a real browser runs (WebGL pixels read back, canvas text, FontFace, decodeAudioData, layout), in
+  # headless Chromium; kept out of `npm run check`, which stays node-only and fast
+  browser:
+    runs-on: ubuntu-latest
+    name: browser tests (chromium)
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
