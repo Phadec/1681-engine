@@ -1,6 +1,8 @@
 import type { EntityUpdate, InputStep, MovementParams } from './constants';
+import { LagCompensator } from './LagCompensator';
 import { createMover, stepMover, type CollisionGrid, type MoverState } from './movement';
 import { moverToWire, type Snapshot } from './protocol';
+import { SpatialHash } from './SpatialHash';
 
 export interface RoomPlayer<D = unknown> {
   readonly id: number;
@@ -21,6 +23,19 @@ export interface RoomPlayer<D = unknown> {
   strikes: number;
 }
 
+/** Who a player is sent: the bodies near it, not the whole room. */
+export interface RoomInterest<D> {
+  /** A body comes into view within this many px of the player (centre to centre). */
+  radius: number;
+  /**
+   * And leaves only past `radius + leaveMargin` (default a quarter of `radius`), so a body walking along the edge is
+   * not spawned and removed on every snapshot.
+   */
+  leaveMargin?: number;
+  /** A further test, for what distance alone does not decide (a team's own always, a hidden enemy never). */
+  canSee?: (viewer: RoomPlayer<D>, other: RoomPlayer<D>) => boolean;
+}
+
 export interface RoomOptions<D> {
   grid: CollisionGrid;
   /** Movement rules a new player starts with. */
@@ -34,6 +49,13 @@ export interface RoomOptions<D> {
   backlog?: number;
   /** Called after each step a player takes (set aim, anim, flags from it). */
   onStep?: (player: RoomPlayer<D>, step: InputStep) => void;
+  /** Send each player only the bodies near it (default: everyone to everyone). */
+  interest?: RoomInterest<D>;
+  /**
+   * Keep this many ms of positions for lag compensation (`history`), recorded as each round of snapshots goes out
+   * (`record`). Off by default.
+   */
+  rewindMs?: number;
 }
 
 /**
@@ -47,7 +69,13 @@ export interface RoomOptions<D> {
 export class Room<D = unknown> {
   readonly players = new Map<number, RoomPlayer<D>>();
   tick = 0;
+  /** Past positions for judging shots against what a client saw, when the room was made with `rewindMs`. */
+  readonly history: LagCompensator | null;
+  /** How far back a client's claimed view time is honoured (`rewindMs`, 0 when off). */
+  readonly rewindMs: number;
   private readonly known = new Map<number, Set<number>>();
+  private readonly hash: SpatialHash | null;
+  private readonly nearby: number[] = [];
   private readonly maxQueue: number;
   private readonly maxSteps: number;
   private readonly backlog: number;
@@ -56,6 +84,12 @@ export class Room<D = unknown> {
     this.maxQueue = options.maxQueue ?? 30;
     this.maxSteps = options.maxStepsPerTick ?? 3;
     this.backlog = options.backlog ?? 4;
+    const interest = options.interest;
+    if (interest && !(interest.radius > 0)) throw new Error(`Room: interest.radius must be above 0 (got ${interest.radius})`);
+    this.hash = interest ? new SpatialHash(interest.radius) : null;
+    this.rewindMs = Math.max(0, options.rewindMs ?? 0);
+    // a snapshot interval or two beyond the longest rewind, so a rewind to its limit still has a frame either side
+    this.history = this.rewindMs > 0 ? new LagCompensator(this.rewindMs + 200) : null;
   }
 
   join(id: number, data: D): RoomPlayer<D> {
@@ -76,12 +110,23 @@ export class Room<D = unknown> {
     };
     this.players.set(id, player);
     this.known.set(id, new Set());
+    this.hash?.set(id, at.x, at.y);
     return player;
   }
 
   leave(id: number): void {
     this.players.delete(id);
     this.known.delete(id);
+    this.hash?.delete(id);
+    this.history?.forget(id);
+  }
+
+  /**
+   * Records where every body is now, at server time `time`, into `history`; `RoomHost` calls it as each round of
+   * snapshots goes out, so the history holds exactly the positions clients interpolate between.
+   */
+  record(time: number): void {
+    this.history?.record(time, [...this.players.values()].map((p) => ({ id: p.id, x: p.mover.x, y: p.mover.y })));
   }
 
   /**
@@ -128,15 +173,28 @@ export class Room<D = unknown> {
     this.tick++;
     for (const p of this.players.values()) {
       const waiting = p.queue.length;
-      if (waiting === 0) continue;
-      const n = waiting > this.backlog ? Math.min(this.maxSteps, waiting - this.backlog + 1) : 1;
+      const n = waiting > this.backlog ? Math.min(this.maxSteps, waiting - this.backlog + 1) : Math.min(1, waiting);
       for (let i = 0; i < n; i++) {
         const s = p.queue.shift()!;
         stepMover(p.mover, s, p.params, this.options.grid);
         p.ack++;
         this.options.onStep?.(p, s);
       }
+      // every body, moved by a step or by the game's own hand (a teleport): a write when it stays in its cell
+      this.hash?.set(p.id, p.mover.x, p.mover.y);
     }
+  }
+
+  /**
+   * Moves a player by hand (a teleport, a respawn), and files it in the interest grid at once. Writing `mover.x/y`
+   * directly also works; the room then finds it at its new place from the next step.
+   */
+  place(id: number, x: number, y: number): void {
+    const p = this.players.get(id);
+    if (!p) return;
+    p.mover.x = x;
+    p.mover.y = y;
+    this.hash?.set(id, x, y);
   }
 
   /** The snapshot player `id` should get now. `time` is the server's wall clock (ms). */
@@ -147,7 +205,7 @@ export class Room<D = unknown> {
     const up: EntityUpdate[] = [];
     const sp: { id: number; data?: unknown }[] = [];
     const seen = new Set<number>();
-    for (const p of this.players.values()) {
+    for (const p of this.visibleTo(me, known)) {
       seen.add(p.id);
       up.push([p.id, p.mover.x, p.mover.y, p.aim, p.anim, p.hp, p.flags]);
       if (!known.has(p.id)) {
@@ -166,5 +224,28 @@ export class Room<D = unknown> {
     if (sp.length) snap.sp = sp;
     if (rm.length) snap.rm = rm;
     return snap;
+  }
+
+  /** The players `me` is sent: itself always; with interest, the others in range (a known one until past the margin). */
+  private visibleTo(me: RoomPlayer<D>, known: ReadonlySet<number>): Iterable<RoomPlayer<D>> {
+    const interest = this.options.interest;
+    if (!interest || !this.hash) return this.players.values();
+    const enter = interest.radius;
+    const leave = enter + (interest.leaveMargin ?? enter / 4);
+    const near = this.nearby;
+    near.length = 0;
+    this.hash.near(me.mover.x, me.mover.y, leave, near);
+    const out: RoomPlayer<D>[] = [me];
+    for (const id of near) {
+      if (id === me.id) continue;
+      const p = this.players.get(id);
+      if (!p) continue;
+      const d2 = (p.mover.x - me.mover.x) ** 2 + (p.mover.y - me.mover.y) ** 2;
+      if (d2 > enter * enter && !known.has(id)) continue;
+      if (interest.canSee && !interest.canSee(me, p)) continue;
+      out.push(p);
+    }
+    // the same order every time, whatever order the cells were walked in
+    return out.sort((a, b) => a.id - b.id);
   }
 }

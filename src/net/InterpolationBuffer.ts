@@ -54,6 +54,14 @@ export class InterpolationBuffer {
     }
   }
 
+  /**
+   * The server time bodies are drawn at when it is `now` (`serverNow()`): what a shot should carry, so a server with
+   * lag compensation judges it against the picture the player aimed at.
+   */
+  viewTime(now: number): number {
+    return now - this.delayMs;
+  }
+
   /** Forgets a body (it left view). */
   remove(id: number): void {
     this.samples.delete(id);

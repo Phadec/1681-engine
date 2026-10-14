@@ -191,7 +191,69 @@ a player with more than `backlog` steps waiting catches up a few a tick, never f
 `maxStrikes` (20 refused inputs before the socket is closed with 4008), `onMessage`, `onJoin`, `onLeave` and `now`
 (a clock for tests). `host.sendTo(id, msg)` sends one of the game's own messages; `stepOnce()` steps without the timer,
 for tests or a server that drives its own loop. Each `RoomPlayer` has `aim`, `anim`, `hp` and `flags` for the game to
-set (in `onStep` or its own systems), `params` to change per player, and `strikes`.
+set (in `onStep` or its own systems), `params` to change per player, and `strikes`. `room.place(id, x, y)` moves a
+player by hand (a respawn, a teleport).
+
+## Interest: send each player what is near it
+
+By default a `Room` sends every body to every player. Give it `interest` and each player is sent itself and the
+bodies within `radius` px of it, nothing else: bandwidth grows with how crowded a spot is, not with the size of the
+room.
+
+```ts
+const room = new Room<PlayerInfo>({
+  grid: GRID,
+  params: PARAMS,
+  spawn,
+  // about a screen and a half: a body comes into view before it walks onto the screen
+  interest: { radius: 480, leaveMargin: 120, canSee: (me, other) => !other.data.hidden || other.data.team === me.data.team },
+});
+```
+
+- A body comes into view (`sp`) within `radius` and leaves it (`rm`) only past `radius + leaveMargin` (default a
+  quarter of `radius`), so one walking along the edge is not spawned and removed on every snapshot.
+- `canSee(viewer, other)` decides what distance alone does not: a hidden enemy, a team's own across the map.
+- The client needs nothing new: what leaves view arrives in `rm`, as before. Remove it from the
+  `InterpolationBuffer` there (`others.remove(id)`), as the client loop above does.
+- Bodies are filed in a `SpatialHash` (square cells of `radius` px) after every step, so a query looks at a 3×3
+  block of cells, not at everyone. The class is exported for a game's own use: monsters, loot, triggers.
+
+## Lag compensation: judge a shot against what the shooter saw
+
+A client draws other bodies `delayMs` (100) in the past, and its shot takes half a round trip to arrive. By then the
+target has walked on, and a shot judged against where it is now misses what the shooter clearly hit. Make the room
+with `rewindMs` and it keeps a short history of positions, recorded as each round of snapshots goes out, which is
+the very picture clients interpolate between.
+
+```ts
+// the client: send the time the target was drawn at with the shot
+conn.send({ t: 'shoot', at: others.viewTime(serverNow()), dx, dy });
+
+// the server
+const room = new Room<PlayerInfo>({ grid: GRID, params: PARAMS, spawn, rewindMs: 250 });
+const host = new RoomHost(room, {
+  onMessage: (id, msg) => {
+    if (msg.t !== 'shoot') return;
+    const me = room.players.get(id)!.mover;
+    const at = host.rewindTime(msg.at); // kept within 250 ms of now
+    const hit = room.history!.alongRay(at, me.x, me.y, Number(msg.dx), Number(msg.dy), 320, 6, id)[0];
+    if (hit && !wallBetween(me, hit)) damage(hit.id);
+  },
+});
+```
+
+- `room.history` is a `LagCompensator`: `at(id, time)`, `all(time)`, `near(time, x, y, radius, except)` and
+  `alongRay(time, x, y, dx, dy, range, radius, except)` (bodies a ray met, nearest first). They blend between
+  recorded frames the way `InterpolationBuffer.sample` does, so a rewind lands within the wire's 1/8 px of where the
+  client drew the body.
+- `host.rewindTime(claimed)` keeps a claimed time within `rewindMs` of now (and never in the future); a claim that
+  is not a number is taken as now. Without `rewindMs` it is always now. `LagCompensator.clampTime(claimed, now,
+  maxMs)` is the same rule for a server of the game's own.
+- Keep `rewindMs` to what real players need: the interpolation delay plus a round trip, 200–300 ms. The longer it is,
+  the further a player with a bad connection can shoot round a corner the target already turned.
+- The history knows positions only. Walls, cover and the shooter's own reach are the game's to check, against the
+  hit `alongRay` returns.
+- `LagCompensator` works without a `Room`: `record(time, bodies)` from any server loop, for monsters as well.
 
 ## REST: `ApiClient`
 
@@ -221,5 +283,5 @@ required" gate on 426). Routes and types stay the game's: subclass it or wrap `r
   their own codec.
 - **`RoomHost` reads text only.** Clients send JSON; a binary message is ignored. Validate a player's data in `admit`:
   it is whatever the client sent.
-- **A `Room` sends every body to every player.** There is no view culling; a large world needs its own interest
-  management on top of `snapshotFor`.
+- **A `Room` sends every body to every player unless given `interest`.** A large world wants `interest`; a
+  small arena does not need it.
