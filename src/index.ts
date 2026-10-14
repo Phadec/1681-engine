@@ -129,6 +129,7 @@ export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch
 export { onAppResume, type ResumeEnv } from './platform/appResume';
 export { timeoutSignal } from './platform/timeoutSignal';
 export { rumble, rumblePad, stopRumble, rumbleParams, type RumbleOptions, type RumblePad } from './input/rumble';
+export { Haptics, HapticGate, vibrate, type HapticsOptions, type HapticGaps } from './input/haptics';
 export { enterFullscreen, exitFullscreen, toggleFullscreen, isFullscreen, fullscreenSupported, onFullscreenChange, type FullscreenDocument } from './platform/fullscreen';
 export { lockOrientation, unlockOrientation, currentOrientationKind, type OrientationLock, type OrientationTarget } from './platform/orientation';
 export { prefersReducedMotion, onReducedMotionChange, followReducedMotion, type MotionQuery } from './platform/reducedMotion';
