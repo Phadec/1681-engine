@@ -40,6 +40,7 @@ export { ObjectFactory } from './core/ObjectFactory';
 export { Graphics, type Vec2 } from './core/Graphics';
 export { Image } from './core/Image';
 export { Group } from './core/Group';
+export { blendLayer, type BlendLayerOptions } from './core/blendLayer';
 export { Rectangle } from './core/Rectangle';
 export { Text, type TextStyle } from './core/Text';
 export { BitmapLabel, installLabelFont, addLabelGlyphs } from './core/BitmapLabel';
