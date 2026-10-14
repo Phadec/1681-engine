@@ -5,6 +5,48 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.10
+
+### Added
+
+- **LDtk import**: `parseLdtk` reads a project's levels into the same `TileMap` Tiled maps use, so `TilemapView`,
+  `collisionFromTiled` and `objectsOf` work on them: IntGrid, AutoLayer, Tiles and Entities layers, entity and level
+  fields, tile custom data and enum tags, world layouts, multi-worlds projects and separate `.ldtkl` level files.
+  `levelByName`, `levelAt`, `entitiesOf`, `intGridAt`, `ldtkExternalLevels`, `loadLdtkLevel`;
+  `AssetLoader.ldtk(key, url, { levels })` and `ldtkProject(key)`; `collisionFromIntGrid(grid, solid)`.
+- **Autotiling**: `autotile`, `updateAutotile` and `paintTerrain` on 4-bit edge masks or 47-tile blob masks
+  (`edgeMask`, `blobMask`, `BLOB47_MASKS`, `blob47Index`), with stable variants, fallbacks and `connectsTo`; an edit
+  retiles only its 3x3 neighbourhood. `TilemapView.refreshTiles(layer, cells)` repaints only the chunks touched, and
+  `x`/`y` place a map at a world position. The `ldtk` example.
+- **Ambient life**: `Drift` (leaves, seeds, embers, motes, ash), `Birds`, `Butterflies`, `Fireflies` and
+  `ChimneySmoke`, bounded pools that live only in view on whole pixels, spawned from a `LifeSource` callback
+  (`sourceOf`, `pickInView`) under a `LifeAir`; `paintLifeArt` in `1681-engine/pixel` paints their art.
+- `Haptics` and `HapticGate`: a per-kind rate-limited buzz with an injectable player (`navigator.vibrate` by default).
+- `ApiClient` and `ApiError`: a JSON REST client with a timeout, a bearer token, a 401 refreshed once and retried,
+  status and error hooks, and abort.
+- `Prepainter` and `workerPainter`: big textures painted ahead in a worker for the neighbours of the current key, the
+  rest freed.
+- React kit: `ConfirmButton` (a button asked twice), `useJsonSelector`, `useStoreJson`, the optional label
+  `confirmAgain`.
+- **`1681-engine/updates`**: the pure half of file-by-file web updates from a release store, shared by desktop,
+  browser and phone builds — `LatestJson`/`WebManifest`/`WebFile`, `validManifest`, `planWeb`, `pickWebUpdate`,
+  `apkUpdateOf`, `pluginEntries`, `heldBundle`.
+- **`1681-engine/electron`**, the main-process side of an Electron build: `WebPatcher` (each newer web built beside the
+  running one, checked by sha256, only for the same shell; one that never boots is dropped for the last good one),
+  `shellId`, `SessionStore`/`registerSessionStore` (an OS-encrypted `safeStorage` secret, refused under `basic_text`),
+  `lockDownWindow`, `denyPermissions`, `refuseDebugLaunch` and the pure link rules. Both subpaths ship as ES modules
+  and CommonJS (`dist/cjs`); `electron` is an optional peer dependency that nothing imports.
+- **Browser tests** (`npm run test:browser`, Vitest browser mode on headless Chromium with SwiftShader): WebGL pixels
+  read back, canvas text, `FontFace`, `decodeAudioData`, TexturePacker atlases, silhouettes, `RichText`, `PixelLayer`,
+  `PixelMarks`, `Darkness`, the React `Panel`'s fitting, fullscreen and pointer lock, `Engine.create` and
+  `DrawCallCounter`, in a CI job of their own; `npm run check` stays node-only.
+- Guide page "Desktop: patching, sessions, lockdown"; the tilemap page covers LDtk and autotiling.
+
+### Fixed
+
+- `AssetLoader` names the URL when an image, sprite sheet or atlas page cannot be decoded, and the family and URL when
+  a font cannot be loaded; the browser's bare message named neither.
+
 ## 0.5.9
 
 ### Added

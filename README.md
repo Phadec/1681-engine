@@ -76,6 +76,9 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Localisation** | `Translator` with the English source as key, contexts, plurals, live switching; `extractStrings`. [Guide](docs/guide/i18n.md) |
 | **Ambient** | `DayClock`, deterministic `weatherAt` and `WeatherLayer`, `ColorGrade`; in `/pixel`, `NightShade`, `SwayProp`, `DitherVignette`. [Guide](docs/guide/ambient.md) |
 | **Game feel** | Pooled `FloatingText` for damage numbers, hit-stop, recoil and flash curves. [Guide](docs/guide/game-feel.md) |
+| **LDtk and autotiling** | LDtk projects (IntGrid, auto-layers, entities with fields, world layouts, level files) read into the same tile map as Tiled; 4-bit and 47-tile blob autotiling that retiles only what an edit touched. [Guide](docs/guide/tilemap.md) |
+| **Ambient life** | Drifting leaves, embers and ash, birds, butterflies, fireflies and chimney smoke, pooled and alive only in view. [Guide](docs/guide/ambient.md) |
+| **Desktop** (`/electron`, `/updates`) | File-by-file web patching by sha256, an OS-encrypted session store and a window lockdown for Electron; the update rules shared with phones. [Guide](docs/guide/desktop.md) |
 | **Diagnostics** | Error capture, WebGL context loss, a boot watch, frame sampling, and a `DebugOverlay` with collision boxes. [Guide](docs/guide/diagnostics-and-debug.md) |
 
 ### A React UI
