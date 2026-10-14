@@ -5,7 +5,9 @@
     "src/pixel/index.ts",
     "src/ui/index.ts",
     "src/react/index.ts",
-    "src/postfx/index.ts"
+    "src/postfx/index.ts",
+    "src/updates/index.ts",
+    "src/electron/index.ts"
   ],
   "tsconfig": "tsconfig.build.json",
   "out": "docs/api",

@@ -33,11 +33,31 @@
       "types": "./dist/types/pixel/pixelPaint.d.ts",
       "import": "./dist/pixel/pixelPaint.js"
     },
+    "./updates": {
+      "import": {
+        "types": "./dist/types/updates/index.d.ts",
+        "default": "./dist/updates.js"
+      },
+      "require": {
+        "types": "./dist/cjs/updates/index.d.ts",
+        "default": "./dist/cjs/updates/index.js"
+      }
+    },
+    "./electron": {
+      "import": {
+        "types": "./dist/types/electron/index.d.ts",
+        "default": "./dist/electron.js"
+      },
+      "require": {
+        "types": "./dist/cjs/electron/index.d.ts",
+        "default": "./dist/cjs/electron/index.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run clean && vite build && tsc -p tsconfig.build.json && node scripts/fix-dts-extensions.mjs",
+    "build": "npm run clean && vite build && tsc -p tsconfig.build.json && node scripts/fix-dts-extensions.mjs && tsc -p tsconfig.cjs.json && node scripts/mark-cjs.mjs",
     "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "test": "node scripts/test.mjs",
@@ -92,13 +112,17 @@
   "peerDependencies": {
     "pixi.js": "^8.6.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "electron": ">=28.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "react-dom": {
+      "optional": true
+    },
+    "electron": {
       "optional": true
     }
   },
