@@ -257,6 +257,21 @@ export { navGrid, navGridFromCollision, isOpen, nearWallCost, canStep, NAV_STEPS
 export { nearestOpen } from './nav/nearestOpen';
 export { findPath, floodFill, reachedCount, octile, type NavGoal, type FindPathOptions } from './nav/findPath';
 export { straightenPath, simplifyPath } from './nav/straightenPath';
+export { flowField, followField, type FlowField } from './nav/flowField';
+export {
+  seek,
+  flee,
+  arrive,
+  separation,
+  alignment,
+  cohesion,
+  followFlow,
+  combineSteering,
+  applySteering,
+  type SteerVec,
+  type SteerAgent,
+  type StepSource,
+} from './nav/steering';
 export {
   BehaviorTree,
   BtAgent,

@@ -73,6 +73,45 @@ check that a change to the ground walled nothing off: run it from the spawn in a
 `nearestOpen(grid, tx, ty, maxRadius = 12, ok?)` finds the closest open tile, ring by ring (the closest on each ring,
 not the first scanned), or null. `ok` narrows what counts: an open tile that is not a door, say.
 
+## Crowds: flow fields
+
+A hundred monsters chasing one player would be a hundred `findPath`s. A flow field is one search: from every tile,
+which way to step towards the nearest goal.
+
+```ts
+import { flowField, followField } from '1681-engine';
+
+// re-plan when the player changes tile, not every frame
+const field = flowField(grid, [playerTile], { cost: nearWallCost(grid), maxCost: 60 });
+const step = field.stepAt(tx, ty); // [dx, dy], or null on the goal or out of reach
+field.costAt(tx, ty); // walking cost to the goal
+followField(field, from); // the tiles a body would walk, for drawing
+```
+
+It takes the same steps, corner rule, `cost` and `endOnly` tiles as `findPath`, so a body following it walks a route
+`findPath` would have found, at the same cost. Give it several goals (every door out of a burning house) and each tile
+flows to its nearest. `maxCost` stops the spread: bodies beyond it are out of reach.
+
+## Steering
+
+Steering functions turn "where to go" into smooth motion and keep a crowd from stacking up. Each returns a desired
+change of velocity (px/s); `combineSteering` weighs and caps them; `applySteering` moves a body that has no physics
+of its own (a physics body takes the force instead).
+
+```ts
+import { followFlow, separation, combineSteering, applySteering } from '1681-engine';
+
+for (const m of monsters) {
+  const force = combineSteering(400, [followFlow(m, field, 16, 40), 1], [separation(m, nearby(m), 10, 200), 1.5]);
+  applySteering(m, force, 40, dt);
+}
+```
+
+`seek`, `flee` (within a panic radius), `arrive` (slowing inside a radius), `separation`, `alignment` and `cohesion`
+(a flock), and `followFlow`, which brakes on the goal and, pushed off the field into a wall or off the grid, heads
+back to the cheapest tile around it. Pass `separation` only the neighbours near a body (a `SpatialHash` query), not
+the whole crowd.
+
 ## Pitfalls
 
 - Re-solve rather than following a stale path: a door that closed or a body that moved is not in a path found a
@@ -86,4 +125,5 @@ not the first scanned), or null. `ok` narrows what counts: an open tile that is 
 [`navGrid`](/api/index/functions/navGrid) · [`navGridFromCollision`](/api/index/functions/navGridFromCollision) ·
 [`straightenPath`](/api/index/functions/straightenPath) · [`simplifyPath`](/api/index/functions/simplifyPath) ·
 [`floodFill`](/api/index/functions/floodFill) · [`nearestOpen`](/api/index/functions/nearestOpen) ·
-[`nearWallCost`](/api/index/functions/nearWallCost)
+[`nearWallCost`](/api/index/functions/nearWallCost) · [`flowField`](/api/index/functions/flowField) ·
+[`combineSteering`](/api/index/functions/combineSteering)
