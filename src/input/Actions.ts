@@ -1,4 +1,5 @@
 import type { Keyboard } from './Keyboard';
+import { chordHeld, parseChord, type KeyChord } from './keyChord';
 
 /**
  * Named actions bound to any input: keys, gamepad buttons and sticks, and virtual buttons a touch UI presses. Game
@@ -17,9 +18,14 @@ import type { Keyboard } from './Keyboard';
  * input.endStep();
  * ```
  *
- * Bindings: a `KeyboardEvent.code` (`KeyW`, `Space`, `ArrowUp`), `pad:<button>` (standard mapping names below),
+ * Bindings: a `KeyboardEvent.code` (`KeyW`, `Space`, `ArrowUp`), a chord of modifiers and a code (`Shift+Tab`,
+ * `Ctrl+KeyS`: `Shift`, `Ctrl`, `Alt`, `Meta`, either side), `pad:<button>` (standard mapping names below),
  * `pad:<axis>+` / `pad:<axis>-` for a stick half (`lx`, `ly`, `rx`, `ry`), or `touch:<name>` for a virtual button
  * (`press`/`release`).
+ *
+ * A chord wins over its bare key: while `Shift+Tab` is held, an action bound to plain `Tab` is not, and it stays off
+ * until Tab itself comes up (letting Shift go first must not turn a Shift+Tab into a Tab). A bare key held with a
+ * modifier no chord names still counts (Shift held to run does not stop the jump key).
  */
 export type Bindings<A extends string> = Record<A, readonly string[]>;
 
@@ -49,6 +55,11 @@ export class Actions<A extends string> {
   private before = new Map<A, number>();
   private readonly deadZone: number;
   private readonly gamepads: () => readonly (PadState | null)[];
+  /** Parsed chords by binding string; null for a plain key. */
+  private readonly chords = new Map<string, KeyChord | null>();
+  /** Keys a chord holds this step: their bare bindings read 0 until the key comes up. */
+  private readonly claimed = new Set<string>();
+  private readonly keyDown = (code: string) => this.keyboard !== null && (this.keyboard.isDown(code) || this.keyboard.pressed(code));
 
   constructor(
     private readonly keyboard: Keyboard | null,
@@ -85,6 +96,7 @@ export class Actions<A extends string> {
     [this.before, this.now] = [this.now, this.before];
     this.now.clear();
     const pads = this.gamepads().filter((p): p is PadState => p !== null);
+    this.claimChords();
     for (const [action, inputs] of this.bindings) {
       let v = 0;
       for (const input of inputs) v = Math.max(v, this.read(input, pads));
@@ -131,6 +143,38 @@ export class Actions<A extends string> {
     this.virtualDown.clear();
   }
 
+  /**
+   * Drops every pending edge: what went down or up since the last step is forgotten, and what is held now counts as
+   * already held, so the next `poll` reports no `pressed` or `released` for it. For input that sat unread while
+   * something else had the keys (a pause menu over the level; `SceneManager.pop` calls it through `Scene.useInput`).
+   */
+  flush(): void {
+    this.keyboard?.endStep();
+    this.virtualDown.clear();
+    this.poll();
+    this.before = new Map(this.now);
+  }
+
+  private chordOf(input: string): KeyChord | null {
+    let c = this.chords.get(input);
+    if (c === undefined) {
+      c = input.startsWith('pad:') || input.startsWith('touch:') ? null : parseChord(input);
+      this.chords.set(input, c);
+    }
+    return c;
+  }
+
+  /** Marks the keys held chords use, and frees those whose key has come up. */
+  private claimChords(): void {
+    for (const code of this.claimed) if (!this.keyDown(code)) this.claimed.delete(code);
+    if (!this.keyboard) return;
+    for (const inputs of this.bindings.values())
+      for (const input of inputs) {
+        const chord = this.chordOf(input);
+        if (chord && chordHeld(chord, this.keyDown)) this.claimed.add(chord.code);
+      }
+  }
+
   private read(input: string, pads: readonly PadState[]): number {
     if (input.startsWith('touch:')) {
       const name = input.slice(6);
@@ -158,6 +202,9 @@ export class Actions<A extends string> {
       }
       return Math.min(1, v);
     }
-    return this.keyboard?.isDown(input) || this.keyboard?.pressed(input) ? 1 : 0;
+    const chord = this.chordOf(input);
+    if (chord) return chordHeld(chord, this.keyDown) ? 1 : 0;
+    if (this.claimed.has(input)) return 0;
+    return this.keyDown(input) ? 1 : 0;
   }
 }

@@ -7,11 +7,12 @@ import { fileURLToPath } from 'node:url';
 // The core is for 2D games in any art style; the pixel-art module builds on it, never the other way round.
 const src = dirname(fileURLToPath(import.meta.url));
 const pixelDir = join(src, 'pixel') + sep;
+const reactDir = join(src, 'react') + sep;
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((f) => {
     const p = join(dir, f);
-    return statSync(p).isDirectory() ? files(p) : p.endsWith('.ts') ? [p] : [];
+    return statSync(p).isDirectory() ? files(p) : p.endsWith('.ts') || p.endsWith('.tsx') ? [p] : [];
   });
 }
 
@@ -26,6 +27,24 @@ test('nothing outside src/pixel imports from it', () => {
     }
   }
   assert.deepEqual(offenders, [], 'the core must not depend on the pixel module');
+});
+
+// React is an optional peer of `1681-engine/react` only: the core, the canvas UI and the pixel module run without it.
+test('nothing outside src/react imports React or the React kit', () => {
+  const offenders: string[] = [];
+  for (const file of files(src)) {
+    if (file.startsWith(reactDir)) continue;
+    const text = readFileSync(file, 'utf8');
+    for (const m of text.matchAll(/(?:from\s+|import\(\s*|import\s+)['"]([^'"]+)['"]/g)) {
+      const spec = m[1]!;
+      const isReact = /^(react|react-dom)(\/.*)?$/.test(spec);
+      const target = spec.startsWith('.') ? resolve(dirname(file), spec) : '';
+      const isKit = target !== '' && ((target + sep).startsWith(reactDir) || target.startsWith(reactDir));
+      if (isReact || isKit) offenders.push(`${relative(src, file)} → ${spec}`);
+    }
+    if (file.endsWith('.tsx')) offenders.push(`${relative(src, file)} is JSX outside src/react`);
+  }
+  assert.deepEqual(offenders, [], 'only src/react may depend on React');
 });
 
 // The engine knows no game: a game's names, its data and its language stay in the game, and what differs between

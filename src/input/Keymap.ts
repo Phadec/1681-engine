@@ -9,22 +9,36 @@ import type { Actions } from './Actions';
  * Two rules: one key serves one action at a time (a key bound twice would fire both, and the player could not tell
  * which they meant), and reserved keys (Escape, Enter, Tab by default: the interface's own) are never taken.
  *
+ * Inputs the player cannot rebind — the gamepad's, a touch button, a reserved key an action should still answer to
+ * (Escape also pausing) — are the keymap's **fixed** inputs: given once to the constructor, laid after the player's
+ * keys by `applyTo`, and untouched by either rule above.
+ *
  * ```ts
- * const keys = new Keymap({ jump: ['Space'], left: ['KeyA', 'ArrowLeft'], map: ['KeyM'] });
+ * const keys = new Keymap({ jump: ['Space'], left: ['KeyA', 'ArrowLeft'], pause: ['KeyP'] }, undefined, { jump: ['pad:a'], pause: ['Escape'] });
  * keys.load(keymapStorage('my-game.keys').read());
- * keys.onChange(() => { keys.applyTo(actions, { jump: ['pad:a'] }); storage.write(keys.toJSON()); });
- * keys.bind('map', 'KeyA'); // 'left' keeps only ArrowLeft
+ * keys.onChange(() => { keys.applyTo(actions); storage.write(keys.toJSON()); });
+ * keys.bind('pause', 'KeyA'); // 'left' keeps only ArrowLeft
  * ```
  */
 export class Keymap<A extends string> {
   private binds: Record<A, string[]>;
   private readonly defaults: Record<A, readonly string[]>;
   private readonly reserved: ReadonlySet<string>;
+  private readonly fixed: Partial<Record<A, readonly string[]>>;
   private readonly listeners: (() => void)[] = [];
 
-  constructor(defaults: Readonly<Record<A, readonly string[]>>, reserved: Iterable<string> = ['Escape', 'Enter', 'Tab']) {
+  /**
+   * `reserved`: keys never bound (default Escape, Enter, Tab; pass `undefined` for the default). `fixed`: inputs each
+   * action always has besides the player's keys (gamepad, touch, a reserved key), never saved or rebound.
+   */
+  constructor(
+    defaults: Readonly<Record<A, readonly string[]>>,
+    reserved: Iterable<string> = ['Escape', 'Enter', 'Tab'],
+    fixed: Partial<Record<A, readonly string[]>> = {},
+  ) {
     this.defaults = { ...defaults };
     this.reserved = new Set(reserved);
+    this.fixed = { ...fixed };
     this.binds = this.fresh();
   }
 
@@ -46,6 +60,11 @@ export class Keymap<A extends string> {
   /** The keys of one action; the first is the one a settings screen shows and edits. */
   keysFor(action: A): readonly string[] {
     return this.binds[action] ?? [];
+  }
+
+  /** The inputs an action always has besides the player's keys (the constructor's `fixed`). */
+  fixedFor(action: A): readonly string[] {
+    return this.fixed[action] ?? [];
   }
 
   /** Which action a key belongs to, or undefined. */
@@ -104,11 +123,13 @@ export class Keymap<A extends string> {
   }
 
   /**
-   * Hands the bindings to an `Actions`, each action's keys followed by its `extra` inputs (gamepad, touch), which the
-   * keymap does not own.
+   * Hands the bindings to an `Actions`: each action's keys, then its fixed inputs, then its `extra` ones. Only the
+   * keymap's actions are bound, so the `Actions` may hold more (menu actions alongside the rebindable ones, each on
+   * its own fixed inputs); those are left as they are. Fixed and extra inputs are the game's, so neither the reserved
+   * keys nor one-key-one-action apply to them.
    */
-  applyTo(actions: Actions<A>, extra: Partial<Record<A, readonly string[]>> = {}): void {
-    for (const id of this.actions()) actions.bind(id, [...this.binds[id], ...(extra[id] ?? [])]);
+  applyTo<B extends string>(actions: Actions<A | B>, extra: Partial<Record<A, readonly string[]>> = {}): void {
+    for (const id of this.actions()) actions.bind(id, [...this.binds[id], ...(this.fixed[id] ?? []), ...(extra[id] ?? [])]);
   }
 
   /** Called after every change; returns a function that stops it. */
@@ -218,10 +239,11 @@ const KEY_NAMES: Readonly<Record<string, string>> = {
 };
 
 /**
- * How a key code reads on screen: "KeyW" is W, "Digit1" is 1, "Numpad3" is "Num 3". `names` overrides any code
- * (a game's own language for the arrows and modifiers).
+ * How a key code reads on screen: "KeyW" is W, "Digit1" is 1, "Numpad3" is "Num 3", a chord "Shift+Tab" each part in
+ * turn. `names` overrides any code or modifier (a game's own language for the arrows and modifiers).
  */
 export function keyLabel(code: string, names: Readonly<Record<string, string>> = {}): string {
+  if (code.length > 1 && code.includes('+')) return code.split('+').map((part) => keyLabel(part, names)).join('+');
   const own = names[code];
   if (own !== undefined) return own;
   if (code.startsWith('Key')) return code.slice(3);

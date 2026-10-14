@@ -12,12 +12,13 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     lib: {
-      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts') },
+      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts') },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },
     rollupOptions: {
-      external: [/^pixi\.js(\/.*)?$/],
+      // React is an optional peer of the `react` entry only: never bundled, the game brings its own copy
+      external: [/^pixi\.js(\/.*)?$/, 'react', 'react-dom', 'react/jsx-runtime', 'react-dom/client'],
       // one file per source module, so a game's bundler keeps only what it imports: a worker that wants the colour
       // helpers of `pixel/pixel.ts` no longer takes Pixi, the audio engine and the rest of the bundle with it
       output: { preserveModules: true, preserveModulesRoot: 'src', entryFileNames: '[name].js' },

@@ -197,3 +197,21 @@ test('resting bodies fall asleep and wake when hit', () => {
   run(world, 10);
   assert.equal(b.awake, true);
 });
+
+test('bodies lists what the world holds, and drawColliders draws each by kind', async () => {
+  const { drawColliders, COLLIDER_COLORS } = await import('./drawColliders.ts');
+  const world = new PhysicsWorld();
+  const floor = world.add({ type: 'static', shape: { kind: 'box', halfWidth: 50, halfHeight: 5 }, x: 50, y: 105 });
+  const coin = world.add({ type: 'static', sensor: true, shape: { kind: 'circle', radius: 4 }, x: 20, y: 80 });
+  const crate = world.add(box(50, 92, 8));
+  assert.deepEqual(world.bodies, [floor, coin, crate]);
+  world.remove(coin);
+  assert.deepEqual(world.bodies, [floor, crate]);
+  world.add(coin);
+  run(world, 30);
+  const drawn: [number, number, number, number, number | undefined][] = [];
+  drawColliders(world, (x, y, w, h, c) => drawn.push([x, y, w, h, c]), {}, (b) => (b === coin ? 0x123456 : undefined));
+  assert.deepEqual(drawn[0], [0, 100, 100, 10, COLLIDER_COLORS.static]);
+  assert.equal(drawn[1]![4], COLLIDER_COLORS.grounded, 'the crate stands on the floor');
+  assert.equal(drawn[2]![4], 0x123456, "the game's own colour wins");
+});

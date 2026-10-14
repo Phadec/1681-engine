@@ -20,6 +20,12 @@ export interface UiRootOptions {
   pixelPerfect?: boolean;
   /** The action names navigation reads (default `ui_up`, `ui_down`, … `ui_accept`, `ui_cancel`). */
   bindings?: Partial<NavBindings>;
+  /**
+   * The container the root is added to (default the stage's screen layer). Give a scene's `hud` and the UI lives and
+   * dies with the scene: the scene destroys it on exit, its ticker listener and resize hook with it. On the screen
+   * layer it outlives the scene that made it until `destroy` is called.
+   */
+  parent?: Container;
 }
 
 interface Pin {
@@ -34,7 +40,7 @@ interface Pin {
  * focus trap, and keeps presses on widgets from reaching the world (`UiPointerGate`).
  *
  * ```ts
- * const ui = new UiRoot(engine.stage);
+ * const ui = new UiRoot(engine.stage, { parent: scene.hud }); // goes when the scene does
  * ui.pin(healthBar, 'top-left', 8);
  * // in a fixed step, between actions.poll() and endStep():
  * if (!ui.handleInput(actions) && !ui.capturesInput) movePlayer();
@@ -58,7 +64,7 @@ export class UiRoot extends Container implements UiHost {
     super();
     this.pixelPerfect = options.pixelPerfect ?? stage.cameras.main.roundPixels;
     this.focus = new FocusManager(this, { ...DEFAULT_NAV, ...options.bindings });
-    stage.screen.addChild(this);
+    (options.parent ?? stage.screen).addChild(this);
     this.cleanup.push(stage.onResize(() => this.layout()), UiPointerGate.install());
     // after the engine's own frame (same priority, added later): widgets tick once the game has set their values
     this.ticker = stage.app.ticker;
@@ -140,6 +146,8 @@ export class UiRoot extends Container implements UiHost {
   }
 
   override destroy(): void {
+    // destroyed by its parent (a scene's hud going) and again by the game's own cleanup: the second is a no-op
+    if (this.destroyed) return;
     this.ticker.remove(this.onTick);
     for (const fn of this.cleanup.splice(0)) fn();
     this.moving.clear();

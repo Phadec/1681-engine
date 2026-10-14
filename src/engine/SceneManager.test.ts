@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { Container } from 'pixi.js';
+import { Clock } from '../core/Clock.ts';
 import { SceneManager } from './SceneManager.ts';
 import { Scene } from './Scene.ts';
 import type { Engine } from './Engine.ts';
@@ -33,8 +35,9 @@ class Probe extends Scene {
   }
 }
 
-function fakeEngine(errors: unknown[] = []): Engine {
-  return { loop: { reset() {} }, reportError: (_: string, e: unknown) => errors.push(e) } as unknown as Engine;
+function fakeEngine(errors: unknown[] = [], camera = { resets: 0 }): Engine {
+  const stage = { cameras: { main: { reset: () => camera.resets++ } } };
+  return { stage, loop: { reset() {} }, reportError: (_: string, e: unknown) => errors.push(e) } as unknown as Engine;
 }
 
 test('push pauses the scene under it, pop resumes it', async () => {
@@ -82,4 +85,51 @@ test('a failed change is reported and does not wedge the changes after it', asyn
   await m.push(new Probe('b', log));
   assert.equal((m.current as Probe).name, 'b');
   assert.equal(errors.length, 1);
+});
+
+test('replace resets the shared camera; push and pop leave it alone', async () => {
+  const camera = { resets: 0 };
+  const m = new SceneManager(fakeEngine([], camera));
+  await m.replace(new Probe('a', []));
+  assert.equal(camera.resets, 1);
+  await m.push(new Probe('b', []));
+  await m.pop();
+  assert.equal(camera.resets, 1);
+  await m.replace(new Probe('c', []));
+  assert.equal(camera.resets, 2);
+});
+
+test('pop flushes the resumed scene\'s input before onResume', async () => {
+  const log: string[] = [];
+  const m = new SceneManager(fakeEngine());
+  const level = new Probe('level', log);
+  level.useInput({ flush: () => log.push('level:flush') });
+  await m.replace(level);
+  await m.push(new Probe('menu', log));
+  await m.pop();
+  assert.deepEqual(log.slice(-2), ['level:flush', 'level:resume']);
+});
+
+/** A scene with the real attach/detach, on a stage of bare containers and a clock. */
+class Timed extends Scene {
+  fired = 0;
+  override onEnter(): void {
+    this.delay(100, () => this.fired++);
+  }
+}
+
+test('a scene\'s timers are cancelled when it leaves', async () => {
+  const time = new Clock();
+  time.now = 0;
+  const stage = { world: new Container(), screen: new Container(), time, cameras: { main: { reset() {} } } };
+  const engine = { stage, loop: { reset() {} }, reportError() {} } as unknown as Engine;
+  const m = new SceneManager(engine);
+  const a = new Timed();
+  await m.replace(a);
+  time.update(150);
+  assert.equal(a.fired, 1, 'fires while the scene runs');
+  a.delay(100, () => a.fired++);
+  await m.replace(new Timed());
+  time.update(400);
+  assert.equal(a.fired, 1, 'a timer of a scene that left never fires');
 });

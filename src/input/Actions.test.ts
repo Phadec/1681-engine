@@ -95,3 +95,60 @@ test('an action can be rebound', () => {
   assert.deepEqual(input.bindingsOf('jump'), ['KeyJ']);
   kb.destroy();
 });
+
+test('flush forgets presses made while nobody read the input; a held key stays held but is not pressed', () => {
+  const target = new EventTarget();
+  const kb = new Keyboard(target as unknown as HTMLElement);
+  const input = new Actions(kb, bindings, { gamepads: () => [] });
+  input.poll();
+  input.endStep();
+  // a pause menu over the scene: these presses were its own
+  key(target, 'keydown', 'Space');
+  key(target, 'keydown', 'KeyA');
+  key(target, 'keyup', 'KeyA');
+  input.press('jump');
+  input.flush();
+  input.poll();
+  assert.equal(input.pressed('jump'), false, 'no stale press');
+  assert.equal(input.down('jump'), true, 'still held');
+  assert.equal(input.pressed('left'), false);
+  assert.equal(input.released('left'), false);
+  input.endStep();
+  key(target, 'keyup', 'Space');
+  input.release('jump');
+  input.poll();
+  assert.equal(input.released('jump'), true, 'letting go afterwards is an edge again');
+});
+
+test('a chord binding needs its modifier, and wins over the bare key until that key comes up', () => {
+  const target = new EventTarget();
+  const kb = new Keyboard(target as unknown as HTMLElement);
+  const input = new Actions(kb, { next: ['Tab'], prev: ['Shift+Tab'], run: ['ShiftLeft'] }, { gamepads: () => [] });
+  key(target, 'keydown', 'Tab');
+  input.poll();
+  assert.equal(input.pressed('next'), true);
+  assert.equal(input.down('prev'), false);
+  input.endStep();
+  key(target, 'keyup', 'Tab');
+  input.poll();
+  input.endStep();
+  key(target, 'keydown', 'ShiftRight');
+  key(target, 'keydown', 'Tab');
+  input.poll();
+  assert.equal(input.pressed('prev'), true);
+  assert.equal(input.down('next'), false, 'the chord holds Tab');
+  input.endStep();
+  key(target, 'keyup', 'ShiftRight');
+  input.poll();
+  assert.equal(input.down('prev'), false);
+  assert.equal(input.pressed('next'), false, 'letting Shift go first does not make it a Tab');
+  input.endStep();
+  key(target, 'keyup', 'Tab');
+  input.poll();
+  input.endStep();
+  key(target, 'keydown', 'ShiftLeft');
+  key(target, 'keydown', 'Tab');
+  input.poll();
+  assert.equal(input.down('run'), true, 'the modifier itself is still a key');
+  assert.equal(input.down('prev'), true);
+});

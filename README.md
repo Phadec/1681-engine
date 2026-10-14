@@ -33,14 +33,17 @@ await engine.scenes.replace(new Level());
 
 > **Status: 0.x, early.** The API will change between minor versions until 1.0. See [CHANGELOG.md](CHANGELOG.md).
 
-## Two entry points
+## Entry points
 
 | Import | For | Holds |
 |---|---|---|
 | `1681-engine` | every 2D game | engine, scenes, ECS, rendering core, assets, Tiled maps, animation, input, camera, rig maths, audio, networking |
 | `1681-engine/pixel` | pixel-art games | `PixelLayer`, `pixelPaint` shapes, colour ramps, dithered `Darkness` lighting, `Evaporation`, sprite pixel tools |
+| `1681-engine/ui` | games with menus and a HUD | canvas widgets, focus, the pure layout maths, the DOM/React bridge (`DomOverlay`, `createStore`, `InputShield`) |
+| `1681-engine/react` | a UI written in React | `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`/`TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, themed by CSS custom properties (`baseCss`) |
 
 The core never imports the pixel module (a test holds it to that), so a game that does not use it does not ship it.
+React and React DOM (19) are optional peer dependencies needed only by `1681-engine/react`; nothing else imports React.
 Start a pixel-art game with `Engine.create({ pixelPerfect: true })`: sharp textures and a camera that lands on whole
 pixels. Without it, textures are smooth and drawn at the screen's own density.
 
@@ -61,6 +64,32 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Audio** | Web Audio `sound` engine (synthesized recipes, recorded takes cleaned in a worker, voice limiting, distance muffling, panning) and `music`: streamed tracks crossfaded and looped. iOS unlock handled. |
 | **Multiplayer** | An authoritative `Room` and its socket host for Node, a client `Connection`, `PredictedMover` (prediction and reconciliation over deterministic movement: in tests and in the example the server never has to correct it), `InterpolationBuffer` for everyone else, binary snapshots, clock sync, input validation and flood limits, cadence rules. |
 | **Pixel art** (`/pixel`) | `PixelLayer` (thousands of pixel rects in one pooled texture), `pixelPaint` shapes shaded from hue-shifted ramps and faded by ordered dither, `Darkness` with dithered lamps and transient lights, `Evaporation`, the selective outline. |
+
+### A React UI
+
+```tsx
+import { createRoot } from 'react-dom/client';
+import { ConfirmDialog, Panel, TitleTips, UiProvider, askConfirm, injectBaseCss } from '1681-engine/react';
+
+injectBaseCss(); // the base stylesheet, first in <head>, so the game's own CSS wins
+// theme it with custom properties: frames are 9-slice border-images the game draws
+document.documentElement.style.cssText += `
+  --e1681-font: 'My Pixel Font'; --e1681-accent: #f0c060;
+  --e1681-frame: url(/ui/frame.svg); --e1681-frame-slice: 16 20 20 16 fill; --e1681-frame-width: 16px 20px 20px 16px;`;
+
+createRoot(document.getElementById('ui')!).render(
+  <UiProvider labels={{ cancel: 'Annuler', ok: 'OK' }}>
+    <Panel title="Inventory" onClose={close} width={420}>…</Panel>
+    <ConfirmDialog />
+    <TitleTips />
+  </UiProvider>,
+);
+if (await askConfirm('Drop the sword?')) drop();
+```
+
+Windows and dialogs are fitted into the screen by `fitToViewport` and placed in whole pixels; tooltips and the
+select's list by `placeTooltip` and `listWidth`. On a touch device (`isTouchUi`, or `UiProvider touch`) a `Panel` is a
+full-screen sheet and tooltips are off. Every word the kit prints is a prop or a `labels` entry with an English default.
 
 ## Install
 
@@ -88,6 +117,8 @@ locally.
 - [Architecture](docs/guide/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
 - [Examples](examples/), run with `npm run dev`:
   - `top-down`: a Tiled map, asset loading, an animated hero, input actions on keyboard, gamepad and touch, camera follow.
+  - `platformer`: physics from a tile grid (crates, a moving platform, one-way planks, sensor coins), particles, a canvas
+    HUD and pause dialog, a versioned save, scene transitions, two languages, rebindable keys and a debug overlay.
   - `night-garden`: smooth vector art, a rigged hero animated by blended poses, a lantern and fireflies in the dark.
   - `pixel-dungeon`: the pixel module: dithered torchlight, a carried light, slimes that evaporate into their own pixels.
   - `ecs-stress`: tens of thousands of bodies on typed-array components, with the frame rate and step time.

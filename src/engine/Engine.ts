@@ -85,6 +85,7 @@ export class Engine {
     this.stage = new EngineStage(app, textures, (now, delta) => this.tick(now, delta));
     const cam = this.stage.cameras.main;
     cam.setZoom(options.zoom ?? 1);
+    cam.defaultZoom = cam.zoom;
     cam.roundPixels = options.pixelPerfect === true;
     cam.resolution = app.renderer.resolution;
     this.scenes = new SceneManager(this);

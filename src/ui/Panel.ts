@@ -12,7 +12,12 @@ export interface TextureSkin {
 /** A plain box: fill, and an optional border drawn inside the edge. */
 export interface ColourSkin {
   color: number;
+  /** Opacity of fill and border alike (default 1); `fillAlpha` and `borderAlpha` override it for one of them. */
   alpha?: number;
+  /** Opacity of the fill alone: 0 draws a bare ring (a focus mark over a face that should still show). */
+  fillAlpha?: number;
+  /** Opacity of the border alone. */
+  borderAlpha?: number;
   border?: number;
   borderColor?: number;
 }
@@ -72,11 +77,23 @@ export class Panel extends Widget {
     const g = this.box!;
     g.clear();
     const b = skin.border ?? 0;
-    if (b > 0 && w > 0 && h > 0) {
-      g.rect(0, 0, w, h).fill({ color: skin.borderColor ?? 0xffffff, alpha: skin.alpha ?? 1 });
-      if (w > 2 * b && h > 2 * b) g.rect(b, b, w - 2 * b, h - 2 * b).fill({ color: skin.color, alpha: skin.alpha ?? 1 });
-    } else if (w > 0 && h > 0) {
-      g.rect(0, 0, w, h).fill({ color: skin.color, alpha: skin.alpha ?? 1 });
+    const fillAlpha = skin.fillAlpha ?? skin.alpha ?? 1;
+    const borderAlpha = skin.borderAlpha ?? skin.alpha ?? 1;
+    if (w <= 0 || h <= 0) return;
+    if (b > 0) {
+      // the border as four strips round the fill, never a box under it: a see-through fill would show it through
+      const bc = { color: skin.borderColor ?? 0xffffff, alpha: borderAlpha };
+      if (w <= 2 * b || h <= 2 * b) {
+        g.rect(0, 0, w, h).fill(bc);
+        return;
+      }
+      g.rect(0, 0, w, b).fill(bc);
+      g.rect(0, h - b, w, b).fill(bc);
+      g.rect(0, b, b, h - 2 * b).fill(bc);
+      g.rect(w - b, b, b, h - 2 * b).fill(bc);
+      if (fillAlpha > 0) g.rect(b, b, w - 2 * b, h - 2 * b).fill({ color: skin.color, alpha: fillAlpha });
+    } else if (fillAlpha > 0) {
+      g.rect(0, 0, w, h).fill({ color: skin.color, alpha: fillAlpha });
     }
   }
 }

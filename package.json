@@ -1,6 +1,6 @@
 {
   "name": "1681-engine",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -16,6 +16,10 @@
     "./ui": {
       "types": "./dist/types/ui/index.d.ts",
       "import": "./dist/ui.js"
+    },
+    "./react": {
+      "types": "./dist/types/react/index.d.ts",
+      "import": "./dist/react.js"
     },
     "./pixel/tone": {
       "types": "./dist/types/pixel/pixelTone.d.ts",
@@ -45,8 +49,12 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@types/ws": "^8.18.2",
     "pixi.js": "^8.21.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "tsx": "^4.20.5",
     "typedoc": "^0.28.20",
     "typedoc-plugin-markdown": "^4.13.1",
@@ -80,7 +88,17 @@
     "node": ">=22"
   },
   "peerDependencies": {
-    "pixi.js": "^8.6.0"
+    "pixi.js": "^8.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "repository": {
     "type": "git",

@@ -1,10 +1,21 @@
-import { Sprite, Texture } from 'pixi.js';
+import { Sprite, Texture, type Container } from 'pixi.js';
 import type { Stage } from '../core/Stage';
 import { mixToWhite, type GradeState } from './grade';
+
+/** Where the sheet goes among its parent's children. */
+export type GradePlacement = 'top' | 'bottom';
 
 export interface ColorGradeOptions {
   /** How often (ms) the grade is read again: the hour moves slowly, so not every frame (default 500). */
   readEveryMs?: number;
+  /** The container the sheet is added to (default the stage's screen layer). */
+  parent?: Container;
+  /**
+   * `'top'` (the default) adds the sheet over everything already in `parent`, so it tints a HUD made before it and
+   * not one made after. `'bottom'` puts it under every child `parent` has or will have: on the screen layer that is
+   * over the world and under every HUD, whatever order they were made in — usually what a grade wants.
+   */
+  placement?: GradePlacement;
 }
 
 /**
@@ -13,7 +24,8 @@ export interface ColorGradeOptions {
  * filter pass, which is what a phone can spare every frame.
  *
  * `read` returns the grade now (`gradeAt` from a place's `Grade` and `DayClock`'s night, say); it is asked a few
- * times a second, and a grade that comes to white is not drawn at all.
+ * times a second, and a grade that comes to white is not drawn at all. Give `placement: 'bottom'` to keep it off the
+ * HUD (see `ColorGradeOptions.placement`).
  */
 export class ColorGrade {
   private readonly sheet = new Sprite({ texture: Texture.WHITE });
@@ -29,7 +41,9 @@ export class ColorGrade {
     this.every = options.readEveryMs ?? 500;
     this.sheet.blendMode = 'multiply';
     this.sheet.visible = false;
-    stage.screen.addChild(this.sheet);
+    const parent = options.parent ?? stage.screen;
+    if (options.placement === 'bottom') parent.addChildAt(this.sheet, 0);
+    else parent.addChild(this.sheet);
   }
 
   /** Reads the grade again on the next update (the place changed). */

@@ -24,7 +24,7 @@ export class PhysicsWorld {
   readonly events = new EventBus<PhysicsEvents>();
   /** Called for each touching solid pair every sub-step; returning false skips its response this sub-step (one-way platforms). */
   preSolve: ((contact: Contact) => boolean) | null = null;
-  private readonly bodies: Body[] = [];
+  private readonly list: Body[] = [];
   private readonly broad: BroadPhase;
   private readonly solver: ContactSolver;
   private readonly contacts = new Map<number, Contact>();
@@ -74,7 +74,7 @@ export class PhysicsWorld {
     b.inWorld = true;
     b.updateBounds();
     b.wake();
-    this.bodies.push(b);
+    this.list.push(b);
     if (b.isStatic) this.broad.markStaticsDirty();
     return b;
   }
@@ -91,8 +91,8 @@ export class PhysicsWorld {
       return;
     }
     body.inWorld = false;
-    const i = this.bodies.indexOf(body);
-    if (i >= 0) this.bodies.splice(i, 1);
+    const i = this.list.indexOf(body);
+    if (i >= 0) this.list.splice(i, 1);
     if (body.isStatic) this.broad.markStaticsDirty();
     body.grounded = false;
     body.ground = null;
@@ -112,7 +112,15 @@ export class PhysicsWorld {
   }
 
   get bodyCount(): number {
-    return this.bodies.length;
+    return this.list.length;
+  }
+
+  /**
+   * Every body in the world, in the order added: for tools (a debug drawing, an inspector) that would otherwise keep
+   * a second list beside the world's. Read it, never hold it across a step: adding and removing change it in place.
+   */
+  get bodies(): readonly Body[] {
+    return this.list;
   }
 
   /** Advances the world by `dt` seconds; call it with the fixed step (`FixedLoop.stepSeconds`). */
@@ -121,13 +129,13 @@ export class PhysicsWorld {
     this.stepping = true;
     try {
       this.stepCount++;
-      for (const b of this.bodies) {
+      for (const b of this.list) {
         b.prevX = b.x;
         b.prevY = b.y;
       }
       const n = this.substepsFor(dt);
       for (let i = 0; i < n; i++) this.substep(dt / n);
-      for (const b of this.bodies) {
+      for (const b of this.list) {
         b.fx = 0;
         b.fy = 0;
       }
@@ -141,8 +149,8 @@ export class PhysicsWorld {
 
   /** The first body on the segment from (x0, y0) to (x1, y1). Bodies the ray starts inside are skipped. */
   raycast(x0: number, y0: number, x1: number, y1: number, options?: RaycastOptions): RayHit | null {
-    for (const b of this.bodies) if (!b.isStatic) b.updateBounds();
-    this.broad.rebuild(this.bodies);
+    for (const b of this.list) if (!b.isStatic) b.updateBounds();
+    this.broad.rebuild(this.list);
     return castRay([this.broad.statics, this.broad.movers], x0, y0, x1, y1, options);
   }
 
@@ -162,7 +170,7 @@ export class PhysicsWorld {
     const gx = this.gravityX;
     const gy = this.gravityY;
     let worst = 0;
-    for (const b of this.bodies) {
+    for (const b of this.list) {
       if (!b.moving) continue;
       const g = b.isDynamic ? Math.hypot(gx, gy) * Math.abs(b.gravityScale) * dt : 0;
       const speed = Math.min(this.maxSpeed, Math.hypot(b.vx, b.vy) + g);
@@ -174,7 +182,7 @@ export class PhysicsWorld {
   private substep(h: number): void {
     this.subCount++;
     const max2 = this.maxSpeed * this.maxSpeed;
-    for (const b of this.bodies) {
+    for (const b of this.list) {
       if (!b.isDynamic || !b.awake) continue;
       b.vx += (this.gravityX * b.gravityScale + b.fx * b.invMass) * h;
       b.vy += (this.gravityY * b.gravityScale + b.fy * b.invMass) * h;
@@ -190,18 +198,18 @@ export class PhysicsWorld {
         b.vy *= k;
       }
     }
-    this.broad.rebuild(this.bodies);
+    this.broad.rebuild(this.list);
     this.active.length = 0;
-    this.broad.pairs(this.bodies, this.visitPair);
+    this.broad.pairs(this.list, this.visitPair);
     this.solver.prepare(this.active, h);
     for (let i = 0; i < this.velocityIterations; i++) this.solver.solveVelocities(this.active);
-    for (const b of this.bodies) {
+    for (const b of this.list) {
       if (!b.moving) continue;
       b.x += b.vx * h;
       b.y += b.vy * h;
     }
     for (let i = 0; i < this.positionIterations; i++) this.solver.solvePositions(this.active);
-    for (const b of this.bodies) if (b.moving) b.updateBounds();
+    for (const b of this.list) if (b.moving) b.updateBounds();
   }
 
   private readonly visitPair = (p: Body, q: Body): void => {
@@ -254,7 +262,7 @@ export class PhysicsWorld {
 
   private updateSleep(dt: number): void {
     const s2 = this.sleepSpeed * this.sleepSpeed;
-    for (const b of this.bodies) {
+    for (const b of this.list) {
       if (!b.isDynamic || !b.awake) continue;
       if (b.vx * b.vx + b.vy * b.vy > s2 || b.fx !== 0 || b.fy !== 0) {
         b.restTime = 0;
@@ -271,7 +279,7 @@ export class PhysicsWorld {
 
   /** Ends pairs no longer touching, starts new ones, refreshes `grounded`, then emits the events. */
   private finishContacts(): void {
-    for (const b of this.bodies) {
+    for (const b of this.list) {
       b.grounded = false;
       b.ground = null;
     }

@@ -30,6 +30,8 @@ export interface ViewRect {
  */
 export class Camera {
   zoom = 1;
+  /** The zoom `reset` goes back to: the engine sets it from its `zoom` option (default 1). */
+  defaultZoom = 1;
   /** Backing pixels per screen pixel (the renderer's resolution, `zoomResolution`): what `snap` rounds to. */
   resolution = 1;
   /** Lands the view on whole backing pixels (pixel art); off, the world moves smoothly between them. */
@@ -78,6 +80,42 @@ export class Camera {
   setBounds(x: number, y: number, width: number, height: number): this {
     this.bounds = { x, y, width, height };
     return this;
+  }
+
+  /** Lets the view go anywhere again. */
+  clearBounds(): this {
+    this.bounds = null;
+    return this;
+  }
+
+  /**
+   * Back to how the engine made it: no target, no bounds, `defaultZoom`, scrolled to 0, no shake or flash. The camera
+   * is the engine's, shared by every scene, so a level's target and bounds would otherwise hold over the next scene
+   * (a title screen kept following a hero that no longer existed). `SceneManager.replace` calls it between the old
+   * scenes leaving and the new one entering; `push` and `pop` leave the camera alone, since the scene under a pause
+   * menu still wants its view when it comes back. Layers added with `follow` are kept: they belong to tools that
+   * outlive scenes (a debug overlay), not to a scene.
+   */
+  reset(): this {
+    this.target = null;
+    this.bounds = null;
+    this.zoom = this.defaultZoom;
+    this.scrollX = 0;
+    this.scrollY = 0;
+    this.shakeUntil = 0;
+    this.shakeIntensity = 0;
+    if (this.flashRect && !this.flashRect.destroyed) this.flashRect.setVisible(false);
+    return this;
+  }
+
+  /** The tracked target, if any. */
+  get tracking(): { readonly x: number; readonly y: number } | null {
+    return this.target;
+  }
+
+  /** The bounds the view is kept inside, if any. */
+  get boundsRect(): { readonly x: number; readonly y: number; readonly width: number; readonly height: number } | null {
+    return this.bounds;
   }
 
   centerOn(x: number, y: number): this {

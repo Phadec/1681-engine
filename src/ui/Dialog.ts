@@ -7,7 +7,11 @@ import { sizeOf, Widget } from './Widget';
 
 export interface DialogOptions {
   width: number;
-  height: number;
+  /**
+   * The window's height. Left out, it is the content's height plus the padding above and below, measured again
+   * whenever the dialog is laid out (`UiRoot.layout()` after the content changed size).
+   */
+  height?: number;
   frame: PanelSkin;
   /** The body: a `Stack` of text and buttons, anything. Laid `padding` in from the frame. */
   content: Container;
@@ -42,13 +46,20 @@ export class Dialog extends Widget implements UiModal {
     this.dim.on('pointertap', () => {
       if (options.dismissable ?? true) this.close();
     });
-    this.frame = new Panel(options.frame, options.width, options.height);
+    const height = this.windowHeight();
+    this.frame = new Panel(options.frame, options.width, height);
     this.window.addChild(this.frame, options.content);
     this.addChild(this.dim, this.window);
     // the dim is the dialog's own: every press on it is the UI's
     this.makeInteractive();
     this.boxW = options.width;
-    this.boxH = options.height;
+    this.boxH = height;
+  }
+
+  /** The window's height: the one given, or the content's with its padding. */
+  private windowHeight(): number {
+    if (this.options.height !== undefined) return this.options.height;
+    return sizeOf(this.options.content).height + 2 * (this.options.padding ?? 8);
   }
 
   get isOpen(): boolean {
@@ -80,7 +91,9 @@ export class Dialog extends Widget implements UiModal {
     this.dim.setSize(viewport.width, viewport.height);
     this.hitArea = new Rectangle(0, 0, viewport.width, viewport.height);
     const pixel = this.host?.pixelPerfect ?? false;
-    const fit = fitToViewport({ width: this.options.width, height: this.options.height }, viewport, {
+    const height = this.windowHeight();
+    this.boxH = height;
+    const fit = fitToViewport({ width: this.options.width, height }, viewport, {
       margin: this.options.margin ?? 8,
       centre: true,
       minScale: pixel ? 1 : 0.5,

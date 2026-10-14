@@ -109,3 +109,14 @@ test('a floated label rises, fades and goes back to the pool by itself', () => {
   assert.equal(l.visible, false);
   assert.equal(ft.take(0, 0, 'again', WHITE) as unknown as FakeLabel, l);
 });
+
+test('labels go under the parent given, so they leave with it', () => {
+  const { stage, made } = fakeStage();
+  const added: unknown[] = [];
+  const parent = { addChild: (c: unknown) => added.push(c) };
+  const ft = new FloatingText(stage, { fontFamily: 'Test', parent: parent as never });
+  const a = ft.take(0, 0, '1', WHITE);
+  ft.release(a, WHITE);
+  ft.take(0, 0, '2', WHITE);
+  assert.deepEqual(added, [made[0]], 'added once, when made; a reused label is already there');
+});

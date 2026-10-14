@@ -5,6 +5,11 @@ import type { Scene } from './Scene';
  * A stack of scenes. Only the top one updates; the ones under it are paused but still drawn (a pause menu over the
  * level). Changes are queued and applied one at a time, so a scene that replaces itself from inside its own update,
  * or an async `onEnter` still loading, never leaves two scenes half entered.
+ *
+ * The camera is the engine's, not a scene's: `replace` resets it (`Camera.reset`: no target, no bounds, the default
+ * zoom) after the old scenes leave and before the new one enters, so a level's follow and bounds never hold over a
+ * title screen. `push` and `pop` leave it as it is: the scene under a pause menu keeps its view. `pop` flushes the
+ * resumed scene's input (`Scene.useInput`) before its `onResume`.
  */
 export class SceneManager {
   private readonly stack: Scene[] = [];
@@ -28,6 +33,7 @@ export class SceneManager {
   replace(scene: Scene): Promise<void> {
     return this.enqueue(async () => {
       while (this.stack.length) this.exitTop();
+      this.engine.stage.cameras.main.reset();
       await this.enter(scene);
     });
   }
@@ -45,7 +51,10 @@ export class SceneManager {
     return this.enqueue(async () => {
       if (!this.stack.length) return;
       this.exitTop();
-      this.stack[this.stack.length - 1]?.onResume();
+      const under = this.stack[this.stack.length - 1];
+      if (!under) return;
+      under.flushInput();
+      under.onResume();
     });
   }
 

@@ -12,6 +12,9 @@ function consumePress(e: FederatedPointerEvent): void {
 /**
  * The base of every canvas widget: a Pixi container with a layout box (`boxWidth` × `boxHeight`, its own units, not
  * its drawn bounds), an enabled and a focused state, and the hooks keyboard and gamepad navigation call.
+ *
+ * A widget is a Pixi `Container`, so Container's own members are taken names: in particular `label` (Pixi's debug
+ * name, a string) — a subclass field `label` holding a `Label` clashes with it; call it `caption`, `title`, … .
  */
 export abstract class Widget extends Container {
   /** Whether the focus manager may land on it (buttons, sliders, toggles). */
@@ -95,6 +98,19 @@ export abstract class Widget extends Container {
   protected makeInteractive(): void {
     this.eventMode = 'static';
     this.on('pointerdown', consumePress);
+  }
+
+  /**
+   * A child widget's box changed size by itself (a `Label` given a longer text). A widget that places a child by its
+   * size (a `Button` centring its content) lays it out again here; the default does nothing, so a `Stack` still waits
+   * for its `layout()` and a change does not ripple up through every container.
+   */
+  protected childResized(_child: Widget): void {}
+
+  /** Tells the parent widget this one's box changed size by itself. */
+  protected notifyResized(): void {
+    const p = this.parent;
+    if (p instanceof Widget) p.childResized(this);
   }
 
   /** Draws the current size and state. */

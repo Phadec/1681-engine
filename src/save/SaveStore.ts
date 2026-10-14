@@ -34,7 +34,12 @@ export type LoadResult<T> =
   | { ok: true; data: T; info: SaveInfo; migrated: boolean; fromBackup: boolean }
   | { ok: false; slot: string; reason: LoadFailure; error?: unknown };
 
-/** The stored form. `format` marks it as ours; `checksum` covers the JSON of `data`. */
+/**
+ * The stored form. `format` marks it as ours; `checksum` covers the JSON of `data`.
+ *
+ * The tag is `'lantern-save'`, from the engine's old name (Lantern Engine), and stays that on purpose: every save a
+ * player already has carries it, and a save read under another tag is refused as corrupt. Changing it would lose them.
+ */
 interface Envelope {
   format: 'lantern-save';
   version: number;

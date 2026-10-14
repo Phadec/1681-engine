@@ -13,7 +13,7 @@ export interface SliderOptions {
   knob: PanelSkin;
   /** The knob's width (default `height`). */
   knobWidth?: number;
-  /** Over the whole slider while focused. */
+  /** Over the track while focused, under the knob (a ring: a colour skin with `fillAlpha: 0`). */
   focus?: PanelSkin;
   min?: number;
   max?: number;
@@ -51,8 +51,9 @@ export class Slider extends Widget {
     this.focusFace = options.focus ? new Panel(options.focus, options.width, options.height, { blocksPointer: false }) : null;
     this.addChild(this.track);
     if (this.fill) this.addChild(this.fill);
-    this.addChild(this.knob);
+    // under the knob: drawn over it, a focus face hid the one thing the player is moving
     if (this.focusFace) this.addChild(this.focusFace);
+    this.addChild(this.knob);
     this.makeInteractive();
     this.cursor = 'pointer';
     this.hitArea = new Rectangle(0, 0, 0, 0);

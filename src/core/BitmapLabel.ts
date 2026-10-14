@@ -4,13 +4,21 @@ import { GameObject } from './gameObject';
 const INSTALLED = new Set<string>();
 
 /**
- * The glyphs baked into every label font: printable ASCII plus whatever a game adds (`addLabelGlyphs`) for the words
- * its labels print, so no glyph is baked mid-frame onto a fresh page (a new canvas a page, and iOS hands out none
- * once its canvas memory is spent).
+ * The glyphs baked into every label font: printable ASCII (space to `~`) plus whatever a game adds (`addLabelGlyphs`)
+ * for the words its labels print, so no glyph is baked mid-frame onto a fresh page (a new canvas a page, and iOS
+ * hands out none once its canvas memory is spent).
  */
 const CHARS: (string | [string, string])[] = [[' ', '~']];
 
-/** Adds letters every label font bakes ahead (accented letters of a language the labels print). Call before `installLabelFont`. */
+/**
+ * Adds letters every label font made **after this call** bakes ahead — the accented letters of a language the labels
+ * print (German's `'äöüß'`, say), an arrow, a star. A font already installed keeps the glyphs it was made with, so
+ * call it once at start-up, before the first label or `FloatingText.warm`.
+ *
+ * Without it, a label font holds ASCII only: a letter outside it is still drawn (Pixi bakes it when first printed),
+ * but on that frame, onto a new glyph page — the stall and the canvas memory this module exists to avoid. For one
+ * font's own extra letters, pass them to `installLabelFont` (or `Label.bitmap`, `FloatingText`'s `glyphs`) instead.
+ */
 export function addLabelGlyphs(letters: string): void {
   CHARS.push(letters);
 }
@@ -22,11 +30,12 @@ export function addLabelGlyphs(letters: string): void {
 const PAGE_SIZE = 128;
 
 /**
- * Rasterises one label font once and returns its name. Called ahead of time for the damage numbers
- * : baking a font on its first number froze the first frame that printed one by ~60 ms.
+ * Rasterises one label font once and returns its name. Called ahead of time for the damage numbers: baking a font on
+ * its first number froze the first frame that printed one by ~60 ms. `glyphs` are letters this font bakes besides
+ * ASCII and `addLabelGlyphs`' (a font with its own is a font of its own: pass the same `glyphs` wherever it is used).
  */
-export function installLabelFont(fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number): string {
-  const name = `label|${fontFamily}|${size}|${color}|${stroke}|${strokeWidth}|${resolution}`;
+export function installLabelFont(fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number, glyphs = ''): string {
+  const name = `label|${fontFamily}|${size}|${color}|${stroke}|${strokeWidth}|${resolution}${glyphs ? `|${glyphs}` : ''}`;
   if (!INSTALLED.has(name)) {
     // `install` takes no page size of its own: it reads the dynamic font's default, set for this call only
     const defaults = DynamicBitmapFont.defaultOptions;
@@ -35,7 +44,7 @@ export function installLabelFont(fontFamily: string, size: number, color: string
     try {
       BitmapFont.install({
         name,
-        chars: CHARS,
+        chars: glyphs ? [...CHARS, glyphs] : CHARS,
         resolution,
         style: { fontFamily, fontSize: size, fill: color, stroke: { color: stroke, width: strokeWidth, join: 'round' } },
       });
@@ -56,10 +65,11 @@ export function installLabelFont(fontFamily: string, size: number, color: string
 export class BitmapLabel extends GameObject(BitmapText) {
   /**
    * `fontFamily` must already be loaded (`document.fonts.load`), or the glyphs bake in the fallback.
-   * Styled like `worldText`: the same font, size, colour and outline, rasterised at the same resolution.
+   * Styled like `worldText`: the same font, size, colour and outline, rasterised at the same resolution. `glyphs`:
+   * letters beyond ASCII it prints (see `installLabelFont`).
    */
-  constructor(x: number, y: number, text: string, fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number) {
-    const name = installLabelFont(fontFamily, size, color, stroke, strokeWidth, resolution);
+  constructor(x: number, y: number, text: string, fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number, glyphs = '') {
+    const name = installLabelFont(fontFamily, size, color, stroke, strokeWidth, resolution, glyphs);
     super({ text, style: { fontFamily: name, fontSize: size } });
     this.position.set(x, y);
   }

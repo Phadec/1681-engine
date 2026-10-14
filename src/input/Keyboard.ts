@@ -2,6 +2,11 @@
  * Which keys are held, by `KeyboardEvent.code` (the physical key, so WASD stays WASD on any layout). `pressed` and
  * `released` report edges since the last `endStep`; call that once per simulation step so a tap shorter than a frame
  * is still seen by exactly one step.
+ *
+ * It only knows keys pressed **after** it was made: a key already held when it is created (the Enter that started a
+ * level, held into it) is not down here until it is pressed again. A scene that makes its own keyboard in a field
+ * therefore starts with every key up, which is usually what a new screen wants; share one keyboard across scenes when
+ * a held key must carry over. Modifier keys are ordinary codes here (`ShiftLeft`); `Actions` reads chords from them.
  */
 export class Keyboard {
   private readonly held = new Set<string>();

@@ -57,3 +57,27 @@ test('the bounds still hold while tracking', () => {
   assert.equal(c.scrollX, 0);
   assert.equal(c.scrollY, 0);
 });
+
+test('reset forgets the target and bounds and goes back to the default zoom', () => {
+  const c = camera();
+  c.defaultZoom = 3;
+  const hero = { x: 500, y: 300 };
+  c.setBounds(0, 0, 1000, 600).setZoom(2).track(hero);
+  c.shake(500, 0.1);
+  c.reset();
+  assert.equal(c.tracking, null);
+  assert.equal(c.boundsRect, null);
+  assert.equal(c.zoom, 3);
+  assert.deepEqual([c.scrollX, c.scrollY], [0, 0]);
+  hero.x = 900;
+  c.apply(16);
+  assert.deepEqual([c.scrollX, c.scrollY], [0, 0], 'the old target no longer moves the view');
+});
+
+test('clearBounds lets the view leave the old bounds', () => {
+  const c = camera();
+  c.setBounds(0, 0, 400, 400).setScroll(-50, -50);
+  assert.deepEqual([c.scrollX, c.scrollY], [0, 0]);
+  c.clearBounds().setScroll(-50, -50);
+  assert.deepEqual([c.scrollX, c.scrollY], [-50, -50]);
+});

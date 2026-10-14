@@ -1,4 +1,5 @@
 import { type BitmapLabel, installLabelFont } from '../core/BitmapLabel';
+import type { Container } from 'pixi.js';
 import type { Stage } from '../core/Stage';
 
 /** One look of floating text: a size and a fill colour. Each look is its own baked font. */
@@ -18,8 +19,15 @@ export interface FloatingTextOptions {
   resolution?: number;
   /** Spent labels of one style kept for reuse; the rest are destroyed (default 24). */
   keepPerStyle?: number;
+  /** Letters beyond ASCII the labels print (see `installLabelFont`), baked with each style's font. */
+  glyphs?: string;
   /** Depth given to every label taken (default: left as made). */
   depth?: number;
+  /**
+   * Where new labels are added (default the stage's world layer). Give a scene's `root` and the labels live and die
+   * with the scene: on the world layer they outlive it, and a label still floating when the scene changes stays.
+   */
+  parent?: Container;
 }
 
 /** How `float` moves a label: pops from `pop`× to 1, holds, then rises `rise` px while fading out. */
@@ -77,7 +85,7 @@ export class FloatingText {
 
   /** Bakes one style's font now. */
   install(style: FloatingTextStyle): void {
-    installLabelFont(this.options.fontFamily, style.size, style.color, this.stroke, this.strokeWidth(style.size), this.resolution);
+    installLabelFont(this.options.fontFamily, style.size, style.color, this.stroke, this.strokeWidth(style.size), this.resolution, this.options.glyphs);
   }
 
   /** A label ready to animate: shown, opaque, unscaled, anchored at its bottom centre on (x, y). */
@@ -87,8 +95,10 @@ export class FloatingText {
     while (t && t.destroyed) t = pool?.pop();
     if (!t) {
       t = this.stage.add
-        .label(x, y, text, this.options.fontFamily, style.size, style.color, this.stroke, this.strokeWidth(style.size), this.resolution)
+        .label(x, y, text, this.options.fontFamily, style.size, style.color, this.stroke, this.strokeWidth(style.size), this.resolution, this.options.glyphs)
         .setOrigin(0.5, 1);
+      // made on the world layer by the factory; moved under the game's own container when it named one
+      if (this.options.parent) this.options.parent.addChild(t);
     } else {
       t.setText(text);
       t.position.set(x, y);

@@ -19,7 +19,10 @@ export interface ButtonOptions {
   width: number;
   height: number;
   skin: ButtonSkin;
-  /** Centred on the face: a `Label`, an icon, anything. */
+  /**
+   * Centred on the face: a `Label`, an icon, anything. A widget that changes size by itself (a `Label` given new
+   * text) is centred again at once; anything else, after `resize` or a state change.
+   */
   content?: Container;
   onClick?: () => void;
 }
@@ -88,6 +91,10 @@ export class Button extends Widget {
 
   override activate(): void {
     this.click();
+  }
+
+  protected override childResized(child: Widget): void {
+    if (child === this.content) this.redraw();
   }
 
   private setPointer(hovered: boolean, pressing: boolean): void {

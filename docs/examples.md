@@ -10,6 +10,19 @@ keyboard, gamepad and touch, and a camera that follows softly. The map opens in 
 
 [Run top-down ↗](./examples/top-down/index.html){target="_blank"}
 
+## platformer
+
+A small side-scrolling platformer, the engine's newer modules working together with every sprite painted in code: a
+`PhysicsWorld` built from a hand-written tile grid by `tileBodies` (crates to push, a kinematic moving platform,
+one-way planks through `preSolve`, sensor coins and a goal flag), a hero with coyote time, jump buffering and a
+variable jump height, dust and coin sparkles from `Emitter`s and a floating "+1", a canvas HUD and a pause `Dialog`
+(resume, restart, language, a volume `Slider`, a "press a key" rebind for Jump) driven by mouse, keyboard or gamepad,
+best time and coins kept by a `SaveStore` with a v1→v2 migration (open it with `?v1` to watch it run), dithered and
+faded scene transitions, English and French through a `Translator`, a `DayClock` sky with a `ColorGrade`, and
+`DebugOverlay` on F3 drawing every body.
+
+[Run platformer ↗](./examples/platformer/index.html){target="_blank"}
+
 ## night-garden
 
 The core with smooth vector art and no pixel module: a rigged character animated by blended poses (walk, run with

@@ -64,3 +64,21 @@ test('key labels', () => {
   assert.equal(keyLabel('ArrowUp', { ArrowUp: '↑' }), '↑');
   assert.equal(keyLabel('F5'), 'F5');
 });
+
+test('applyTo binds only the keymap\'s actions on an Actions that has more, with fixed inputs after the player\'s', () => {
+  const k = new Keymap({ jump: ['Space'], pause: ['KeyP', 'Escape'] }, undefined, { jump: ['pad:a'], pause: ['Escape', 'pad:start'] });
+  assert.deepEqual(k.keysFor('pause'), ['KeyP'], 'Escape stays reserved for the player');
+  assert.deepEqual(k.fixedFor('pause'), ['Escape', 'pad:start']);
+  const actions = new Actions(null, { jump: [], pause: [], ui_accept: ['Enter'] }, { gamepads: () => [] });
+  k.applyTo(actions);
+  assert.deepEqual(actions.bindingsOf('pause'), ['KeyP', 'Escape', 'pad:start']);
+  assert.deepEqual(actions.bindingsOf('jump'), ['Space', 'pad:a']);
+  assert.deepEqual(actions.bindingsOf('ui_accept'), ['Enter'], 'an action the keymap does not own is left alone');
+  assert.deepEqual(Object.keys(k.toJSON()), ['jump', 'pause'], 'fixed inputs are never saved');
+  assert.deepEqual(k.toJSON().pause, ['KeyP']);
+});
+
+test('a chord reads as its parts', () => {
+  assert.equal(keyLabel('Shift+Tab'), 'Shift+Tab');
+  assert.equal(keyLabel('Ctrl+KeyS', { Ctrl: 'Strg' }), 'Strg+S');
+});

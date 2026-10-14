@@ -26,9 +26,9 @@ export class Label extends Widget {
     return new Label(new Text(0, 0, value, style));
   }
 
-  /** A label printed from a bitmap font (see `installLabelFont`). */
-  static bitmap(value: string, fontFamily: string, size: number, color: string, stroke = '#000000', strokeWidth = 0, resolution = 1): Label {
-    return new Label(new BitmapLabel(0, 0, value, fontFamily, size, color, stroke, strokeWidth, resolution));
+  /** A label printed from a bitmap font (see `installLabelFont`; `glyphs` beyond ASCII it will print). */
+  static bitmap(value: string, fontFamily: string, size: number, color: string, stroke = '#000000', strokeWidth = 0, resolution = 1, glyphs = ''): Label {
+    return new Label(new BitmapLabel(0, 0, value, fontFamily, size, color, stroke, strokeWidth, resolution, glyphs));
   }
 
   get value(): string {
@@ -45,9 +45,12 @@ export class Label extends Widget {
   }
 
   private measure(): void {
+    const w = this.boxW;
+    const h = this.boxH;
     // rounded up: a box that loses the last half pixel of a glyph clips it in a tight layout
     this.boxW = Math.ceil(this.text.width);
     this.boxH = Math.ceil(this.text.height);
+    if (this.boxW !== w || this.boxH !== h) this.notifyResized();
   }
 
   protected redraw(): void {

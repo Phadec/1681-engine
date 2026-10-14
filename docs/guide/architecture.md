@@ -45,10 +45,12 @@ frame, so without the guard one bad frame stops the game for good.
 | `i18n/` | — | `Translator`, `formatMessage`, `extractStrings` |
 | `diagnostics/`, `debug/` | `core`, `engine` | context loss, boot watch, frame sampling, error capture; `DebugOverlay` |
 | `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, focus, the pure layout maths, the DOM/React bridge |
+| `react/` | `ui` (layout maths, `createStore`), `platform`, React 19 (optional peer) | the React kit (`1681-engine/react`): `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`, `TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, `baseCss` themed by custom properties |
 | `net/` | — (pure; `Connection`: WebSocket) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
 | `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |
 
-The core never imports `pixel/`; `src/architecture.test.ts` fails if it does. `ecs/`, `events/`, `net/`, `rig/` and
+The core never imports `pixel/`, and nothing outside `react/` imports React or the kit; `src/architecture.test.ts`
+fails if either does. `ecs/`, `events/`, `net/`, `rig/` and
 the Tiled reader import nothing from Pixi or the DOM, so they run under node: that is where most unit tests live, and
 where a server can import the movement and collision code from.
 
@@ -63,7 +65,7 @@ engine:
 | its materials (glass, slime, bark…) or other shading for a built-in one | `registerMaterial(name, { light, factors })` |
 | ramps picked by hand for its effect colours | `registerHandRamps([[colour, { hi, light, deep, shade }], …])` |
 | its sounds: synth recipes and recorded takes | `registerSounds`, `registerTakes` |
-| the letters its labels print beyond ASCII | `addLabelGlyphs` |
+| the letters its labels print beyond ASCII (bitmap label fonts bake ASCII only otherwise) | `addLabelGlyphs` for every font, or `glyphs` on `installLabelFont` / `Label.bitmap` / `FloatingText` for one |
 | its colours for outlines and shadows | the `dark` / `core` / `rim` parameters of `selectiveOutline`, `litOutline`, `groundShadow`; `PALETTE` is only a default |
 | its settings (volume, reduced effects, battery saver) | `engineSettings.set`, mirrored from its own store |
 | which presses its pointer ignores, whether it is a native shell | `Pointer.ignorePress`, `setNativeShell` |

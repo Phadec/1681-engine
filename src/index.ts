@@ -5,7 +5,7 @@
 
 // ── Engine, scenes, entities ──────────────────────────────────────────────────────────────────────────────────────
 export { Engine, type EngineOptions, type EngineEvents } from './engine/Engine';
-export { Scene } from './engine/Scene';
+export { Scene, type FlushableInput, type SceneTimer } from './engine/Scene';
 export { SceneManager } from './engine/SceneManager';
 export { FixedLoop, type FixedLoopOptions } from './engine/FixedLoop';
 export {
@@ -100,6 +100,7 @@ export { renderRecipe, SYNTH_RATE, type SynthRecipe, type SynthLayer } from './a
 // ── Input and platform ────────────────────────────────────────────────────────────────────────────────────────────
 export { Keyboard } from './input/Keyboard';
 export { Actions, PAD_BUTTONS, type Bindings, type ActionsOptions, type PadState } from './input/Actions';
+export { parseChord, chordHeld, type KeyChord } from './input/keyChord';
 export { aimAxis } from './input/aimAxis';
 export { stickVector, stickActive, stickToAxis, STICK_DEAD_ZONE, type StickVector } from './input/stickAxis';
 export { LongPress } from './input/longPress';
@@ -114,7 +115,7 @@ export { DayClock, clockText, tintNight, mixRgb, type DayClockOptions, type DayK
 export { weatherAt, hash01, type WeatherTable, type WeatherEntry, type WeatherSky, type WeatherState } from './ambient/weather';
 export { WeatherLayer, type WeatherLook, type WeatherMotion, type WeatherLayerOptions } from './ambient/WeatherLayer';
 export { gradeAt, mixToWhite, type Grade, type GradeState } from './ambient/grade';
-export { ColorGrade, type ColorGradeOptions } from './ambient/ColorGrade';
+export { ColorGrade, type ColorGradeOptions, type GradePlacement } from './ambient/ColorGrade';
 
 // ── Particles ─────────────────────────────────────────────────────────────────────────────────────────────────────
 export { Emitter, type EmitterOptions, type SpawnArea } from './particles/Emitter';
@@ -132,6 +133,7 @@ export { Contact } from './physics/Contact';
 export { tileBodies, tileBodiesFromGrid, mergeTileRects, type TileBodiesOptions, type TileRect } from './physics/tileBodies';
 export { physicsSystem } from './physics/physicsSystem';
 export { syncToBody, type Positioned } from './physics/syncToBody';
+export { drawColliders, colliderColor, COLLIDER_COLORS, type ColliderColors, type ColliderBoxDrawer } from './physics/drawColliders';
 export {
   FACE_LEFT,
   FACE_RIGHT,

@@ -11,7 +11,10 @@ import { inspectWorld } from './inspectWorld';
 export type BoxDrawer = (x: number, y: number, width: number, height: number, color?: number) => void;
 
 export interface DebugOverlayOptions {
-  /** `KeyboardEvent.code` that shows and hides it (default 'Backquote'). */
+  /**
+   * `KeyboardEvent.code` that shows and hides it (default 'Backquote'). The key's own browser action is prevented
+   * (F3 would open the find bar, F12 the developer tools).
+   */
   key?: string;
   /** The world to count and inspect (default the current scene's). */
   world?: () => World | undefined;
@@ -75,7 +78,10 @@ export class DebugOverlay {
     const key = options.key ?? 'Backquote';
     const onKey = (e: Event) => {
       const k = e as KeyboardEvent;
-      if (k.code === key && !k.repeat) this.toggle();
+      if (k.code !== key) return;
+      // the overlay's key, not the browser's: F3 opened find-in-page over the game
+      k.preventDefault();
+      if (!k.repeat) this.toggle();
     };
     target.addEventListener('keydown', onKey);
     this.cleanup.push(() => target.removeEventListener('keydown', onKey));

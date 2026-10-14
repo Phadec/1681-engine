@@ -5,6 +5,60 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.6
+
+### Added
+
+- **React kit** (`1681-engine/react`, React 19 as an optional peer dependency): `Panel` (a window fitted into the
+  screen by `fitToViewport`, its body scrolling; a full-screen sheet on touch), `TabStrip` (wraps with `wrap`),
+  `SplitPane` with `usePicked` and `useFillSheet` (list beside detail, one pane at a time on a narrow touch screen),
+  `Select` (a drop-down whose list opens in a portal as wide as its longest label, placed by `listWidth` and
+  `placeTooltip`), `Tooltip` and `TitleTips` (every `title=` drawn as the kit's tooltip, flipped at the edges, desktop
+  only), `Modal`, `ConfirmDialog` / `askConfirm` / `askQuantity`, `ChoiceDialog` / `askChoice`, `Slider`, `PixelImage`
+  (sprites at whole multiples), `Glyph` (pixel marks a pixel font lacks, `registerGlyph`), `UiProvider` (touch mode,
+  window scale, viewport, portal, labels) and `useStore` over `createStore`. Themed by CSS custom properties
+  (`--e1681-*`, frames as 9-slice `border-image`s) in `baseCss` / `injectBaseCss()`; every word is a prop or a label
+  with an English default. Pure placement helpers (`windowStyle`, `cursorTip`, `listPlacement`, `pixelFit`,
+  `splitModeFor`) are exported and tested under node.
+- `Scene.delay(ms, fn)`: timers owned by the scene, cancelled when it exits (`stage.time.delayedCall` timers belong to
+  the stage and fire after the scene has gone). `Scene.useInput(actions)` registers input to flush when a scene pushed
+  over this one pops.
+- `Actions.flush()` drops pending press and release edges; held keys stay held but are not pressed again.
+- Key chords in bindings: `Shift+Tab`, `Ctrl+KeyS` (`Shift`, `Ctrl`, `Alt`, `Meta`, either side). A held chord keeps
+  the bare key's action off until that key comes up. `parseChord`, `chordHeld`; `keyLabel` reads a chord.
+- `Keymap` takes `fixed` inputs per action (gamepad, touch, a reserved key such as Escape for pause), laid after the
+  player's keys by `applyTo` and never saved; `fixedFor(action)`.
+- `Camera.clearBounds()`, `Camera.reset()` (no target, no bounds, `defaultZoom`, scroll 0, no shake or flash),
+  `Camera.defaultZoom` (set from the engine's `zoom`), `tracking` and `boundsRect`.
+- `PhysicsWorld.bodies` (read-only), and `drawColliders(world, draw, colors?, colorOf?)` for `DebugOverlay`'s
+  `colliders` callback.
+- `parent` options: `FloatingText` (labels under a scene's `root`) and `UiRoot` (under a scene's `hud`, destroyed
+  with it). `ColorGrade` takes `parent` and `placement: 'bottom'`, which keeps it under every HUD whatever the order
+  they were made in.
+- `ColourSkin.fillAlpha` and `borderAlpha`: a bare ring is `fillAlpha: 0`.
+- `Dialog` without a `height` takes its content's, padding included, measured again on every layout.
+- `installLabelFont`, `BitmapLabel`, `Label.bitmap`, `ObjectFactory.label` and `FloatingText` take `glyphs` a font
+  bakes besides ASCII.
+
+### Changed
+
+- `SceneManager.replace` resets the shared camera between the old scenes leaving and the new one entering, so a
+  level's follow target and bounds no longer hold over the next scene. `push` and `pop` leave it alone; `pop` flushes
+  the resumed scene's registered input before `onResume`.
+- `Keymap.applyTo` accepts an `Actions` with more actions than the keymap's and binds only the keymap's.
+- A `ColourSkin` border is drawn as four strips round its fill rather than a box under it, so a see-through fill no
+  longer shows the border colour through it (opaque skins look the same).
+- `Button` centres its content again when the content (a `Label` given new text) changes size; widgets tell their
+  parent through `Widget.childResized`.
+- Documented: `Scene`'s `world`/`root`/`hud` and Pixi's `Container.label` are taken names for subclass fields; a
+  `Keyboard` knows only keys pressed after it was made; bitmap label fonts bake ASCII unless given more; the save
+  envelope keeps its `'lantern-save'` tag so existing saves still load.
+
+### Fixed
+
+- `DebugOverlay` prevents its toggle key's browser action (F3 opened find-in-page).
+- `Slider` draws its focus face under the knob, not over it.
+
 ## 0.5.5
 
 ### Changed

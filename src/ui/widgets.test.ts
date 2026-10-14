@@ -143,3 +143,44 @@ test('a list stacks its rows and scrolls held to its content', () => {
   list.reveal(list.items[0]!);
   assert.equal(list.scrollY, 0);
 });
+
+test('a root under a scene\'s hud goes when the hud\'s children are destroyed', () => {
+  const f = fakeStage();
+  const hud = new Container();
+  const ui = new UiRoot(f.stage, { parent: hud });
+  assert.equal(ui.parent, hud);
+  assert.equal(f.stage.screen.children.length, 0);
+  // what Scene.detach does
+  for (const child of hud.removeChildren()) child.destroy({ children: true });
+  assert.equal(f.ticks.length, 0, 'its ticker listener went with it');
+  ui.destroy();
+});
+
+test('a dialog with no height takes its content\'s, and again after the content grows', () => {
+  const f = fakeStage();
+  const ui = new UiRoot(f.stage);
+  const content = new Button({ width: 30, height: 20, skin });
+  const dialog = new Dialog({ width: 100, frame: { color: 0x222222 }, content, padding: 5 });
+  assert.equal(dialog.boxHeight, 30);
+  dialog.open(ui);
+  content.resize(30, 40);
+  ui.layout();
+  assert.equal(dialog.boxHeight, 50);
+  ui.destroy();
+});
+
+test('a button centres its label again when the label\'s text changes', () => {
+  const content = new Bar({ width: 10, height: 4, color: 0 });
+  const b = new Button({ width: 100, height: 20, skin, content });
+  assert.deepEqual([content.x, content.y], [45, 8]);
+  // a Bar does not notify by itself: what a Label does on setText
+  content.resize(30, 4);
+  (content as unknown as { notifyResized(): void }).notifyResized();
+  assert.deepEqual([content.x, content.y], [35, 8]);
+});
+
+test('a slider draws its focus face under the knob', () => {
+  const s = new Slider({ width: 50, height: 6, track: { color: 0 }, knob: { color: 1 }, focus: { color: 2, fillAlpha: 0, border: 1, borderColor: 3 } });
+  const colours = s.children.map((c) => (c as unknown as { skin: { color: number } }).skin.color);
+  assert.deepEqual(colours, [0, 2, 1], 'track, focus ring, then the knob over it');
+});
