@@ -57,7 +57,8 @@ await assets.load(({ done, total }) => progressBar.set(done / total));
 const tiled = assets.map('map');
 ```
 
-A missing file fails the load with its URL in the message.
+A missing file fails the load with its URL in the message. Texture atlases, fonts and sounds load the same way: see
+[Assets](./assets).
 
 ## 4. A Tiled map and its collision
 

@@ -1,5 +1,6 @@
 import type { Camera } from './Camera';
 import { isTouchUi } from '../platform/touch';
+import { exitPointerLock, isPointerLocked, requestPointerLock } from '../platform/pointerLock';
 
 /** MouseEvent.button (0 left, 1 middle, 2 right) as a MouseEvent.buttons bit. */
 function buttonBit(button: number): number {
@@ -23,6 +24,9 @@ export class Pointer {
   worldX = 0;
   worldY = 0;
   private buttons = 0;
+  /** Raw mouse travel (`movementX/Y`) summed since the last `takeMovement`, kept only while the pointer is locked. */
+  private moveX = 0;
+  private moveY = 0;
   private readonly cleanup: (() => void)[] = [];
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -45,7 +49,11 @@ export class Pointer {
       this.buttons |= buttonBit(e.button);
     });
     on(window, 'pointermove', (e) => {
-      this.track(e);
+      // a locked pointer never moves on screen: only its deltas mean anything, and `x`/`y` keep where it was locked
+      if (this.locked) {
+        this.moveX += e.movementX;
+        this.moveY += e.movementY;
+      } else this.track(e);
       // a second button pressed or released while one is held arrives as a move
       if (e.button >= 0) this.buttons = (e.buttons & buttonBit(e.button)) !== 0 ? this.buttons | buttonBit(e.button) : this.buttons & ~buttonBit(e.button);
     });
@@ -64,6 +72,31 @@ export class Pointer {
 
   rightButtonDown(): boolean {
     return (this.buttons & 2) !== 0;
+  }
+
+  /** True while the canvas holds the pointer (`lock`). */
+  get locked(): boolean {
+    return isPointerLocked(this.canvas);
+  }
+
+  /**
+   * Locks the pointer to the canvas for mouse-look: the cursor hides and `takeMovement` returns how far the mouse went.
+   * Call from a press or key handler (browsers allow it only in a gesture); resolves whether the lock holds.
+   */
+  lock(options: { raw?: boolean } = {}): Promise<boolean> {
+    this.moveX = this.moveY = 0;
+    return requestPointerLock(this.canvas, options);
+  }
+
+  unlock(): void {
+    if (this.locked) exitPointerLock();
+  }
+
+  /** The mouse travel (CSS pixels) since the last call while locked, then zeroed; read it once per step. */
+  takeMovement(): { x: number; y: number } {
+    const out = { x: this.moveX, y: this.moveY };
+    this.moveX = this.moveY = 0;
+    return out;
   }
 
   updateWorldPoint(cam: Camera): void {

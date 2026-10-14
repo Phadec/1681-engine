@@ -8,6 +8,7 @@ export { Engine, type EngineOptions, type EngineEvents } from './engine/Engine';
 export { Scene, type FlushableInput, type SceneTimer } from './engine/Scene';
 export { SceneManager } from './engine/SceneManager';
 export { FixedLoop, type FixedLoopOptions } from './engine/FixedLoop';
+export { HiddenPause, type Pausable } from './engine/HiddenPause';
 export {
   World,
   defineComponent,
@@ -42,13 +43,14 @@ export { Rectangle } from './core/Rectangle';
 export { Text, type TextStyle } from './core/Text';
 export { BitmapLabel, installLabelFont, addLabelGlyphs } from './core/BitmapLabel';
 export { Pointer } from './core/Pointer';
-export { TextureRegistry, CanvasTexture } from './core/TextureRegistry';
+export { TextureRegistry, CanvasTexture, type PackedFrame } from './core/TextureRegistry';
 export { AtlasBuilder } from './core/atlas';
 export { planAtlas, atlasPageLimit, type AtlasSize, type AtlasPlan, type AtlasPage } from './core/atlasPlan';
 export type { WorldObject } from './core/types';
 
 // ── Assets, animation, tilemaps ─────────────────────────────────────────────────────────────────────────────────
-export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LoadProgress, type TextureSink } from './assets/AssetLoader';
+export { AssetLoader, resolveUrl, type AssetLoaderOptions, type TilemapAssetOptions, type LoadProgress, type TextureSink, type AssetResponse, type AtlasInfo } from './assets/AssetLoader';
+export { parseAtlas, collectAtlasPages, duplicateFrames, type AtlasFrame, type PackedAtlasPage } from './assets/textureAtlas';
 export { Animator, type AnimationClip, type AnimationClips } from './anim/Animator';
 export { parseAseprite, frameNamed, clipMarkers } from './anim/parseAseprite';
 export { tagFrames, tagDirection, tagRepeat } from './anim/asepriteTags';
@@ -121,6 +123,11 @@ export { Keymap, mergeKeymap, keymapStorage, keyLabel } from './input/Keymap';
 export { isTouchUi, setNativeShell, setTouchOverrideKey } from './platform/touch';
 export { onAppResume, type ResumeEnv } from './platform/appResume';
 export { timeoutSignal } from './platform/timeoutSignal';
+export { rumble, rumblePad, stopRumble, rumbleParams, type RumbleOptions, type RumblePad } from './input/rumble';
+export { enterFullscreen, exitFullscreen, toggleFullscreen, isFullscreen, fullscreenSupported, onFullscreenChange, type FullscreenDocument } from './platform/fullscreen';
+export { lockOrientation, unlockOrientation, currentOrientationKind, type OrientationLock, type OrientationTarget } from './platform/orientation';
+export { prefersReducedMotion, onReducedMotionChange, followReducedMotion, type MotionQuery } from './platform/reducedMotion';
+export { requestPointerLock, exitPointerLock, isPointerLocked, onPointerLockChange, type PointerLockDocument } from './platform/pointerLock';
 export { detectTouch, type TouchEnv } from './input/touchDetect';
 
 // ── Ambient: time of day, weather, colour grade ───────────────────────────────────────────────────────────────────
