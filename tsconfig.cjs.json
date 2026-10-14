@@ -1,0 +1,20 @@
+{
+  // `1681-engine/electron` and `1681-engine/updates` once more as CommonJS (dist/cjs, marked `"type": "commonjs"` by
+  // scripts/mark-cjs.mjs), for an Electron main process compiled to CommonJS (`.cts` → `.cjs`), which cannot `require`
+  // the ES build on every Electron it may run on. The declarations beside them are read as CommonJS too.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "outDir": "dist/cjs",
+    "rootDir": "src"
+  },
+  "include": ["src/electron", "src/updates"],
+  "exclude": ["src/**/*.test.ts"]
+}

@@ -62,3 +62,39 @@ test('the engine names no game and speaks no game language', () => {
   }
   assert.deepEqual(offenders, [], 'move it into the game, or make it a parameter the game passes');
 });
+
+// Electron is an optional peer of `1681-engine/electron` only, and even there it is handed in, never imported: a game
+// that is not a desktop build never needs it installed. The rest of the engine never imports the main-process code,
+// so a browser bundle never pulls Node's `fs` or `crypto` in through it.
+const electronDir = join(src, 'electron') + sep;
+const updatesDir = join(src, 'updates') + sep;
+
+test('nothing imports electron, and nothing outside src/electron imports it or Node built-ins', () => {
+  const offenders: string[] = [];
+  for (const file of files(src)) {
+    if (file.endsWith('.test.ts') || file.endsWith('.test.tsx')) continue;
+    const text = readFileSync(file, 'utf8');
+    for (const m of text.matchAll(/(?:from\s+|import\(\s*|import\s+|require\(\s*)['"]([^'"]+)['"]/g)) {
+      const spec = m[1]!;
+      if (/^electron(\/.*)?$/.test(spec)) offenders.push(`${relative(src, file)} → ${spec} (take it as a parameter)`);
+      if (file.startsWith(electronDir)) continue;
+      const target = spec.startsWith('.') ? resolve(dirname(file), spec) : '';
+      if (target !== '' && ((target + sep).startsWith(electronDir) || target.startsWith(electronDir))) offenders.push(`${relative(src, file)} → ${spec}`);
+    }
+  }
+  assert.deepEqual(offenders, [], 'only src/electron is main-process code');
+});
+
+// The update rules run in a phone's web view as well as the main process: no Node, DOM, Pixi or engine core.
+test('src/updates imports nothing but itself', () => {
+  const offenders: string[] = [];
+  for (const file of files(updatesDir)) {
+    if (file.endsWith('.test.ts')) continue;
+    for (const m of readFileSync(file, 'utf8').matchAll(/(?:from\s+|import\(\s*|import\s+)['"]([^'"]+)['"]/g)) {
+      const spec = m[1]!;
+      const target = spec.startsWith('.') ? resolve(dirname(file), spec) : '';
+      if (target === '' || !(target.startsWith(updatesDir) || (target + sep).startsWith(updatesDir))) offenders.push(`${relative(src, file)} → ${spec}`);
+    }
+  }
+  assert.deepEqual(offenders, [], 'the update rules must stay pure');
+});

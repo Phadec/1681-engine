@@ -16,13 +16,16 @@ export default defineConfig({
     // local work.
     sourcemap: process.env.ENGINE_SOURCEMAP === '1',
     lib: {
-      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts') },
+      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts'), updates: resolve(import.meta.dirname, 'src/updates/index.ts'), electron: resolve(import.meta.dirname, 'src/electron/index.ts') },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },
     rollupOptions: {
-      // React is an optional peer of the `react` entry only: never bundled, the game brings its own copy
-      external: [/^pixi\.js(\/.*)?$/, 'react', 'react-dom', 'react/jsx-runtime', 'react-dom/client'],
+      // React is an optional peer of the `react` entry only: never bundled, the game brings its own copy. Node's own
+      // modules are the `electron` entry's (a main process has them); kept as imports, never stubbed for a browser.
+      // The same entry and `updates` are also compiled to CommonJS by `tsconfig.cjs.json`, for a main process built
+      // as CommonJS.
+      external: [/^pixi\.js(\/.*)?$/, 'react', 'react-dom', 'react/jsx-runtime', 'react-dom/client', /^node:/],
       // one file per source module, so a game's bundler keeps only what it imports: a worker that wants the colour
       // helpers of `pixel/pixel.ts` no longer takes Pixi, the audio engine and the rest of the bundle with it
       output: { preserveModules: true, preserveModulesRoot: 'src', entryFileNames: '[name].js' },

@@ -86,6 +86,7 @@ export default defineConfig({
             { text: 'Assets', link: '/guide/assets' },
             { text: 'Platform: fullscreen, orientation, rumble', link: '/guide/platform' },
             { text: 'Saves', link: '/guide/saves' },
+            { text: 'Desktop: patching, sessions, lockdown', link: '/guide/desktop' },
             { text: 'Diagnostics and debug', link: '/guide/diagnostics-and-debug' },
           ],
         },
