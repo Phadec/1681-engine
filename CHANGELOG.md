@@ -5,10 +5,47 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+### Added
+
+- **Interest management**: `Room` takes `interest: { radius, leaveMargin, canSee }` and sends each player only the
+  bodies near it, with a margin so one on the edge is not spawned and removed over and over. `room.place(id, x, y)`.
+  `SpatialHash` (points in square cells, `near` and `inRect`) is exported for a game's own use.
+- **Lag compensation**: `Room` takes `rewindMs` and keeps `history`, a `LagCompensator` recorded as each round of
+  snapshots goes out and blended as `InterpolationBuffer` blends, so a shot is judged against what the shooter saw:
+  `at`, `all`, `near`, `alongRay`. `RoomHost.rewindTime(claimed)` and `LagCompensator.clampTime` hold a client's
+  claim within the window; `InterpolationBuffer.viewTime(now)` is the time a client sends with a shot.
+- **Server bodies**: `Room.addBody(data, x, y)` and `removeBody` for monsters, projectiles and crates the server
+  moves, sent beside the players with the same interest and rewind history (`RoomBody`, `RoomSeen`, `BODY_ID_BASE`).
+  `canSee` now gets either kind.
+- **Rebinding the gamepad**: `Keymap` keeps a first binding per device, so pad buttons are rebindable beside keys
+  (`keysFor(action, device)`); `InputCapture` waits for the next key, pad button or stick push for a settings
+  screen; `padLabel` and `deviceOf`.
+- **Input replays**: `InputRecorder` keeps an `Actions`' steps as a JSON `InputTape` (changes only); `InputPlayer`
+  plays one back through `Actions.replay`, exactly. `Actions.tap` hands every step's values to a listener.
+- **Tools**: the `dialogue` example, a playground that checks a script as it is typed and plays it with its
+  variables in view; `formatTrace` prints a behaviour tree's last tick.
+- **Crowds**: `flowField` and `followField` (one search for a crowd, by `findPath`'s own rules), and steering:
+  `seek`, `flee`, `arrive`, `separation`, `alignment`, `cohesion`, `followFlow`, `combineSteering`, `applySteering`.
+- **Behaviour trees**: `BehaviorTree` and `BtAgent` (one tree, many agents, each with its own memory), `sequence`,
+  `selector`, `reactiveSequence`, `reactiveSelector`, `parallel`, `invert`, `succeed`, `repeat`, `retry`, `cooldown`,
+  `timeout`, `wait`, `condition`, `action` with `onHalt`, a trace for debugging, and `buildTree` from JSON.
+- **Dialogue**: `DialogueRunner` runs a branching script written as data (lines, choices with conditions, `once`
+  and locked choices, variables, commands, `{…}` in text, translation, save and restore); `validateDialogue` checks
+  a script; `compileExpr` is its safe expression language.
+- **Prefabs**: `definePrefab`, `prefabPart`, `spawnPrefab` and `isPrefabOf`, with variants laid over their base
+  field by field; `PrefabLibrary` loads them from data.
+- **Sounds in the world**: `SpatialAudio` places any buffer at a point, panned, faded and muffled by distance from a
+  moving listener, loops paused out of range and picked up where they would be; `spatialMix` is the mix on its own.
+- **`1681-engine/mobile`**: `capacitorConfig` (a Capacitor config with a game's defaults), `BackStack`,
+  `doubleBackToExit` and `installBackButton` for Android's back button, `safeAreaInsets`, `keepScreenOn`, and
+  `nativeBuildOf` for `pickWebUpdate`. Capacitor is handed in, never imported.
+
 ### Fixed
 
 - `WebPatcher.tidy` called while the tidy `startEntry` began was still running deleted the same folders twice at
   once; one failed, and the old webs after it were left on disk. Calls now run one after another.
+- `ScrollView.measure` read the content as no taller than the view (Pixi cuts a masked container's bounds to its
+  mask), so a view measured that way never scrolled. It now measures the content without the clip.
 
 ## 0.5.10
 

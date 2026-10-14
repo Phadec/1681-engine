@@ -85,6 +85,17 @@ test('nothing imports electron, and nothing outside src/electron imports it or N
   assert.deepEqual(offenders, [], 'only src/electron is main-process code');
 });
 
+// Capacitor is handed in to `1681-engine/mobile`, never imported: a build that is not a phone app never needs it.
+test('nothing imports Capacitor', () => {
+  const offenders: string[] = [];
+  for (const file of files(src)) {
+    for (const m of readFileSync(file, 'utf8').matchAll(/(?:from\s+|import\(\s*|import\s+|require\(\s*)['"](@capacitor\/[^'"]*|@capgo\/[^'"]*)['"]/g)) {
+      offenders.push(`${relative(src, file)} → ${m[1]}`);
+    }
+  }
+  assert.deepEqual(offenders, [], 'take the plugin as a parameter');
+});
+
 // The update rules run in a phone's web view as well as the main process: no Node, DOM, Pixi or engine core.
 test('src/updates imports nothing but itself', () => {
   const offenders: string[] = [];

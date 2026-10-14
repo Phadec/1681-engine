@@ -1,3 +1,4 @@
+import { LagCompensator } from './LagCompensator';
 import type { Room } from './Room';
 import { encodeSnapshotFrame } from './snapshotCodec';
 import type { ClientMessage, ServerMessage, Snapshot } from './protocol';
@@ -40,7 +41,7 @@ export interface RoomHostOptions<D> {
  * host.start();
  * ```
  */
-export class RoomHost<D = unknown> {
+export class RoomHost<D = unknown, B = unknown> {
   private readonly sockets = new Map<number, HostSocket>();
   private readonly joined = new Set<number>();
   private nextId = 1;
@@ -52,7 +53,7 @@ export class RoomHost<D = unknown> {
   private readonly now: () => number;
 
   constructor(
-    readonly room: Room<D>,
+    readonly room: Room<D, B>,
     private readonly options: RoomHostOptions<D> = {},
   ) {
     this.stepMs = 1000 / (options.stepRate ?? 60);
@@ -153,10 +154,20 @@ export class RoomHost<D = unknown> {
     this.room.step();
     if (this.room.tick % this.snapEvery !== 0) return;
     const now = this.now();
+    // the positions this round sends, at the time it is stamped with: what clients will interpolate between
+    this.room.record(now);
     for (const id of this.joined) {
       const snap = this.room.snapshotFor(id, now);
       if (snap) this.sendTo(id, snap);
     }
+  }
+
+  /**
+   * The server time a client's claimed view time (`InterpolationBuffer.viewTime`, sent with a shot) is judged at:
+   * kept within the room's `rewindMs` of now, so no claim reaches further back. `now` with no history kept.
+   */
+  rewindTime(claimed: unknown): number {
+    return LagCompensator.clampTime(claimed, this.now(), this.room.rewindMs);
   }
 
   private strike(id: number): void {

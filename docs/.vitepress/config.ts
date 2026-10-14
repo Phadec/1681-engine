@@ -50,6 +50,8 @@ export default defineConfig({
             { text: 'Tilemaps', link: '/guide/tilemap' },
             { text: 'Physics', link: '/guide/physics' },
             { text: 'Navigation', link: '/guide/navigation' },
+            { text: 'Behaviour trees', link: '/guide/behaviour-trees' },
+            { text: 'Dialogue', link: '/guide/dialogue' },
           ],
         },
         {
@@ -87,6 +89,7 @@ export default defineConfig({
             { text: 'Platform: fullscreen, orientation, rumble', link: '/guide/platform' },
             { text: 'Saves', link: '/guide/saves' },
             { text: 'Desktop: patching, sessions, lockdown', link: '/guide/desktop' },
+            { text: 'Mobile: Capacitor, back button, safe area', link: '/guide/mobile' },
             { text: 'Diagnostics and debug', link: '/guide/diagnostics-and-debug' },
           ],
         },
