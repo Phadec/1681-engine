@@ -19,6 +19,15 @@ and only the chunks touched are repainted. The assets are written by `make-asset
 
 [Run ldtk ↗](./examples/ldtk/index.html){target="_blank"}
 
+## dialogue
+
+A playground for dialogue scripts, for writers rather than players: edit the JSON on the left and see what
+`validateDialogue` finds as you type; play it through on the right with its variables in view and editable, the
+commands it runs logged, and any node a click away. Open and save scripts as files; the one in the box is kept in
+the browser between visits. No canvas: plain DOM over `DialogueRunner`.
+
+[Run dialogue ↗](./examples/dialogue/index.html){target="_blank"}
+
 ## platformer
 
 A small side-scrolling platformer, the engine's newer modules working together with every sprite painted in code: a

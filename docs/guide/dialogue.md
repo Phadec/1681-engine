@@ -75,6 +75,12 @@ functions it is given, so a modder's script cannot reach anything else.
 `compileExpr(source)` is exported, for a game that wants the same language elsewhere (quest conditions, shop
 unlocks).
 
+## A playground
+
+[`examples/dialogue`](/examples#dialogue) is a page for writers: paste or open a script, see what `validateDialogue`
+finds as you type, and play it through with its variables in view and editable (a change counts from the next
+condition), jumping to any node from the node list. The script is kept in that browser between visits.
+
 ## Checking a script
 
 ```ts
@@ -90,6 +96,8 @@ the start (a warning: the game may `jump` there). Run it over every script in a 
 
 ## Pitfalls
 
+- **`set` runs before the node's lines.** A line in the node that set a variable already reads the new value: write
+  `{toll}`, not `{toll - 2}`, after `"set": { "toll": "toll - 2" }`.
 - **A loop with nothing to show is an error.** Nodes that only `next` into each other throw after a thousand hops
   instead of hanging.
 - **Only locked choices left is no choice.** When every offered choice is locked, the node goes on by `next` (or ends):

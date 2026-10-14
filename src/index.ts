@@ -291,6 +291,7 @@ export {
   wait,
   condition,
   action,
+  formatTrace,
   type BtStatus,
   type BtNode,
   type BtRun,

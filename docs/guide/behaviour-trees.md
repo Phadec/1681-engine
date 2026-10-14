@@ -96,7 +96,8 @@ Build trees once, at load, not per agent.
 ## Debugging
 
 `agent.trace()` lists the tree depth first with what each node answered on the last tick (`null` when it was not
-ticked): enough for a debug overlay that indents names and colours them by status. `agent.isRunning(node)` asks
+ticked): enough for a debug overlay that indents names and colours them by status. `formatTrace(agent.trace())` is
+that as indented text, for a `Text` in the overlay or a log. `agent.isRunning(node)` asks
 about one node.
 
 ## Pitfalls

@@ -124,6 +124,22 @@ export class BtAgent<C> implements BtRun<C> {
   }
 }
 
+/**
+ * A trace as text, one node a line, indented by depth, with what each answered (`·` when it was not ticked): for a
+ * debug overlay's `Text`, or a log.
+ *
+ * ```
+ * reactive-selector running
+ *   sequence failure
+ *     hurt failure
+ *     flee ·
+ *   wander running
+ * ```
+ */
+export function formatTrace(trace: readonly BtTraceLine[]): string {
+  return trace.map((l) => `${'  '.repeat(l.depth)}${l.name ?? l.kind} ${l.status ?? '·'}`).join('\n');
+}
+
 const node = <C>(kind: string, children: readonly BtNode<C>[], tick: BtNode<C>['tick'], extra: Partial<Pick<BtNode<C>, 'name' | 'halt'>> = {}): BtNode<C> => ({
   kind,
   children,

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import {
   action,
   BehaviorTree,
+  formatTrace,
   condition,
   cooldown,
   invert,
@@ -228,4 +229,11 @@ test('a bad data tree is refused with the path to the fault', () => {
   assert.throws(() => buildTree({ type: 'bogus' } as unknown as BtSpec, reg), /unknown type 'bogus'/);
   assert.throws(() => buildTree({ type: 'tree', name: 'loop' }, reg), /contains itself/);
   assert.throws(() => buildTree({ type: 'condition', name: 'x' }, reg), /no condition 'x'/);
+});
+
+test('a trace reads as indented text', () => {
+  const c = bb({ hurt: false });
+  const agent = new BehaviorTree(selector(sequence(is('hurt'), doing('flee')), doing('wander', 5))).agent();
+  agent.update(c, 0);
+  assert.equal(formatTrace(agent.trace()), 'selector running\n  sequence failure\n    hurt failure\n    flee ·\n  wander running');
 });

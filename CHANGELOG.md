@@ -22,6 +22,8 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
   screen; `padLabel` and `deviceOf`.
 - **Input replays**: `InputRecorder` keeps an `Actions`' steps as a JSON `InputTape` (changes only); `InputPlayer`
   plays one back through `Actions.replay`, exactly. `Actions.tap` hands every step's values to a listener.
+- **Tools**: the `dialogue` example, a playground that checks a script as it is typed and plays it with its
+  variables in view; `formatTrace` prints a behaviour tree's last tick.
 - **Crowds**: `flowField` and `followField` (one search for a crowd, by `findPath`'s own rules), and steering:
   `seek`, `flee`, `arrive`, `separation`, `alignment`, `cohesion`, `followFlow`, `combineSteering`, `applySteering`.
 - **Behaviour trees**: `BehaviorTree` and `BtAgent` (one tree, many agents, each with its own memory), `sequence`,
