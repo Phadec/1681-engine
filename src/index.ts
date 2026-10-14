@@ -28,6 +28,7 @@ export { engineSettings, type EngineSettings, type SettingsListener } from './se
 // ── Rendering core ────────────────────────────────────────────────────────────────────────────────────────────────
 export { Stage } from './core/Stage';
 export { Camera, type ViewRect, type TrackOptions } from './core/Camera';
+export { worldZoom, baseZoom, zoomSteps, zoomResolution, fitScale, type PixelZoomOptions } from './core/pixelZoom';
 export { Clock } from './core/Clock';
 export { runDue, type DueCall } from './core/runDue';
 export { Tweener, Tween, type TweenConfig, type TweenTarget, type Steppable } from './core/Tweener';
