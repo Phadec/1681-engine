@@ -27,6 +27,14 @@ function fillFilters(color: number): ColorMatrixFilter[] {
   return list;
 }
 
+/**
+ * Takes an object's filters off. Pixi has always accepted `null` here ("to remove filters set this to null"), but the
+ * types of the peer floor (8.6) refuse it; going through this keeps the engine building against the whole peer range.
+ */
+function dropFilters(o: Container): void {
+  (o as { filters: Container['filters'] | null }).filters = null;
+}
+
 /** What `GameObject` adds to a Pixi display object. */
 export interface GameObjectMembers {
   scene: Stage;
@@ -209,7 +217,7 @@ export function GameObject<TBase extends Ctor<Container>>(Base: TBase): TBase & 
 
     private clearFill(): void {
       if (this.solidFillColor === null) return;
-      this.filters = null;
+      dropFilters(this);
       this.solidFillColor = null;
     }
 
@@ -222,7 +230,7 @@ export function GameObject<TBase extends Ctor<Container>>(Base: TBase): TBase & 
     override destroy(): void {
       if (this.destroyed) return;
       // the fill filters are shared (`FILLS`): let go of them, never destroy them
-      if (this.solidFillColor !== null) this.filters = null;
+      if (this.solidFillColor !== null) dropFilters(this);
       this.solidFillColor = null;
       // `context`: a Pixi Graphics destroyed with options keeps its GraphicsContext — and that context's GPU buffers —
       // until Pixi's own GC sweeps it a minute or more later. Every effect layer is a Graphics, so a crowded fight left
