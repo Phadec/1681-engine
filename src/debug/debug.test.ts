@@ -43,3 +43,31 @@ test('the inspector lists entities with the named components and previews', () =
   const other = rows.find((r) => r.entity !== a)!;
   assert.ok(other.components[0] === 'Vel' || other.components[0]!.startsWith('Name xxxx'));
 });
+
+test('the draw call counter counts every draw entry point and restores only its own wrappers', async () => {
+  const { DrawCallCounter } = await import('./DrawCallCounter.ts');
+  let real = 0;
+  const gl: Record<string, unknown> = {
+    drawElements: () => real++,
+    drawArrays: () => real++,
+    drawElementsInstanced: () => real++,
+    drawArraysInstanced: () => real++,
+  };
+  const counter = new DrawCallCounter({ gl } as never);
+  assert.equal(counter.supported, true);
+  counter.install();
+  for (const name of ['drawElements', 'drawArrays', 'drawElementsInstanced', 'drawArraysInstanced']) (gl[name] as () => void)();
+  assert.equal(counter.take(), 4);
+  assert.equal(real, 4);
+  assert.equal(counter.take(), 0);
+  const ours = gl.drawArrays as () => void;
+  const later = () => ours();
+  gl.drawArrays = later;
+  counter.uninstall();
+  assert.equal(gl.drawArrays, later, 'a wrapper laid after ours is left in place');
+  (gl.drawElements as () => void)();
+  later();
+  assert.equal(counter.take(), 0, 'uninstalled, even through a wrapper left in place');
+  assert.equal(real, 6);
+  assert.equal(new DrawCallCounter({} as never).supported, false);
+});
