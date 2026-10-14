@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Rect, Size } from '../ui/layout/geometry';
 import { placeTooltip, type TipSide } from '../ui/layout/placeTooltip';
 import { cursorTip } from './placement';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 export interface TooltipProps {
   /** By the cursor: its screen position. */
@@ -24,6 +24,7 @@ export interface TooltipProps {
  * a window's `overflow` or transform never clips or shifts it.
  */
 export function Tooltip({ x = 0, y = 0, anchor, above, side, className, children }: TooltipProps) {
+  const cx = useCx();
   const ui = useUi();
   const ref = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<Size>({ width: 0, height: 0 });
@@ -40,7 +41,7 @@ export function Tooltip({ x = 0, y = 0, anchor, above, side, className, children
   const tip = (
     <div
       ref={ref}
-      className={`e1681-tooltip e1681-tip-frame${className ? ` ${className}` : ''}`}
+      className={cx(`e1681-tooltip e1681-tip-frame${className ? ` ${className}` : ''}`)}
       role="tooltip"
       style={{ left: at.x, top: at.y, maxHeight: Math.max(0, view.height - 2 * ui.margin), visibility: measured ? undefined : 'hidden' }}
     >

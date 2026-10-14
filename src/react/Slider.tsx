@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type PointerEvent, useRef } from 'react';
 import { quantize, sliderFraction, sliderValueAt } from '../ui/layout/slider';
+import { useCx } from './UiProvider';
 
 export interface SliderProps {
   value: number;
@@ -41,6 +42,7 @@ export function sliderKeyValue(key: string, value: number, min: number, max: num
  * values, so it reads like the native range it replaces. Focused, it keeps the arrow keys from the game.
  */
 export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.05, format = percent, hideValue, disabled, className }: SliderProps) {
+  const cx = useCx();
   const track = useRef<HTMLDivElement>(null);
   const set = (v: number) => {
     if (v !== value) onChange(v);
@@ -68,9 +70,9 @@ export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.05, 
   };
   const pct = sliderFraction(value, min, max) * 100;
   return (
-    <div className={`e1681-slider-row${className ? ` ${className}` : ''}`}>
+    <div className={cx(`e1681-slider-row${className ? ` ${className}` : ''}`)}>
       <div
-        className="e1681-slider"
+        className={cx('e1681-slider')}
         role="slider"
         tabIndex={disabled ? -1 : 0}
         aria-label={label}
@@ -83,12 +85,12 @@ export function Slider({ value, onChange, label, min = 0, max = 1, step = 0.05, 
         onPointerMove={onPointerMove}
         onKeyDown={onKeyDown}
       >
-        <div className="e1681-slider-track" ref={track}>
-          <div className="e1681-slider-fill" style={{ width: `${pct}%` }} />
-          <div className="e1681-slider-knob" style={{ left: `${pct}%` }} />
+        <div className={cx('e1681-slider-track')} ref={track}>
+          <div className={cx('e1681-slider-fill')} style={{ width: `${pct}%` }} />
+          <div className={cx('e1681-slider-knob')} style={{ left: `${pct}%` }} />
         </div>
       </div>
-      {!hideValue && <span className="e1681-slider-value">{format(value)}</span>}
+      {!hideValue && <span className={cx('e1681-slider-value')}>{format(value)}</span>}
     </div>
   );
 }

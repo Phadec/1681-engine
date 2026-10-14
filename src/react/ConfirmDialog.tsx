@@ -4,7 +4,7 @@ import { Glyph } from './Glyph';
 import { Modal } from './Modal';
 import { Slider } from './Slider';
 import { useStore } from './useStore';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 const selectPending = (s: { pending: ConfirmQuestion | null }) => s.pending;
 
@@ -14,6 +14,7 @@ const selectPending = (s: { pending: ConfirmQuestion | null }) => s.pending;
  * cannot land on 37 with a thumb).
  */
 export function ConfirmDialog({ width = 360 }: { width?: number }) {
+  const cx = useCx();
   const ui = useUi();
   const pending = useStore(confirmStore, selectPending);
   const [qty, setQty] = useState(1);
@@ -29,30 +30,30 @@ export function ConfirmDialog({ width = 360 }: { width?: number }) {
       width={width}
       onCancel={cancel}
       onConfirm={confirm}
-      className="e1681-confirm"
+      className={cx('e1681-confirm')}
       actions={
         <>
-          <button type="button" className="e1681-button ghost" onClick={cancel}>
+          <button type="button" className={cx('e1681-button ghost')} onClick={cancel}>
             {pending.cancel ?? ui.labels.cancel}
           </button>
-          <button type="button" className="e1681-button" autoFocus={!ui.touch} onClick={confirm}>
+          <button type="button" className={cx('e1681-button')} autoFocus={!ui.touch} onClick={confirm}>
             {pending.ok ?? ui.labels.ok}
           </button>
         </>
       }
     >
-      <div className="e1681-confirm-text">{pending.text}</div>
+      <div className={cx('e1681-confirm-text')}>{pending.text}</div>
       {many && (
-        <div className="e1681-confirm-qty">
-          <button type="button" className="e1681-button ghost small" aria-label="-1" onClick={() => setQty(Math.max(1, qty - 1))}>
+        <div className={cx('e1681-confirm-qty')}>
+          <button type="button" className={cx('e1681-button ghost small')} aria-label="-1" onClick={() => setQty(Math.max(1, qty - 1))}>
             <Glyph id="minus" />
           </button>
           <Slider value={qty} min={1} max={max} step={1} format={(v) => `x${v}`} label={ui.labels.quantity} onChange={setQty} />
-          <button type="button" className="e1681-button ghost small" aria-label="+1" onClick={() => setQty(Math.min(max, qty + 1))}>
+          <button type="button" className={cx('e1681-button ghost small')} aria-label="+1" onClick={() => setQty(Math.min(max, qty + 1))}>
             <Glyph id="plus" />
           </button>
           <input
-            className="e1681-input e1681-confirm-qty-input"
+            className={cx('e1681-input e1681-confirm-qty-input')}
             inputMode="numeric"
             aria-label={ui.labels.quantity}
             value={qty}

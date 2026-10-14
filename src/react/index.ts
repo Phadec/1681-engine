@@ -8,7 +8,8 @@
  */
 
 // ── Setup ──────────────────────────────────────────────────────────────────────────────────────────────────────────
-export { UiProvider, useUi, defaultUiSettings, type UiSettings, type UiProviderProps } from './UiProvider';
+export { UiProvider, useUi, useCx, defaultUiSettings, type UiSettings, type UiProviderProps } from './UiProvider';
+export { classJoiner, type ClassJoiner } from './classNames';
 export { DEFAULT_LABELS, fillLabel, type UiLabels } from './labels';
 export { baseCss, injectBaseCss } from './baseCss';
 export { useStore } from './useStore';

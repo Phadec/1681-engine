@@ -1,7 +1,7 @@
 import { type CSSProperties, type MouseEvent, type ReactNode, useRef, useState } from 'react';
 import { splitModeFor, SPLIT_STACK_BELOW } from './placement';
 import { useFillSheet } from './useFillSheet';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 import { useViewport } from './useViewport';
 
 export interface SplitPaneProps {
@@ -29,6 +29,7 @@ export interface SplitPaneProps {
  * detail, and the back button returns. In a touch sheet it fills the height left below what sits above it.
  */
 export function SplitPane({ list, detail, empty, listWidth, fit, stackBelow = SPLIT_STACK_BELOW, pickSelector = '.e1681-pickable', backLabel, className }: SplitPaneProps) {
+  const cx = useCx();
   const ui = useUi();
   const width = useViewport(ui.touch).width;
   const stack = splitModeFor(width, ui.touch, stackBelow) === 'stack';
@@ -41,17 +42,17 @@ export function SplitPane({ list, detail, empty, listWidth, fit, stackBelow = SP
   };
   const mode = stack ? (showDetail ? ' stack show-detail' : ' stack show-list') : '';
   return (
-    <div ref={box} className={`e1681-split${fit ? ' fit' : ''}${mode}${className ? ` ${className}` : ''}`} style={style}>
-      <div className="e1681-split-list" onClickCapture={picked}>
+    <div ref={box} className={cx(`e1681-split${fit ? ' fit' : ''}${mode}${className ? ` ${className}` : ''}`)} style={style}>
+      <div className={cx('e1681-split-list')} onClickCapture={picked}>
         {list}
       </div>
-      <div className="e1681-split-detail">
+      <div className={cx('e1681-split-detail')}>
         {stack && (
-          <button type="button" className="e1681-button small e1681-split-back" onClick={() => setShowDetail(false)}>
+          <button type="button" className={cx('e1681-button small e1681-split-back')} onClick={() => setShowDetail(false)}>
             {backLabel ?? ui.labels.backToList}
           </button>
         )}
-        {detail || <div className="e1681-split-empty">{empty ?? ui.labels.pickHint}</div>}
+        {detail || <div className={cx('e1681-split-empty')}>{empty ?? ui.labels.pickHint}</div>}
       </div>
     </div>
   );

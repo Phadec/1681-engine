@@ -5,6 +5,35 @@ and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a min
 
 ## Unreleased
 
+## 0.5.8
+
+### Added
+
+- **Bodies that turn**: `PhysicsWorld` bodies made with `rotates: true` have an `angle`, an `angularVelocity`, a moment
+  of inertia from their shape and are turned by contacts (each with one or two contact points: `ContactInfo.points`),
+  `applyImpulse`/`applyForce` at a point, `applyTorque`, `applyAngularImpulse`; `angularDamping`, `setAngle`,
+  `velocityAt`, `toWorld`/`toLocal`. Convex **polygons** (`polygonShape`, `polygonCentroid`, `regularPolygon`, up to 16
+  corners) and boxes at an angle collide by the separating axis test with clipped edges; turning bodies never push out
+  of a merged tile box's internal face, so seams stay snag-free. Kinematic spinners, rolling balls, raycasts against
+  turned shapes, sleep that counts spin. `syncToBody` turns a view with its body. Bodies that do not rotate behave
+  exactly as before.
+- **`1681-engine/postfx`**: `PostFx` lays a chain of full-screen filters over the whole picture or the world layer,
+  switched one by one, with `flash`, `shockwave` and `animate` for effects that come and go (skipped under reduced
+  effects); `BloomFilter`, `VignetteFilter`, `ColorAdjustFilter`, `ChromaticAberrationFilter`, `CrtFilter`,
+  `PixelateFilter`, `ShockwaveFilter`; `FxFilter` builds an effect from one spec in GLSL and WGSL with shared helpers.
+- **Lobby and matchmaking**: `LobbyHost` (transport-free like `RoomHost`): rooms with a host, a share code, private
+  rooms, ready flags, kick and promote, chat, the game's settings, a room starting its own game; a queue per mode
+  filled by `Matchmaker` (pure: rating windows widening with the wait, both sides' windows respected, parties never
+  split, teams balanced by `balanceTeams`); ready checks with a deadline, decline lockouts and requeueing at the old
+  place; `onStart` hands each player where to go, `finish` opens the rooms again; message rate limits. `LobbyClient`
+  keeps the state for a lobby screen over a `Connection`.
+- React kit: `UiProvider classNames` hangs a game's own class names beside the kit's (`{ tabs: 'tabs', button: 'btn',
+  picked: 'active' }`), states included, so a game whose stylesheet already styles its own names takes the kit without
+  rewriting it; `useCx` / `UiSettings.cx` join them, `classJoiner` is the pure rule.
+- `DebugOverlay`'s `colliders` callback also gets a line drawer, and `drawColliders` draws turned shapes as outlines.
+- Examples: `physics-toys` (turning bodies under every post effect) and `lobby` (a React lobby screen, a server with
+  bots). Guide pages: post-processing, lobby and matchmaking; the physics page covers turning bodies.
+
 ## 0.5.7
 
 ### Added

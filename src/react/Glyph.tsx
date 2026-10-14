@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useCx } from './UiProvider';
 
 /**
  * Small marks (close, check, arrows, a star…) as pixel art on a square grid, drawn in the text's colour. A pixel font
@@ -75,12 +76,13 @@ export interface GlyphProps {
 }
 
 export const Glyph = memo(function Glyph({ id, scale = 2, className, label }: GlyphProps) {
+  const cx = useCx();
   const art = LAYERS.get(id);
   if (!art) return null;
   const px = art.size * Math.max(1, Math.round(scale));
   return (
     <svg
-      className={className ? `e1681-glyph ${className}` : 'e1681-glyph'}
+      className={cx(className ? `e1681-glyph ${className}` : 'e1681-glyph')}
       width={px}
       height={px}
       viewBox={`0 0 ${art.size} ${art.size}`}

@@ -29,6 +29,9 @@ export const COLLIDER_COLORS: Readonly<ColliderColors> = {
  */
 export type ColliderBoxDrawer = (x: number, y: number, width: number, height: number, color?: number) => void;
 
+/** Draws one line in world coordinates (`DebugOverlay`'s `LineDrawer`). */
+export type ColliderLineDrawer = (x0: number, y0: number, x1: number, y1: number, color?: number) => void;
+
 /**
  * Draws every body's bounding box, coloured by what it is: the usual body of a `DebugOverlay`'s `colliders` callback,
  * which otherwise made every game keep a list of its own bodies just to show them.
@@ -39,17 +42,32 @@ export type ColliderBoxDrawer = (x: number, y: number, width: number, height: nu
  *
  * `colorOf` picks a game's own colour for a body (a one-way plank, a hazard), or returns undefined for the default.
  * A circle is drawn as its bounding box: the overlay draws boxes, and a box round a circle still shows where it is.
+ * Given `line` (the overlay hands it over as its second argument), a turned box or a polygon is drawn as its own
+ * outline, and a circle that rotates gets a spoke showing its angle.
+ *
+ * ```ts
+ * new DebugOverlay(engine, { colliders: (draw, line) => drawColliders(physics, draw, {}, undefined, line) });
+ * ```
  */
 export function drawColliders(
   world: PhysicsWorld,
   draw: ColliderBoxDrawer,
   colors: Partial<ColliderColors> = {},
   colorOf?: (body: Body) => number | undefined,
+  line?: ColliderLineDrawer,
 ): void {
   const c = { ...COLLIDER_COLORS, ...colors };
   for (const b of world.bodies) {
     const color = colorOf?.(b) ?? colliderColor(b, c);
+    if (line && b.corners > 0 && !b.axisAligned) {
+      for (let i = 0; i < b.corners; i++) {
+        const j = (i + 1) % b.corners;
+        line(b.wx[i]!, b.wy[i]!, b.wx[j]!, b.wy[j]!, color);
+      }
+      continue;
+    }
     draw(b.minX, b.minY, b.maxX - b.minX, b.maxY - b.minY, color);
+    if (line && b.shape.kind === 'circle' && b.rotates) line(b.x, b.y, b.x + b.cos * b.shape.radius, b.y + b.sin * b.shape.radius, color);
   }
 }
 

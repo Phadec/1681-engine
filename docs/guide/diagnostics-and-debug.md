@@ -101,7 +101,8 @@ import { DebugOverlay, drawColliders } from '1681-engine';
 
 new DebugOverlay(engine, {
   key: 'F3', // default Backquote; its browser action (F3's find bar) is prevented
-  colliders: (draw) => drawColliders(physics, draw), // or draw(x, y, w, h, color) for boxes of your own
+  // draw(x, y, w, h, color) for boxes of your own, line(x0, y0, x1, y1, color) for rays and turned shapes
+  colliders: (draw, line) => drawColliders(physics, draw, {}, undefined, line),
   components: [Position, Health], // what the inspector lists (default: every entity, everything it holds)
 });
 ```

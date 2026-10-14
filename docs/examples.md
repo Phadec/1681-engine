@@ -23,6 +23,21 @@ faded scene transitions, English and French through a `Translator`, a `DayClock`
 
 [Run platformer ↗](./examples/platformer/index.html){target="_blank"}
 
+## physics-toys
+
+Bodies that turn: crates tumble down a ramp, balls roll, hexagons and triangles stack, and a kinematic bar spins in the
+middle and bats them away. Click to drop a shape, Space to blast everything away from the pointer with a shockwave
+and a flash. Over it, `PostFx`: bloom and a vignette on, chromatic aberration, CRT and pixelate a number key away.
+
+[Run physics-toys ↗](./examples/physics-toys/index.html){target="_blank"}
+
+## lobby
+
+A lobby screen built from the React kit over `LobbyClient`: browse and create rooms, share a private room's code,
+ready up, chat, queue alone or as a room, and accept a found match before its clock runs out. It needs its server
+(`npm run example:lobby` in the repository, then `npm run dev`), which keeps five bots queueing so one tab sees a
+match made; the site lists it but does not host it.
+
 ## aseprite
 
 An Aseprite export read by `parseAseprite`: its tags become clips, the cel data on an "events" layer becomes frame

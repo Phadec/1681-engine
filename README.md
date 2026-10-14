@@ -40,6 +40,7 @@ await engine.scenes.replace(new Level());
 | `1681-engine` | every 2D game | engine, scenes, ECS, rendering core, assets, Tiled maps, animation, input, camera, rig maths, audio, networking |
 | `1681-engine/pixel` | pixel-art games | `PixelLayer`, `pixelPaint` shapes, colour ramps, dithered `Darkness` lighting, `Evaporation`, sprite pixel tools |
 | `1681-engine/ui` | games with menus and a HUD | canvas widgets, focus, the pure layout maths, the DOM/React bridge (`DomOverlay`, `createStore`, `InputShield`) |
+| `1681-engine/postfx` | full-screen effects | `PostFx` (a chain of filters, flashes, shockwaves, animated uniforms), bloom, vignette, colour adjust, chromatic aberration, CRT, pixelate, shockwave, and `FxFilter` to write your own in GLSL and WGSL |
 | `1681-engine/react` | a UI written in React | `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`/`TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, themed by CSS custom properties (`baseCss`) |
 
 The core never imports the pixel module (a test holds it to that), so a game that does not use it does not ship it.
@@ -62,11 +63,12 @@ pixels. Without it, textures are smooth and drawn at the screen's own density.
 | **Characters** | A 2D skeleton rig drawn by `RigView` from cut-out images or vector shapes, `PosePlayer` blending key poses with crossfades, and a built-in humanoid with 72 poses and ready clips (idle, walk, run, roll, slash, thrust, cast, throw, emotes). |
 | **Light** | `LightLayer`: smooth darkness with soft radial lights, colour washes and flicker (the pixel module has its own dithered `Darkness`). |
 | **Audio** | Web Audio `sound` engine (synthesized recipes, recorded takes cleaned in a worker, voice limiting, distance muffling, panning) and `music`: streamed tracks crossfaded and looped. iOS unlock handled. |
-| **Multiplayer** | An authoritative `Room` and its socket host for Node, a client `Connection`, `PredictedMover` (prediction and reconciliation over deterministic movement: in tests and in the example the server never has to correct it), `InterpolationBuffer` for everyone else, binary snapshots, clock sync, input validation and flood limits, cadence rules. |
+| **Multiplayer** | An authoritative `Room` and its socket host for Node, a client `Connection`, `PredictedMover` (prediction and reconciliation over deterministic movement: in tests and in the example the server never has to correct it), `InterpolationBuffer` for everyone else, binary snapshots, clock sync, input validation and flood limits, cadence rules. A `LobbyHost` with rooms (host, codes, ready, chat, settings), a rating `Matchmaker` that keeps parties whole and balances teams, ready checks with decline lockouts, and a `LobbyClient`. [Guide](docs/guide/lobby.md) |
 | **Pixel art** (`/pixel`) | `PixelLayer` (thousands of pixel rects in one pooled texture), `pixelPaint` shapes shaded from hue-shifted ramps and faded by ordered dither, `Darkness` with dithered lamps and transient lights, `Evaporation`, the selective outline. |
 | **UI** (`/ui`) | Canvas widgets with keyboard and gamepad focus, the pure layout maths, and a DOM/React bridge laid over the canvas. [Guide](docs/guide/ui.md) |
 | **React kit** (`/react`) | Windows, tabs, split panes, drop-downs, tooltips and dialogs that never overflow the screen, themed by `--e1681-*` properties. [Guide](docs/guide/react.md) |
-| **Physics** | `PhysicsWorld`: circles and boxes, sensors, layers, kinematic platforms, one-way `preSolve`, raycasts, tiles merged into boxes. [Guide](docs/guide/physics.md) |
+| **Physics** | `PhysicsWorld`: circles, boxes and convex polygons that turn when asked (contact points, torque, rolling), sensors, layers, kinematic platforms and spinners, one-way `preSolve`, raycasts, tiles merged into boxes with snag-free seams. [Guide](docs/guide/physics.md) |
+| **Post-processing** (`/postfx`) | Bloom, vignette, colour grade and flash, chromatic aberration, CRT, pixelate, shockwaves; WebGL and WebGPU. [Guide](docs/guide/post-processing.md) |
 | **Particles** | `Emitter` on one pooled `ParticleContainer`, curves over life, a shared budget that thins under reduced effects. [Guide](docs/guide/particles.md) |
 | **Navigation** | A* `findPath` with reach, costs and end-only tiles, `straightenPath`, `floodFill`, `nearestOpen`. [Guide](docs/guide/navigation.md) |
 | **Saves** | `SaveStore` slots with migrations, checksums and a backup, pluggable backends, `Autosaver`. [Guide](docs/guide/saves.md) |
@@ -128,7 +130,8 @@ locally.
 - [Architecture](docs/guide/architecture.md): how the frame loop, scenes, ECS and rendering fit together, and the rules that keep it fast.
 - A page per module: [input](docs/guide/input.md), [physics](docs/guide/physics.md), [navigation](docs/guide/navigation.md),
   [particles](docs/guide/particles.md), [game feel](docs/guide/game-feel.md), [ambient](docs/guide/ambient.md),
-  [transitions](docs/guide/transitions.md), [UI](docs/guide/ui.md), [React kit](docs/guide/react.md),
+  [transitions](docs/guide/transitions.md), [post-processing](docs/guide/post-processing.md),
+  [lobby and matchmaking](docs/guide/lobby.md), [UI](docs/guide/ui.md), [React kit](docs/guide/react.md),
   [localisation](docs/guide/i18n.md), [saves](docs/guide/saves.md), [diagnostics and debug](docs/guide/diagnostics-and-debug.md).
 - [Examples](examples/), run with `npm run dev`:
   - `top-down`: a Tiled map, asset loading, an animated hero, input actions on keyboard, gamepad and touch, camera follow.
@@ -138,6 +141,8 @@ locally.
   - `pixel-dungeon`: the pixel module: dithered torchlight, a carried light, slimes that evaporate into their own pixels.
   - `ecs-stress`: tens of thousands of bodies on typed-array components, with the frame rate and step time.
   - `multiplayer`: `npm run example:server`, then two tabs: prediction, reconciliation and interpolation.
+  - `physics-toys`: bodies that turn (crates, balls, polygons, a spinning bar) under bloom, a vignette and the other effects.
+  - `lobby`: `npm run example:lobby`, then the page: rooms, codes, ready flags, chat, the queue and a ready check.
   - `walk-room`: the smallest whole game, with pixel effects.
 
 ## Develop

@@ -135,3 +135,18 @@ test('useStore reads an engine store', () => {
   }
   assert.equal(renderToString(<Hp />), '<b>7</b>');
 });
+
+test('a game hangs its own class names beside the kit’s, states included', () => {
+  const html = renderToString(
+    <UiProvider touch={false} classNames={{ tabs: 'tabs', tab: 'tab', active: 'on', split: 'split-pane', button: 'btn' }}>
+      <TabStrip tabs={[{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }]} value="a" onChange={() => {}} />
+      <SplitPane list={<div />} detail={null} />
+    </UiProvider>,
+  );
+  assert.match(html, /class="e1681-tabs tabs"/);
+  assert.match(html, /class="e1681-tab tab active on"/);
+  assert.match(html, /class="e1681-tab tab"/);
+  assert.match(html, /class="e1681-split split-pane"/);
+  // without a provider nothing is added
+  assert.match(renderToString(<TabStrip tabs={[{ id: 'a', label: 'A' }]} value="a" onChange={() => {}} />), /class="e1681-tabs"/);
+});

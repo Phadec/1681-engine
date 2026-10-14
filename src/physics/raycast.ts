@@ -30,6 +30,7 @@ export function rayShape(body: Body, ox: number, oy: number, dx: number, dy: num
     out.ny = (fy + dy * t) / s.radius;
     return true;
   }
+  if (!body.axisAligned) return rayPolygon(body, ox, oy, dx, dy, maxT, out);
   if (ox > body.minX && ox < body.maxX && oy > body.minY && oy < body.maxY) return false;
   let tmin = -Infinity;
   let tmax = Infinity;
@@ -61,6 +62,39 @@ export function rayShape(body: Body, ox: number, oy: number, dx: number, dy: num
   out.t = tmin;
   out.nx = nx;
   out.ny = ny;
+  return true;
+}
+
+/** Cyrus–Beck: the ray clipped by each face's half plane of a turned box or a polygon (world corners). */
+function rayPolygon(body: Body, ox: number, oy: number, dx: number, dy: number, maxT: number, out: ShapeHit): boolean {
+  let tmin = 0;
+  let tmax = maxT;
+  let face = -1;
+  let inside = true;
+  for (let i = 0; i < body.corners; i++) {
+    const nx = body.wnx[i]!;
+    const ny = body.wny[i]!;
+    // distance of the start outside face i, and how fast the ray closes on it
+    const num = (ox - body.wx[i]!) * nx + (oy - body.wy[i]!) * ny;
+    const den = dx * nx + dy * ny;
+    if (num > 0) inside = false;
+    if (den === 0) {
+      if (num > 0) return false;
+      continue;
+    }
+    const t = -num / den;
+    if (den < 0) {
+      if (t > tmin) {
+        tmin = t;
+        face = i;
+      }
+    } else if (t < tmax) tmax = t;
+    if (tmin > tmax) return false;
+  }
+  if (inside || face < 0) return false;
+  out.t = tmin;
+  out.nx = body.wnx[face]!;
+  out.ny = body.wny[face]!;
   return true;
 }
 

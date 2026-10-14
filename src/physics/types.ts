@@ -1,14 +1,11 @@
 import type { Body } from './Body';
 
 /**
- * The shapes a body may have. Every shape is centred on the body's position and never rotates: a platformer's
- * bodies and most physics toys need no rotation, and leaving angular motion out keeps the solver small and its
- * stacks steady.
- *
- * Extension point: an oriented box or a convex polygon is a new `kind` here, a SAT test in `collide.ts`, an angle
- * and angular velocity on `Body`, and contact points (not only a normal) in `ContactSolver.ts`.
+ * The shapes a body may have, each centred on the body's position. A body turns only when it is made with
+ * `rotates: true`; a platformer's bodies need no rotation, and a body that never turns keeps the cheap axis-aligned
+ * tests and the steadiest stacks.
  */
-export type Shape = CircleShape | BoxShape;
+export type Shape = CircleShape | BoxShape | PolygonShape;
 
 export interface CircleShape {
   readonly kind: 'circle';
@@ -19,6 +16,21 @@ export interface BoxShape {
   readonly kind: 'box';
   halfWidth: number;
   halfHeight: number;
+}
+
+/** A point or a vector in world or body pixels, y down. */
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+/**
+ * A convex polygon, its vertices relative to the body's position, which must be the polygon's centroid (make one with
+ * `polygonShape`, which orders the points and moves them there). Up to `MAX_POLYGON_VERTICES` corners.
+ */
+export interface PolygonShape {
+  readonly kind: 'polygon';
+  readonly vertices: readonly Vec2[];
 }
 
 /**
@@ -35,6 +47,17 @@ export interface BodyOptions {
   y?: number;
   vx?: number;
   vy?: number;
+  /**
+   * Whether contacts and torques turn the body (default false). A body that does not rotate may still be placed at an
+   * `angle`, and keeps it.
+   */
+  rotates?: boolean;
+  /** Radians, clockwise on screen (y grows downwards). */
+  angle?: number;
+  /** Radians per second. */
+  angularVelocity?: number;
+  /** Turning lost per second, as a share (default 0.05): a rolling ball slows down without rolling friction. */
+  angularDamping?: number;
   /** Mass of a dynamic body (default 1). Ignored for static and kinematic bodies, whose mass is infinite. */
   mass?: number;
   /** Bounce, 0–1 (default 0). A pair bounces by the larger of its two. */
@@ -71,6 +94,8 @@ export interface ContactInfo {
   readonly depth: number;
   /** Either body is a sensor: reported, never resolved. */
   readonly sensor: boolean;
+  /** Where the two touch, world px: one or two points (two where an edge lies along an edge). */
+  readonly points: readonly Vec2[];
 }
 
 export interface PhysicsEvents {

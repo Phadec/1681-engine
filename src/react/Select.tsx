@@ -4,7 +4,7 @@ import { listWidth } from '../ui/layout/listWidth';
 import { scrollIntoView } from '../ui/layout/scroll';
 import { Glyph } from './Glyph';
 import { listPlacement, type ListPlacement } from './placement';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 export interface SelectOption<T extends string | number> {
   value: T;
@@ -36,6 +36,7 @@ export function stepOption(index: number, step: number, count: number): number {
  * focus, so a text field beside it keeps its keyboard.
  */
 export function Select<T extends string | number>({ value, options, onChange, label, grow, className, disabled }: SelectProps<T>) {
+  const cx = useCx();
   const ui = useUi();
   const [open, setOpen] = useState(false);
   const [place, setPlace] = useState<(ListPlacement & { width: number }) | null>(null);
@@ -120,7 +121,7 @@ export function Select<T extends string | number>({ value, options, onChange, la
   const list = (
     <div
       ref={listRef}
-      className={`e1681-select-list e1681-tip-frame${place ? '' : ' measuring'}`}
+      className={cx(`e1681-select-list e1681-tip-frame${place ? '' : ' measuring'}`)}
       role="listbox"
       aria-label={label}
       style={place ? { left: place.x, top: place.y, width: place.width, maxHeight: place.height } : { left: 0, top: 0, visibility: 'hidden' }}
@@ -131,7 +132,7 @@ export function Select<T extends string | number>({ value, options, onChange, la
           key={String(o.value)}
           role="option"
           aria-selected={i === picked}
-          className={`e1681-select-option${i === picked ? ' picked' : ''}${i === hot ? ' hot' : ''}`}
+          className={cx(`e1681-select-option${i === picked ? ' picked' : ''}${i === hot ? ' hot' : ''}`)}
           onPointerEnter={() => setHot(i)}
           onClick={() => choose(i)}
         >
@@ -145,7 +146,7 @@ export function Select<T extends string | number>({ value, options, onChange, la
       <button
         ref={buttonRef}
         type="button"
-        className={`e1681-select${open ? ' open' : ''}${grow ? ' grow' : ''}${className ? ` ${className}` : ''}`}
+        className={cx(`e1681-select${open ? ' open' : ''}${grow ? ' grow' : ''}${className ? ` ${className}` : ''}`)}
         aria-label={label}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -154,9 +155,9 @@ export function Select<T extends string | number>({ value, options, onChange, la
         onClick={toggle}
         onKeyDown={onKey}
       >
-        <span className="e1681-select-labels">
+        <span className={cx('e1681-select-labels')}>
           {options.map((o, i) => (
-            <span key={String(o.value)} className={i === picked ? 'shown' : undefined} aria-hidden={i !== picked}>
+            <span key={String(o.value)} className={cx(i === picked ? 'shown' : undefined)} aria-hidden={i !== picked}>
               {o.label}
             </span>
           ))}

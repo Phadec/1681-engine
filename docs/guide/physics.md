@@ -1,9 +1,10 @@
 # Physics
 
-`PhysicsWorld` is a small rigid-body world for platformers and physics toys: circles and axis-aligned boxes that
-never rotate, stepped at the fixed simulation rate. It has gravity, restitution, friction, damping, sensors, collision
-layers, kinematic movers, contact events, a `grounded` flag and raycasts. The whole of
-[`examples/platformer`](/examples#platformer) runs on it.
+`PhysicsWorld` is a small rigid-body world for platformers and physics toys: circles, boxes and convex polygons,
+stepped at the fixed simulation rate, turned by contacts when you ask for it. It has gravity, restitution, friction,
+damping, sensors, collision layers, kinematic movers, contact events with contact points, a `grounded` flag and
+raycasts. The whole of [`examples/platformer`](/examples#platformer) runs on it with nothing turning;
+[`examples/physics-toys`](/examples#physics-toys) tumbles crates, rolls balls and spins a bar.
 
 ::: warning Not for netcode
 The solver's results depend on body order and floating point, so two machines can drift apart. That is fine for one
@@ -46,6 +47,59 @@ Positions are the shape's centre in world pixels; velocities are px per second. 
 Order the fixed systems so input is read **before** the physics step and its results **after**, as the platformer
 does: a `control` system that sets velocities, then `physicsSystem`, then an `aftermath` system for landings, falls and
 pickups.
+
+## Bodies that turn
+
+A body turns only when it is made with `rotates: true`; without it a box stays square and takes the cheap
+axis-aligned tests, which is what a platformer's hero and crates want. A turning body has an `angle` (radians,
+clockwise on screen, since y grows downwards) and an `angularVelocity`, gets a moment of inertia from its shape and
+mass, and is turned by every contact and every force or impulse given at a point off its centre.
+
+```ts
+import { polygonCentroid, polygonShape, regularPolygon } from '1681-engine';
+
+// a crate that tumbles, a ball that rolls, a hexagon
+this.physics.add({ shape: { kind: 'box', halfWidth: 8, halfHeight: 8 }, x, y, rotates: true, friction: 0.6 });
+this.physics.add({ shape: { kind: 'circle', radius: 6 }, x, y, rotates: true, friction: 0.9 });
+this.physics.add({ shape: regularPolygon(6, 10), x, y, rotates: true });
+
+// a static ramp from points in the world: the body goes at their centroid, so the shape lands on them
+const ramp = [{ x: 100, y: 200 }, { x: 500, y: 300 }, { x: 100, y: 300 }];
+const c = polygonCentroid(ramp);
+this.physics.add({ type: 'static', shape: polygonShape(ramp), x: c.x, y: c.y });
+
+// a kinematic spinner: turns at its own speed, bats dynamic bodies away, is never pushed
+this.physics.add({ type: 'kinematic', rotates: true, shape: { kind: 'box', halfWidth: 60, halfHeight: 4 }, x, y, angularVelocity: 2 });
+```
+
+`polygonShape` takes any points, keeps their convex hull (up to 16 corners) and centres it on its centroid;
+`regularPolygon(sides, radius)` makes the regular ones. A body that does not rotate may still be placed at an `angle`
+(a tilted static plank) and keeps it.
+
+| Option | Default | What |
+|---|---|---|
+| `rotates` | false | contacts and torques turn it |
+| `angle` | 0 | radians, clockwise on screen |
+| `angularVelocity` | 0 | radians per second |
+| `angularDamping` | 0.05 | turning lost per second: without rolling friction a ball would roll forever |
+
+```ts
+body.applyImpulse(ix, iy, px, py); // at a world point: a shove that also sets it spinning
+body.applyForce(fx, fy, px, py); // at a point, held for the next step
+body.applyTorque(t); // a turning force for the next step
+body.applyAngularImpulse(j); // an instant change of spin
+body.setAngle(a); // a teleport of the angle, no interpolation
+body.toWorld(lx, ly); body.toLocal(px, py); body.velocityAt(px, py);
+```
+
+`syncToBody` turns a view with its body (setting `rotation` between the last two angles) whenever the body rotates or
+stands at an angle, and turns the offset with it. Contacts carry their points (`contact.points`: one, or two where an
+edge lies along an edge), so a game can put sparks where two crates met.
+
+Tile ground stays snag-free for turning bodies too: the polygon test never pushes anything out of a merged tile box's
+internal face, so a tumbling crate slides over the seams of a floor like a square one does. Stacks of turning boxes
+stand, but they settle a little more slowly than square ones; give the world a few more `velocityIterations` (10) if
+you build towers.
 
 ## Moving bodies
 
@@ -110,7 +164,7 @@ this.physics.preSolve = (c) => {
   const plank = c.a.userData === 'one-way' ? c.a : c.b.userData === 'one-way' ? c.b : null;
   if (!plank) return true;
   const other = c.other(plank);
-  const halfH = other.shape.kind === 'box' ? other.shape.halfHeight : other.shape.radius;
+  const halfH = other.maxY - other.y; // how far its feet reach below its centre
   // only a body whose feet were on or above the plank when the step began
   return other.prevY + halfH <= plank.minY + 1 && other.vy >= -1;
 };
@@ -142,10 +196,11 @@ than passing through.
 ## Seeing it
 
 `drawColliders` draws every body's box coloured by kind for the [debug overlay](diagnostics-and-debug.md#debugoverlay):
-static green, kinematic cyan, dynamic yellow on the ground and red in the air, sensors pink.
+static green, kinematic cyan, dynamic yellow on the ground and red in the air, sensors pink. Hand it the overlay's line
+drawer too, and turned boxes and polygons are drawn as their own outlines, with a spoke on each turning circle.
 
 ```ts
-new DebugOverlay(engine, { key: 'F3', colliders: (draw) => drawColliders(physics, draw) });
+new DebugOverlay(engine, { key: 'F3', colliders: (draw, line) => drawColliders(physics, draw, {}, undefined, line) });
 ```
 
 `physics.bodies` lists every body for tools like this; read it, never hold it across a step.

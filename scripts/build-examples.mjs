@@ -5,8 +5,9 @@ import { build } from 'vite';
 
 const root = resolve(import.meta.dirname, '..', 'examples');
 const out = resolve(import.meta.dirname, '..', 'docs', 'public', 'examples');
-// the multiplayer example needs its server; the site lists it but does not host it
-const names = readdirSync(root).filter((n) => existsSync(join(root, n, 'index.html')) && n !== 'multiplayer');
+// the multiplayer and lobby examples need their servers; the site lists them but does not host them
+const SERVED = new Set(['multiplayer', 'lobby']);
+const names = readdirSync(root).filter((n) => existsSync(join(root, n, 'index.html')) && !SERVED.has(n));
 rmSync(out, { recursive: true, force: true });
 await build({
   root,

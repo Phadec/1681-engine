@@ -10,6 +10,9 @@ import { inspectWorld } from './inspectWorld';
 /** Draws one box in world coordinates (a hurtbox, a wall, a trigger), in `color` (default green). */
 export type BoxDrawer = (x: number, y: number, width: number, height: number, color?: number) => void;
 
+/** Draws one line in world coordinates (a turned collider's edge, a ray), in `color` (default green). */
+export type LineDrawer = (x0: number, y0: number, x1: number, y1: number, color?: number) => void;
+
 export interface DebugOverlayOptions {
   /**
    * `KeyboardEvent.code` that shows and hides it (default 'Backquote'). The key's own browser action is prevented
@@ -22,8 +25,8 @@ export interface DebugOverlayOptions {
   components?: readonly ComponentType<unknown>[];
   /** Entities listed at most (default 12). */
   inspectLimit?: number;
-  /** Called every shown frame to draw collision boxes. */
-  colliders?: (draw: BoxDrawer) => void;
+  /** Called every shown frame to draw collision boxes (and lines: turned shapes, rays). */
+  colliders?: (draw: BoxDrawer, line: LineDrawer) => void;
   /** Errors kept (default 8). */
   errors?: number;
   /** Where the key is listened for (default `window`). */
@@ -59,6 +62,10 @@ export class DebugOverlay {
   private shown = false;
   private readonly drawBox: BoxDrawer = (x, y, w, h, color = 0x40ff60) => {
     this.boxes.rect(x, y, w, h).stroke({ width: 1, color, alpha: 0.9, pixelLine: true });
+  };
+
+  private readonly drawLine: LineDrawer = (x0, y0, x1, y1, color = 0x40ff60) => {
+    this.boxes.moveTo(x0, y0).lineTo(x1, y1).stroke({ width: 1, color, alpha: 0.9, pixelLine: true });
   };
 
   constructor(
@@ -134,7 +141,7 @@ export class DebugOverlay {
     this.drawCalls = this.draws.take();
     this.paintGraph();
     this.boxes.clear();
-    if (this.options.colliders) this.options.colliders(this.drawBox);
+    if (this.options.colliders) this.options.colliders(this.drawBox, this.drawLine);
     if (now - this.lastText >= TEXT_MS) {
       this.lastText = now;
       this.paintText();

@@ -145,11 +145,12 @@ export { PhysicsWorld } from './physics/PhysicsWorld';
 export type { PhysicsWorldOptions } from './physics/PhysicsWorldOptions';
 export type { SolverSettings } from './physics/ContactSolver';
 export { Body } from './physics/Body';
-export { Contact } from './physics/Contact';
+export { Contact, ContactPoint } from './physics/Contact';
+export { polygonShape, polygonCentroid, regularPolygon, MAX_POLYGON_VERTICES } from './physics/polygon';
 export { tileBodies, tileBodiesFromGrid, mergeTileRects, type TileBodiesOptions, type TileRect } from './physics/tileBodies';
 export { physicsSystem } from './physics/physicsSystem';
 export { syncToBody, type Positioned } from './physics/syncToBody';
-export { drawColliders, colliderColor, COLLIDER_COLORS, type ColliderColors, type ColliderBoxDrawer } from './physics/drawColliders';
+export { drawColliders, colliderColor, COLLIDER_COLORS, type ColliderColors, type ColliderBoxDrawer, type ColliderLineDrawer } from './physics/drawColliders';
 export {
   FACE_LEFT,
   FACE_RIGHT,
@@ -158,6 +159,7 @@ export {
   type Shape,
   type CircleShape,
   type BoxShape,
+  type PolygonShape,
   type BodyType,
   type BodyOptions,
   type ContactInfo,
@@ -206,7 +208,7 @@ export { summarizeFrames, percentile, countHitches, looksThrottled, type FrameSu
 export { FrameSampler, type FrameSamplerOptions } from './diagnostics/FrameSampler';
 export { ErrorDeduper, trimStack } from './diagnostics/ErrorDeduper';
 export { captureErrors, type CapturedError, type CaptureErrorsOptions } from './diagnostics/captureErrors';
-export { DebugOverlay, type DebugOverlayOptions, type BoxDrawer } from './debug/DebugOverlay';
+export { DebugOverlay, type DebugOverlayOptions, type BoxDrawer, type LineDrawer } from './debug/DebugOverlay';
 export { FrameStats } from './debug/FrameStats';
 export { ErrorLog, type LoggedError } from './debug/ErrorLog';
 export { inspectWorld, type EntityRow } from './debug/inspectWorld';
@@ -254,4 +256,27 @@ export { InterpolationBuffer, type InterpolatedState } from './net/Interpolation
 export { Room, type RoomPlayer, type RoomOptions } from './net/Room';
 export { RoomHost, type HostSocket, type RoomHostOptions } from './net/RoomHost';
 export { Connection, type ConnectionEvents, type ConnectionOptions } from './net/Connection';
+export {
+  LobbyHost,
+  LobbyClient,
+  LobbyRooms,
+  Matchmaker,
+  balanceTeams,
+  type LobbyHostOptions,
+  type LobbyMatch,
+  type LobbyClientEvents,
+  type LobbyLink,
+  type PendingMatch,
+  type LobbyRoom,
+  type MatchMode,
+  type Ticket,
+  type FoundMatch,
+  type LobbyClientMessage,
+  type LobbyServerMessage,
+  type LobbyErrorCode,
+  type RoomSummary,
+  type RoomState,
+  type RoomMember,
+  type MatchPlayer,
+} from './net/lobby';
 export { moverToWire, moverFromWire, type ClientMessage, type ServerMessage, type Snapshot, type SpawnInfo, type MoverWire } from './net/protocol';

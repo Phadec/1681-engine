@@ -4,7 +4,7 @@ import { Glyph } from './Glyph';
 import { fillLabel } from './labels';
 import { sheetScaleStyle } from './placement';
 import { SCROLL_CLASS, useFitToViewport } from './useFitToViewport';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 export interface PanelProps {
   title: ReactNode;
@@ -33,15 +33,16 @@ export interface PanelProps {
  * body scrolling, laid out at the provider's `sheetScale`. A press inside never reaches the world under it.
  */
 export function Panel({ title, onClose, children, width, at, footer, className, style, titleText }: PanelProps) {
+  const cx = useCx();
   const ui = useUi();
   const ref = useRef<HTMLDivElement>(null);
   useFitToViewport(ref, { enabled: !ui.touch, ...(width !== undefined ? { width } : {}), ...(at ? { at } : {}) });
   const name = titleText ?? (typeof title === 'string' ? title : '');
   const header = (
-    <div className="e1681-panel-header">
-      <h3 className="e1681-panel-title">{title}</h3>
+    <div className={cx('e1681-panel-header')}>
+      <h3 className={cx('e1681-panel-title')}>{title}</h3>
       {onClose && (
-        <button type="button" className="e1681-close" onClick={onClose} title={ui.labels.closeHint} aria-label={fillLabel(ui.labels.close, name).trim()}>
+        <button type="button" className={cx('e1681-close')} onClick={onClose} title={ui.labels.closeHint} aria-label={fillLabel(ui.labels.close, name).trim()}>
           <Glyph id="close" />
         </button>
       )}
@@ -50,10 +51,10 @@ export function Panel({ title, onClose, children, width, at, footer, className, 
   const classes = ['e1681-panel', 'e1681-frame', ui.touch ? 'e1681-sheet' : '', className ?? ''].filter(Boolean).join(' ');
   const own: CSSProperties = ui.touch ? { ...sheetScaleStyle(ui.sheetScale) } : { width };
   return (
-    <div ref={ref} className={classes} style={{ ...own, ...style }} role="dialog" aria-label={name || undefined} onPointerDown={(e) => e.stopPropagation()}>
+    <div ref={ref} className={cx(classes)} style={{ ...own, ...style }} role="dialog" aria-label={name || undefined} onPointerDown={(e) => e.stopPropagation()}>
       {header}
-      <div className={`e1681-panel-body ${SCROLL_CLASS}`}>{children}</div>
-      {footer !== undefined && <div className="e1681-panel-footer">{footer}</div>}
+      <div className={cx(`e1681-panel-body ${SCROLL_CLASS}`)}>{children}</div>
+      {footer !== undefined && <div className={cx('e1681-panel-footer')}>{footer}</div>}
     </div>
   );
 }

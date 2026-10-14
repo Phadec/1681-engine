@@ -1,4 +1,5 @@
 import type { CSSProperties, PointerEvent, ReactNode } from 'react';
+import { useCx } from './UiProvider';
 
 export interface Tab<T extends string> {
   id: T;
@@ -16,7 +17,7 @@ export interface TabStripProps<T extends string> {
   onChange: (id: T) => void;
   /** The short strip that sits over a field or in a row of controls. */
   small?: boolean;
-  /** Breaks onto more rows instead of scrolling sideways (same as `className="wrap"`). */
+  /** Breaks onto more rows instead of scrolling sideways (same as `className={cx('wrap')}`). */
   wrap?: boolean;
   className?: string;
   /** What the strip chooses, for a screen reader. */
@@ -28,12 +29,13 @@ export interface TabStripProps<T extends string> {
 /**
  * One strip of tabs: the chosen one lifted and open into the pane below, the rest a step lower. Every row of tabs —
  * a window's sections, a filter, a difficulty — goes through here so they all read the same; never a row of buttons
- * or a `<select>`. A strip too long for one row takes `wrap` (or `className="wrap"`).
+ * or a `<select>`. A strip too long for one row takes `wrap` (or `className={cx('wrap')}`).
  */
 export function TabStrip<T extends string>({ tabs, value, onChange, small, wrap, className, label, onPointerDown }: TabStripProps<T>) {
+  const cx = useCx();
   const classes = ['e1681-tabs', small ? 'small' : '', wrap ? 'wrap' : '', className ?? ''].filter(Boolean).join(' ');
   return (
-    <div className={classes} role="tablist" aria-label={label}>
+    <div className={cx(classes)} role="tablist" aria-label={label}>
       {tabs.map((t) => {
         const style: CSSProperties | undefined = t.color ? { color: t.color } : undefined;
         return (
@@ -42,7 +44,7 @@ export function TabStrip<T extends string>({ tabs, value, onChange, small, wrap,
             type="button"
             role="tab"
             aria-selected={t.id === value}
-            className={t.id === value ? 'e1681-tab active' : 'e1681-tab'}
+            className={cx(t.id === value ? 'e1681-tab active' : 'e1681-tab')}
             style={style}
             disabled={t.disabled}
             title={t.title}

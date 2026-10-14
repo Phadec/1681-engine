@@ -1,6 +1,6 @@
 {
   "name": "1681-engine",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",
@@ -16,6 +16,10 @@
     "./ui": {
       "types": "./dist/types/ui/index.d.ts",
       "import": "./dist/ui.js"
+    },
+    "./postfx": {
+      "types": "./dist/types/postfx/index.d.ts",
+      "import": "./dist/postfx.js"
     },
     "./react": {
       "types": "./dist/types/react/index.d.ts",
@@ -41,6 +45,7 @@
     "prepublishOnly": "npm run check",
     "bench": "node --expose-gc --import tsx bench/ecs.bench.ts",
     "example:server": "tsx examples/multiplayer/server.ts",
+    "example:lobby": "tsx examples/lobby/server.ts",
     "docs:examples": "node scripts/build-examples.mjs",
     "docs:dev": "npm run docs:prepare && vitepress dev docs",
     "docs:build": "npm run docs:prepare && npm run docs:examples && vitepress build docs",

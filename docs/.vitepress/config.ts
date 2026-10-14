@@ -57,6 +57,7 @@ export default defineConfig({
             { text: 'Time of day, weather and colour', link: '/guide/ambient' },
             { text: 'Tweens and parallax', link: '/guide/tweens-and-parallax' },
             { text: 'Scene transitions', link: '/guide/transitions' },
+            { text: 'Post-processing', link: '/guide/post-processing' },
           ],
         },
         {
@@ -66,6 +67,10 @@ export default defineConfig({
             { text: 'React kit', link: '/guide/react' },
             { text: 'Localisation', link: '/guide/i18n' },
           ],
+        },
+        {
+          text: 'Online',
+          items: [{ text: 'Lobby and matchmaking', link: '/guide/lobby' }],
         },
         {
           text: 'Shipping',

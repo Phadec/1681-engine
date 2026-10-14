@@ -12,7 +12,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     lib: {
-      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts') },
+      entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts') },
       formats: ['es'],
       fileName: (_format, name) => `${name}.js`,
     },

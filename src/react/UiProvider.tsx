@@ -1,6 +1,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
 import { isTouchUi } from '../platform/touch';
 import type { Size } from '../ui/layout/geometry';
+import { classJoiner, type ClassJoiner } from './classNames';
 import { DEFAULT_LABELS, type UiLabels } from './labels';
 
 /** What every component of the kit reads: where it is, how big the screen is and the words it prints. */
@@ -25,12 +26,22 @@ export interface UiSettings {
   viewport: () => Size;
   /** Where tooltips, the select's list and dialogs are portalled. Default: `document.body`. */
   portal: () => HTMLElement | null;
+  /**
+   * A game's own class names hung beside the kit's, keyed by the kit's name without its prefix (`tabs`, `tab`,
+   * `button`, `select-list`…) or by a state (`picked`, `open`): a game whose stylesheet already styles its own names
+   * takes the kit without rewriting it. Default none.
+   */
+  classNames: Readonly<Record<string, string>>;
+  /** Joins class names, adding the game's beside each of the kit's (`classNames`); what every component calls. */
+  cx: ClassJoiner;
 }
 
-export interface UiProviderProps extends Partial<Omit<UiSettings, 'labels'>> {
+export interface UiProviderProps extends Partial<Omit<UiSettings, 'labels' | 'cx'>> {
   labels?: Partial<UiLabels>;
   children?: ReactNode;
 }
+
+const NO_CLASSES: Readonly<Record<string, string>> = {};
 
 function windowSize(): Size {
   return typeof window === 'undefined' ? { width: 0, height: 0 } : { width: window.innerWidth, height: window.innerHeight };
@@ -42,7 +53,7 @@ function body(): HTMLElement | null {
 
 /** The settings a component sees with no `UiProvider` above it. */
 export function defaultUiSettings(): UiSettings {
-  return { touch: isTouchUi(), scale: 1, minScale: 1, sheetScale: 1, margin: 8, snap: true, labels: DEFAULT_LABELS, viewport: windowSize, portal: body };
+  return { touch: isTouchUi(), scale: 1, minScale: 1, sheetScale: 1, margin: 8, snap: true, labels: DEFAULT_LABELS, viewport: windowSize, portal: body, classNames: NO_CLASSES, cx: classJoiner(NO_CLASSES) };
 }
 
 const UiContext = createContext<UiSettings | null>(null);
@@ -52,11 +63,12 @@ const UiContext = createContext<UiSettings | null>(null);
  * below it. A UI mounted in a `DomOverlay` passes the overlay's content size as `viewport` and the overlay's
  * content as `portal`, so tooltips and lists land inside its scaled box.
  */
-export function UiProvider({ children, labels, touch, scale, minScale, sheetScale, margin, snap, viewport, portal }: UiProviderProps) {
+export function UiProvider({ children, labels, touch, scale, minScale, sheetScale, margin, snap, viewport, portal, classNames }: UiProviderProps) {
   const outer = useContext(UiContext);
   const value = useMemo<UiSettings>(() => {
     const base = outer ?? defaultUiSettings();
     const s = scale ?? base.scale;
+    const classes = classNames ? { ...base.classNames, ...classNames } : base.classNames;
     return {
       touch: touch ?? base.touch,
       scale: s,
@@ -67,8 +79,10 @@ export function UiProvider({ children, labels, touch, scale, minScale, sheetScal
       labels: labels ? { ...base.labels, ...labels } : base.labels,
       viewport: viewport ?? base.viewport,
       portal: portal ?? base.portal,
+      classNames: classes,
+      cx: classes === base.classNames ? base.cx : classJoiner(classes),
     };
-  }, [outer, labels, touch, scale, minScale, sheetScale, margin, snap, viewport, portal]);
+  }, [outer, labels, touch, scale, minScale, sheetScale, margin, snap, viewport, portal, classNames]);
   return <UiContext.Provider value={value}>{children}</UiContext.Provider>;
 }
 
@@ -80,4 +94,9 @@ export function useUi(): UiSettings {
   if (ui) return ui;
   fallback ??= defaultUiSettings();
   return fallback;
+}
+
+/** The class joiner of the nearest `UiProvider` (`UiSettings.cx`). */
+export function useCx(): ClassJoiner {
+  return useUi().cx;
 }

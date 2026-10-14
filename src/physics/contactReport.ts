@@ -14,5 +14,5 @@ export function setGround(body: Body, ground: Body, c: Contact): void {
 
 /** A copy for an event: the contact itself changes on the next step. */
 export function info(c: Contact): ContactInfo {
-  return { a: c.a, b: c.b, nx: c.nx, ny: c.ny, depth: c.depth, sensor: c.sensor };
+  return { a: c.a, b: c.b, nx: c.nx, ny: c.ny, depth: c.depth, sensor: c.sensor, points: c.points };
 }

@@ -1,7 +1,7 @@
 import { EventBus } from '../events/EventBus';
 import { Body } from './Body';
 import { BroadPhase } from './BroadPhase';
-import { collide, type Manifold } from './collide';
+import { collide, emptyManifold, type Manifold } from './collide';
 import { Contact } from './Contact';
 import { ContactSolver, type SolverSettings } from './ContactSolver';
 import { info, setGround } from './contactReport';
@@ -10,10 +10,11 @@ import { castRay } from './raycast';
 import type { BodyOptions, ContactInfo, PhysicsEvents, RayHit, RaycastOptions } from './types';
 
 /**
- * A rigid-body world for platformers and physics toys: dynamic, static and kinematic circles and boxes that never
- * rotate, stepped at a fixed dt (`physicsSystem` runs it as a `fixed` system). Each step: forces and gravity
- * (semi-implicit Euler), broad phase, narrow phase, sequential impulses with warm starting, then positions, then
- * overlap removed by moving positions. Fast bodies are handled by sub-stepping, not swept tests.
+ * A rigid-body world for platformers and physics toys: dynamic, static and kinematic circles, boxes and convex
+ * polygons, turned by contacts when made with `rotates: true`, stepped at a fixed dt (`physicsSystem` runs it as a
+ * `fixed` system). Each step: forces and gravity (semi-implicit Euler), broad phase, narrow phase, sequential impulses
+ * with warm starting, then positions, then overlap removed by moving positions. Fast bodies are handled by
+ * sub-stepping, not swept tests.
  *
  * Not deterministic across machines: the solver's results depend on body order and floating point, which is fine for
  * a single player's world but not for one a server must replay (use `net/movement` for that).
@@ -29,7 +30,7 @@ export class PhysicsWorld {
   private readonly solver: ContactSolver;
   private readonly contacts = new Map<number, Contact>();
   private readonly active: Contact[] = [];
-  private readonly manifold: Manifold = { nx: 0, ny: 0, depth: 0 };
+  private readonly manifold = emptyManifold();
   private readonly removals: Body[] = [];
   private readonly settings: SolverSettings;
   private readonly velocityIterations: number;
@@ -132,12 +133,14 @@ export class PhysicsWorld {
       for (const b of this.list) {
         b.prevX = b.x;
         b.prevY = b.y;
+        b.prevAngle = b.angle;
       }
       const n = this.substepsFor(dt);
       for (let i = 0; i < n; i++) this.substep(dt / n);
       for (const b of this.list) {
         b.fx = 0;
         b.fy = 0;
+        b.torque = 0;
       }
       if (this.allowSleep) this.updateSleep(dt);
     } finally {
@@ -173,7 +176,8 @@ export class PhysicsWorld {
     for (const b of this.list) {
       if (!b.moving) continue;
       const g = b.isDynamic ? Math.hypot(gx, gy) * Math.abs(b.gravityScale) * dt : 0;
-      const speed = Math.min(this.maxSpeed, Math.hypot(b.vx, b.vy) + g);
+      // a turning body's corners sweep too
+      const speed = Math.min(this.maxSpeed, Math.hypot(b.vx, b.vy) + g + Math.abs(b.angularVelocity) * b.maxExtent);
       worst = Math.max(worst, (speed * dt) / Math.max(0.5, b.minHalfExtent));
     }
     return Math.min(this.maxSubsteps, Math.max(1, Math.ceil(worst)));
@@ -197,6 +201,13 @@ export class PhysicsWorld {
         b.vx *= k;
         b.vy *= k;
       }
+      if (b.invInertia > 0) {
+        b.angularVelocity += b.torque * b.invInertia * h;
+        if (b.angularDamping > 0) b.angularVelocity /= 1 + b.angularDamping * h;
+        // no corner faster than the speed limit
+        const maxW = this.maxSpeed / Math.max(1, b.maxExtent);
+        if (Math.abs(b.angularVelocity) > maxW) b.angularVelocity = Math.sign(b.angularVelocity) * maxW;
+      }
     }
     this.broad.rebuild(this.list);
     this.active.length = 0;
@@ -207,6 +218,7 @@ export class PhysicsWorld {
       if (!b.moving) continue;
       b.x += b.vx * h;
       b.y += b.vy * h;
+      if (b.rotates) b.angle += b.angularVelocity * h;
     }
     for (let i = 0; i < this.positionIterations; i++) this.solver.solvePositions(this.active);
     for (const b of this.list) if (b.moving) b.updateBounds();
@@ -228,20 +240,9 @@ export class PhysicsWorld {
       c = new Contact(a, b, key);
       this.contacts.set(key, c);
     }
-    if (c.seenSub !== this.subCount - 1) {
-      // not touching on the last sub-step: nothing to warm-start from
-      c.jn = 0;
-      c.jt = 0;
-    }
+    this.takeManifold(c, m, c.seenSub === this.subCount - 1);
     c.seenSub = this.subCount;
     c.seenStep = this.stepCount;
-    c.nx = m.nx;
-    c.ny = m.ny;
-    c.depth = m.depth;
-    c.ax0 = a.x;
-    c.ay0 = a.y;
-    c.bx0 = b.x;
-    c.by0 = b.y;
     if (sensor) {
       c.enabled = false;
       return;
@@ -250,6 +251,55 @@ export class PhysicsWorld {
     c.enabled = this.preSolve ? this.preSolve(c) !== false : true;
     if (c.enabled) this.active.push(c);
   };
+
+  /**
+   * Copies the narrow phase's points into the contact, carrying each point's impulses over from the last sub-step
+   * when the same feature touches again (`warm`: the pair touched on the last sub-step).
+   */
+  private takeManifold(c: Contact, m: Manifold, warm: boolean): void {
+    const a = c.a;
+    const b = c.b;
+    let j0n = 0;
+    let j0t = 0;
+    let j1n = 0;
+    let j1t = 0;
+    let id0 = -1;
+    let id1 = -1;
+    if (warm) {
+      if (c.count > 0) {
+        id0 = c.pts[0].id;
+        j0n = c.pts[0].jn;
+        j0t = c.pts[0].jt;
+      }
+      if (c.count > 1) {
+        id1 = c.pts[1].id;
+        j1n = c.pts[1].jn;
+        j1t = c.pts[1].jt;
+      }
+    }
+    c.nx = m.nx;
+    c.ny = m.ny;
+    c.depth = m.depth;
+    c.count = m.count;
+    for (let i = 0; i < m.count; i++) {
+      const p = c.pts[i]!;
+      const id = m.id[i]!;
+      p.x = m.px[i]!;
+      p.y = m.py[i]!;
+      p.depth = m.pd[i]!;
+      p.id = id;
+      p.jn = id === id0 ? j0n : id === id1 ? j1n : 0;
+      p.jt = id === id0 ? j0t : id === id1 ? j1t : 0;
+      const dax = p.x - a.x;
+      const day = p.y - a.y;
+      p.lax = a.cos * dax + a.sin * day;
+      p.lay = -a.sin * dax + a.cos * day;
+      const dbx = p.x - b.x;
+      const dby = p.y - b.y;
+      p.lbx = b.cos * dbx + b.sin * dby;
+      p.lby = -b.sin * dbx + b.cos * dby;
+    }
+  }
 
   /** A sleeping body wakes when something meets it faster than the sleep speed (a kinematic platform always does). */
   private wakeOnImpact(a: Body, b: Body): void {
@@ -264,7 +314,8 @@ export class PhysicsWorld {
     const s2 = this.sleepSpeed * this.sleepSpeed;
     for (const b of this.list) {
       if (!b.isDynamic || !b.awake) continue;
-      if (b.vx * b.vx + b.vy * b.vy > s2 || b.fx !== 0 || b.fy !== 0) {
+      const spin = b.angularVelocity * b.maxExtent;
+      if (b.vx * b.vx + b.vy * b.vy + spin * spin > s2 || b.fx !== 0 || b.fy !== 0 || b.torque !== 0) {
         b.restTime = 0;
         continue;
       }
@@ -273,6 +324,7 @@ export class PhysicsWorld {
         b.awake = false;
         b.vx = 0;
         b.vy = 0;
+        b.angularVelocity = 0;
       }
     }
   }

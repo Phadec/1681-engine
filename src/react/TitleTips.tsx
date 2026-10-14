@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Tooltip } from './Tooltip';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 export interface TitleTipsProps {
   /** How long the pointer rests on an element before its tip shows (default 350 ms). */
@@ -19,6 +19,7 @@ type Tip = { text: string; x: number; y: number };
  * events, because a disabled button fires only those. Desktop only: a touch screen never showed a title.
  */
 export function TitleTips({ delayMs = 350, root, className }: TitleTipsProps) {
+  const cx = useCx();
   const ui = useUi();
   const [tip, setTip] = useState<Tip | null>(null);
 
@@ -101,7 +102,7 @@ export function TitleTips({ delayMs = 350, root, className }: TitleTipsProps) {
   if (!tip) return null;
   return (
     <Tooltip x={tip.x} y={tip.y} {...(className ? { className } : {})}>
-      <div className="e1681-title-tip">{tip.text}</div>
+      <div className={cx('e1681-title-tip')}>{tip.text}</div>
     </Tooltip>
   );
 }

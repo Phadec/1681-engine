@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lobby · 1681 Engine</title>
+    <style>
+      body { margin: 0; background: #0b0910; color: #d8d0e8; font: 14px monospace; }
+      #app { min-height: 100vh; }
+      .lobby { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; align-items: flex-start; }
+      .row { display: flex; gap: 8px; align-items: center; margin: 6px 0; flex-wrap: wrap; }
+      .list { list-style: none; padding: 0; margin: 8px 0; }
+      .list li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #ffffff14; }
+      .muted { opacity: 0.6; }
+      .chat { height: 120px; overflow: auto; background: #00000040; padding: 6px; margin: 6px 0; }
+      .error { color: #ff8a8a; }
+      input { font: inherit; background: #1d242e; color: inherit; border: 1px solid #ffffff30; padding: 4px 6px; }
+      button { font: inherit; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

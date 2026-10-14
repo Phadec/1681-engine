@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { pixelFit } from './placement';
+import { useCx } from './UiProvider';
 
 export interface PixelImageProps {
   src: string;
@@ -20,10 +21,11 @@ export interface PixelImageProps {
  * it has loaded and been measured, so it never flashes at the wrong size.
  */
 export function PixelImage({ src, width, height, upscaled = 1, maxScale, alt = '', className }: PixelImageProps) {
+  const cx = useCx();
   const [art, setArt] = useState<{ src: string; w: number; h: number } | null>(null);
   const size = art?.src === src ? pixelFit(art.w, art.h, width, height, maxScale) : null;
   return (
-    <span className={className ? `e1681-pixel-image ${className}` : 'e1681-pixel-image'} style={{ width, height }}>
+    <span className={cx(className ? `e1681-pixel-image ${className}` : 'e1681-pixel-image')} style={{ width, height }}>
       <img
         src={src}
         alt={alt}

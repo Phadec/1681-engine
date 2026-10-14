@@ -215,7 +215,7 @@ export class LevelScene extends Scene {
     if (!plank) return true;
     const other = c.other(plank);
     if (other === this.hero.body && this.hero.dropping) return false;
-    const halfH = other.shape.kind === 'box' ? other.shape.halfHeight : other.shape.radius;
+    const halfH = other.maxY - other.y; // how far its feet reach below its centre
     return other.prevY + halfH <= plank.minY + 1 && other.vy >= -1;
   }
 

@@ -54,6 +54,20 @@ land inside the overlay's scaled box. Its other settings:
 The overlay's root lets presses through to the canvas. Each component stops its own presses from reaching the world (a
 `Panel` stops `pointerdown`), and a `Modal`'s backdrop takes every press behind it.
 
+## A game's own class names
+
+A game that already has a stylesheet for its own controls need not rewrite it to take the kit: `classNames` hangs its
+names beside the kit's on every element, keyed by the kit's name without the `e1681-` prefix, states included.
+
+```tsx
+<UiProvider classNames={{ tabs: 'tabs', tab: 'tab', button: 'btn', split: 'split-pane', select: 'pixel-select', picked: 'active' }}>
+```
+
+A tab then renders `class="e1681-tab tab active"`, and the game's `.tabs .tab.active` rules style it as before. Leave
+`injectBaseCss()` out when the game's stylesheet covers everything, and add only the few structural rules its own
+markup never needed (a dialog's `position: fixed`, the select list hidden while it is `measuring`). `useCx()` gives a
+game's own components the same joiner.
+
 ## Theming
 
 Everything is themed by custom properties set on `:root` (or any ancestor). Frames are 9-slice `border-image`s the

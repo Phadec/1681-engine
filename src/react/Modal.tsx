@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SCROLL_CLASS, useFitToViewport } from './useFitToViewport';
-import { useUi } from './UiProvider';
+import { useUi, useCx } from './UiProvider';
 
 export interface ModalProps {
   /** Esc, or a press on the backdrop. */
@@ -24,6 +24,7 @@ export interface ModalProps {
  * not also close the window underneath or reach the game's keys.
  */
 export function Modal({ onCancel, onConfirm, width, role = 'dialog', label, className, children, actions }: ModalProps) {
+  const cx = useCx();
   const ui = useUi();
   const ref = useRef<HTMLDivElement>(null);
   useFitToViewport(ref, { enabled: true, ...(width !== undefined ? { width } : {}) });
@@ -42,18 +43,18 @@ export function Modal({ onCancel, onConfirm, width, role = 'dialog', label, clas
 
   const target = ui.portal();
   const box = (
-    <div className="e1681-backdrop" onPointerDown={(e) => e.stopPropagation()} onClick={onCancel}>
+    <div className={cx('e1681-backdrop')} onPointerDown={(e) => e.stopPropagation()} onClick={onCancel}>
       <div
         ref={ref}
-        className={`e1681-dialog e1681-frame${className ? ` ${className}` : ''}`}
+        className={cx(`e1681-dialog e1681-frame${className ? ` ${className}` : ''}`)}
         role={role}
         aria-modal="true"
         aria-label={label}
         style={{ width }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`e1681-dialog-body ${SCROLL_CLASS}`}>{children}</div>
-        {actions !== undefined && <div className="e1681-dialog-actions">{actions}</div>}
+        <div className={cx(`e1681-dialog-body ${SCROLL_CLASS}`)}>{children}</div>
+        {actions !== undefined && <div className={cx('e1681-dialog-actions')}>{actions}</div>}
       </div>
     </div>
   );
