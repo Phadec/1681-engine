@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, test } from 'vitest';
 import { DomOverlay } from '../../src/ui/dom/DomOverlay';
 import { DomWorldAnchors } from '../../src/ui/dom/DomWorldAnchors';
 import { InputShield } from '../../src/ui/dom/InputShield';
+import { safeAreaInsets } from '../../src/mobile/screen';
 
 let host: HTMLDivElement;
 let canvas: HTMLCanvasElement;
@@ -198,4 +199,11 @@ test('a still anchor writes no style; a scaled overlay places in its own units; 
     anchors.destroy();
     ticker.destroy();
   });
+});
+
+test('the safe area reads as numbers (zero without a notch) and leaves no probe behind', () => {
+  const before = document.body.children.length;
+  const insets = safeAreaInsets();
+  expect(insets).toEqual({ top: 0, right: 0, bottom: 0, left: 0 });
+  expect(document.body.children.length).toBe(before);
 });

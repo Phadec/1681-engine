@@ -30,7 +30,8 @@ export default capacitorConfig({
 });
 ```
 
-`capacitorConfig` gives a game's defaults rather than a web page's:
+`capacitorConfig` gives a game's defaults rather than a web page's (its keys checked against Capacitor 8's
+`CapacitorConfig`):
 
 - served from `https://localhost` on Android, with no plain-http requests, so cookies, `crypto.subtle` and service
   workers behave as on the web;
