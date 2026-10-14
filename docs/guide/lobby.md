@@ -8,6 +8,8 @@ screen on the [React kit](react.md), with five bots keeping the queue busy.
 
 ## The server
 
+`LobbyHost` runs on Node 22 or later (like the netcode's `Room`); the client side runs in any browser.
+
 ```ts
 import { WebSocketServer } from 'ws';
 import { LobbyHost } from '1681-engine';

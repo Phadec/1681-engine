@@ -95,7 +95,10 @@ this.world.addSystem(
 ```
 
 `stepMover` is deterministic: the same steps give the same position on every machine, so a server can run it as the
-authority and a client can predict with it. Systems run in the order added; one that throws is reported on
+authority and a client can predict with it. Its numbers are the game's: the tile size and the body's half extents are
+the grid's (`createCollisionGrid(w, h, tileSize, solid, { bodyHalfWidth, bodyHalfHeight })`, defaulting to
+`BODY_HALF_WIDTH` × `BODY_HALF_HEIGHT`), and `MovementParams` may name another `dashFlag` bit or a `stepDt` (defaults
+`INPUT_FLAG_DASH` and `INPUT_STEP_DT`, 1/60 s). Systems run in the order added; one that throws is reported on
 `engine.events` and the others still run.
 
 ### Which walk to use
@@ -239,7 +242,8 @@ snapshots. Each client predicts its own body (no lag on its own keys) and draws 
 between snapshots. Because movement is deterministic, a prediction replayed on the server's word lands exactly where
 it was: in practice the server never has to correct it.
 
-**Server** (Node, any WebSocket library; `ws` here):
+**Server** (Node 22 or later, any WebSocket library; `ws` here — `Room`, `RoomHost` and `LobbyHost` on a server need
+Node 22+, while the browser side has no Node requirement at all):
 
 ```ts
 import { WebSocketServer } from 'ws';
@@ -274,6 +278,12 @@ conn.events.on('snapshot', (s) => {
 ```
 
 Share the map and `MovementParams` between server and client (one module both import), or predictions will disagree.
+
+`Connection` reconnects with backoff after a drop. Name the close codes your server uses to say "do not come back"
+(kicked, banned, an outdated client) in `fatalCloseCodes`, and they end the session instead of looping. A phone freezes
+a background tab, and the socket it comes back to may still say it is open and be dead: `resumeProbeMs` pings when the
+app returns (`onAppResume`) and drops and reconnects a socket that does not answer in time. `timeoutSignal(ms)` is
+`AbortSignal.timeout` for a `fetch`, with a stand-in on browsers that lack it (iOS before 16).
 `Room` refuses input no client sends (NaN, axes past 1, floods), never runs more than a few steps a tick for one
 player, and `RoomHost` disconnects whoever keeps sending nonsense. [`examples/multiplayer`](/examples#multiplayer)
 is the whole thing: `npm run example:server`, then open it in two tabs.

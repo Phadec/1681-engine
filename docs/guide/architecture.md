@@ -35,7 +35,7 @@ frame, so without the guard one bad frame stops the game for good.
 | `light/` | `core` | `LightLayer` |
 | `fx/` | — (`FloatingText`: `core`) | hit-stop and recoil curves, view culling, pooled floating text |
 | `audio/` | Web Audio | `sound`, synth, sample bank, `music` in channels, `Footsteps` |
-| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock` |
+| `input/`, `platform/` | DOM | `Actions`, keyboard, sticks, touch detection, `Keymap` rebinding, `AimGesture`, `TargetLock`, `onAppResume`, `timeoutSignal` |
 | `ambient/` | `core` | `DayClock`, `weatherAt`, `WeatherLayer`, `ColorGrade` |
 | `parallax/` | `core` | `Parallax`, `ParallaxLayer` (scenery scrolling at a share of the camera's travel), pure `parallaxMath` |
 | `particles/` | `core`, pixi.js | `Emitter` on a `ParticleContainer`, `ParticleSim`, a shared `ParticleBudget` |
@@ -47,7 +47,7 @@ frame, so without the guard one bad frame stops the game for good.
 | `diagnostics/`, `debug/` | `core`, `engine` | context loss, boot watch, frame sampling, error capture; `DebugOverlay` |
 | `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, focus, the pure layout maths, the DOM/React bridge |
 | `react/` | `ui` (layout maths, `createStore`), `platform`, React 19 (optional peer) | the React kit (`1681-engine/react`): `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`, `TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, `baseCss` themed by custom properties |
-| `net/` | — (pure; `Connection`: WebSocket) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
+| `net/` | — (pure; `Connection`: WebSocket, `platform/appResume`) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
 | `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |
 
 The core never imports `pixel/`, and nothing outside `react/` imports React or the kit; `src/architecture.test.ts`

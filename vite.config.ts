@@ -10,7 +10,11 @@ export default defineConfig({
   build: {
     target: 'es2022',
     outDir: 'dist',
-    sourcemap: true,
+    // no source maps in the package: they were 1.8 MB of its 2.9 MB unpacked, pointed at a src/ that is not published
+    // (so useful only through their embedded copy of it), and the barrel entries' maps were empty. The modules stay
+    // one file each with their whitespace kept, readable in a debugger as they are; ENGINE_SOURCEMAP=1 builds maps for
+    // local work.
+    sourcemap: process.env.ENGINE_SOURCEMAP === '1',
     lib: {
       entry: { '1681-engine': resolve(import.meta.dirname, 'src/index.ts'), pixel: resolve(import.meta.dirname, 'src/pixel/index.ts'), ui: resolve(import.meta.dirname, 'src/ui/index.ts'), react: resolve(import.meta.dirname, 'src/react/index.ts'), postfx: resolve(import.meta.dirname, 'src/postfx/index.ts') },
       formats: ['es'],
