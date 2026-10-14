@@ -45,7 +45,7 @@ frame, so without the guard one bad frame stops the game for good.
 | `transitions/` | `engine`, `core` | `transitionTo` with fade, crossfade and dithered wipe, `Letterbox` |
 | `i18n/` | — | `Translator`, `formatMessage`, `extractStrings` |
 | `diagnostics/`, `debug/` | `core`, `engine` | context loss, boot watch, frame sampling, error capture; `DebugOverlay` |
-| `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, focus, the pure layout maths, the DOM/React bridge |
+| `ui/` | `core`, DOM | the UI module (`1681-engine/ui`): canvas widgets, rich text, focus, the pure layout maths, the DOM/React bridge |
 | `react/` | `ui` (layout maths, `createStore`), `platform`, React 19 (optional peer) | the React kit (`1681-engine/react`): `Panel`, `TabStrip`, `SplitPane`, `Select`, `Tooltip`, `TitleTips`, `ConfirmDialog`, `ChoiceDialog`, `Slider`, `PixelImage`, `Glyph`, `UiProvider`, `useStore`, `baseCss` themed by custom properties |
 | `net/` | — (pure; `Connection`: WebSocket, `platform/appResume`) | movement, snapshot codec, cadence, server clock, the netcode protocol, `PredictedMover`, `InterpolationBuffer`, `Room`, `RoomHost`, `Connection` |
 | `pixel/` | the core | the pixel-art module (`1681-engine/pixel`): `PixelLayer`, `pixelPaint`, `paintLayer`, ramps, `Darkness`, `Evaporation`, `NightShade`, `SwayProp`, `DitherVignette`, `nineSlice` |

@@ -38,6 +38,7 @@ export default defineConfig({
           items: [
             { text: 'Getting started', link: '/guide/getting-started' },
             { text: 'Architecture', link: '/guide/architecture' },
+            { text: 'Entities, components and systems', link: '/guide/ecs' },
           ],
         },
         {
@@ -45,6 +46,8 @@ export default defineConfig({
           items: [
             { text: 'Input', link: '/guide/input' },
             { text: 'Animation', link: '/guide/animation' },
+            { text: 'Skeleton rig', link: '/guide/rig' },
+            { text: 'Tilemaps', link: '/guide/tilemap' },
             { text: 'Physics', link: '/guide/physics' },
             { text: 'Navigation', link: '/guide/navigation' },
           ],
@@ -53,6 +56,7 @@ export default defineConfig({
           text: 'Looks',
           items: [
             { text: 'Particles', link: '/guide/particles' },
+            { text: 'Audio', link: '/guide/audio' },
             { text: 'Game feel', link: '/guide/game-feel' },
             { text: 'Time of day, weather and colour', link: '/guide/ambient' },
             { text: 'Tweens and parallax', link: '/guide/tweens-and-parallax' },
@@ -64,13 +68,17 @@ export default defineConfig({
           text: 'Interface',
           items: [
             { text: 'UI', link: '/guide/ui' },
+            { text: 'Rich text', link: '/guide/rich-text' },
             { text: 'React kit', link: '/guide/react' },
             { text: 'Localisation', link: '/guide/i18n' },
           ],
         },
         {
           text: 'Online',
-          items: [{ text: 'Lobby and matchmaking', link: '/guide/lobby' }],
+          items: [
+            { text: 'Netcode', link: '/guide/netcode' },
+            { text: 'Lobby and matchmaking', link: '/guide/lobby' },
+          ],
         },
         {
           text: 'Shipping',

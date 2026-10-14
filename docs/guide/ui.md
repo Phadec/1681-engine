@@ -3,7 +3,7 @@
 `1681-engine/ui` is the UI module, in three layers a game takes as much of as it wants:
 
 - **Canvas widgets**: a HUD and menus drawn by Pixi on the stage's screen layer, driven by mouse, touch, keyboard and
-  gamepad: `UiRoot`, `Panel`, `Button`, `Label`, `Bar`, `Slider`, `Toggle`, `Stack`, `ScrollView`, `List`, `Dialog`.
+  gamepad: `UiRoot`, `Panel`, `Button`, `Label`, `RichText`, `Bar`, `Slider`, `Toggle`, `Stack`, `ScrollView`, `List`, `Dialog`.
 - **Layout maths**: pure functions both the widgets and a DOM UI use (`stackLayout`, `anchorPosition`,
   `fitToViewport`, `placeTooltip`, …), tested under node.
 - **The DOM/React bridge**: an HTML layer laid exactly over the canvas (`DomOverlay`), elements that follow world
@@ -137,6 +137,7 @@ and a "press a key" rebind, by mouse, keyboard or gamepad.
 |---|---|
 | `Panel` | a framed box, the background of everything else; `blocksPointer` (default true) keeps presses on it from the world |
 | `Label` | text, `Label.text(value, style)` (a canvas `Text`, any font) or `Label.bitmap(…)` (a `BitmapLabel`, cheap to change) |
+| `RichText` | text with inline markup — colour, bold, size, icons — wrapped and aligned; see [Rich text](rich-text.md) |
 | `Button` | normal, hover, pressed, disabled and focus faces; `content` centred on it |
 | `Bar` | health or progress with a delayed drain: a loss shows as a trail that holds, then drains; `setValue(v, true)` drops it at once |
 | `Slider` | dragged anywhere on its track, stepped by left/right when focused; `min`, `max`, `step` |
