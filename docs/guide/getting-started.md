@@ -171,6 +171,22 @@ this.engine.stage.cameras.main.track(sprite, { lerp: 0.15, deadzoneWidth: 24, de
 
 `lerp` 1 locks on; lower follows softly, at the same pace at any frame rate. The camera stays inside its bounds.
 
+For pixel art the zoom should be whole, so every world pixel is the same number of screen pixels. `worldZoom` picks
+one from the canvas height (×2 on a phone held landscape, ×4 at 1080p; every threshold is an option), with one
+fractional step allowed, ×1.5, drawn at the renderer resolution `zoomResolution` gives so a world pixel is still whole
+backing pixels (3 at ×1.5); `Camera.snap` rounds to them:
+
+```ts
+import { worldZoom, zoomResolution, zoomSteps } from '1681-engine';
+
+const zoom = worldZoom(app.screen.height, settings.zoomOffset); // offsets from zoomSteps(height) for a settings menu
+app.renderer.resolution = zoomResolution(zoom, window.devicePixelRatio); // 1 unless the zoom is fractional
+camera.setZoom(zoom);
+camera.resolution = app.renderer.resolution;
+```
+
+`fitScale(w, h, boxW, boxH)` is the largest whole scale that fits content into a box (a map panel).
+
 ## 9. Pixel art
 
 Pixel-art tools live in their own module, so other games never ship them:
@@ -188,6 +204,11 @@ system('halo', 'frame', ({ now }) => {
   halo.present();
 });
 ```
+
+`pixelPaint` also has particles (`spark`, a twinkling star; `tail`, a shaded trail behind a moving point) and
+`pixelOn(g, x, y, angle)`, which places art pixels along and across a projectile's heading. Whatever a projectile
+leaves where it stops is a `paintLayer` at a fixed point:
+`paintLayer(stage, { at: () => hit, duration, depth: hit.y + 18, paint })`.
 
 It also holds `Darkness` (night and caves lit by dithered lamps), `Evaporation` (a body dissolving into its own
 pixels) and the colour ramps. [`examples/walk-room`](/examples#walk-room) uses them.

@@ -91,6 +91,11 @@ These came from profiling a real game on phones; keep to them when you add code.
 5. **Guard every step, report every error once.** See "One frame" above.
 6. **Lists walked every frame are never mutated while walked.** `World` defers destruction to the end of a run;
    `EventBus` replaces its listener list instead of editing it.
+7. **Keep additive sprites together.** A glow laid among bodies by depth switches the blend mode twice and splits the
+   batch; `blendLayer(stage)` is one container per stage (and name) where every `'add'` sprite goes, over the bodies.
+8. **Schedule without allocating.** `Clock` (`stage.time`) compacts its timers in place each frame, reports a timer
+   that throws to `onError` (the stage logs it once and tells `Stage.onCaught`) and drops it; `runDue` is the same
+   loop for a list of the game's own (an effect's later beats).
 
 ## ECS storage
 

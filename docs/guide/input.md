@@ -162,6 +162,28 @@ A drag scores bodies by how far off its line they stand, with distance as a ligh
 ahead beats a near one off to the side; nothing outside the cone (50° each side) is picked. `nearestTarget` breaks a
 tie on the lower id, so two clients pick alike. The callback decides what may be locked: monsters, a duel's opponent.
 
+### Drawing the aim: `PixelMarks`
+
+`1681-engine/pixel` draws the marks in world pixels: lock rings, ground ellipses at a body's feet, spot discs, and aim
+lines as rows of chevrons — never a solid lane, which at most angles is a staircase of pixels and reads as broken.
+Shapes are painted once per size and tone and only moved; chevrons come from a pool, repainted only when their
+heading bucket changes.
+
+```ts
+import { PixelMarks } from '1681-engine/pixel';
+
+const tone = { light: 0xffb0a0, rim: 0xff5a4a, dark: 0x2a0806, fill: 0xff4a3a };
+const marks = new PixelMarks(stage, { tones: { aim: { ...tone, light: 0xffe9a8, rim: 0xffc84a }, lock: tone }, depth: 10 });
+
+marks.begin();
+const target = lock.current(hero);
+if (target) marks.groundRing(target.x, target.y, 12, 6, 'lock');
+marks.chevrons(now, hero.x, hero.y, aimAngle, 12, 90, 4, 'aim'); // creeping along the line
+marks.end(); // hides whatever was shown last frame and not this one
+```
+
+The pixel shapes underneath are pure and exported: `ringPixels`, `discRuns`, `ellipsePixels`, `chevronPixels`.
+
 ## Touch detection
 
 `isTouchUi()` says whether the game is played with fingers, decided once per launch (`detectTouch`): a native shell,
