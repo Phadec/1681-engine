@@ -1,6 +1,9 @@
 import { ColorMatrixFilter, type BLEND_MODES, type Container } from 'pixi.js';
 import type { Stage } from './Stage';
 
+// `any[]` on purpose: TypeScript accepts a class expression extending a generic base (the mixin below) only when that
+// base's constructor takes a single rest parameter of type `any[]` (TS2545); `unknown[]` is refused. The base's own
+// constructor signature survives anyway through `TBase &`, so callers keep its typed arguments.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Ctor<T> = new (...args: any[]) => T;
 
