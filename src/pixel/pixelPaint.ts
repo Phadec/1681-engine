@@ -293,3 +293,6 @@ export function debris(g: Graphics, x: number, y: number, count: number, speed: 
   }
 }
 
+
+// sparks, trails and flight frames live in their own file; a cycle with it is safe, since neither runs the other at load
+export { spark, tail, pixelOn, type FlightPixel } from './pixelParticles';
