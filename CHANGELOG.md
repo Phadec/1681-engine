@@ -3,6 +3,17 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.1
+
+### Added
+
+- **Pixel-perfect world**: `Stage.pixelPerfect` draws the world layer into a texture of one texel per world pixel,
+  its origin on a whole world pixel, and shows it at the camera's zoom moved by the scroll's fraction, so turned,
+  scaled and between-pixels art lands on one grid while the camera still glides by backing pixels (`PixelGrid`,
+  `gridPlacement`). Text made by `add.text`/`add.label` is lifted onto a layer at screen resolution over the world,
+  following its container's transform, visibility and alpha (`SharpText`; `Stage.keepSharp` for other text).
+  `Camera.snapRoot` lands an object's root on whole world pixels while it is on, and on `snap` otherwise.
+
 ## 0.6.0
 
 ### Added

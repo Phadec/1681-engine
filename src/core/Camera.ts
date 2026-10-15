@@ -36,6 +36,8 @@ export class Camera {
   resolution = 1;
   /** Lands the view on whole backing pixels (pixel art); off, the world moves smoothly between them. */
   roundPixels = false;
+  /** The world is drawn on its own pixel grid (`Stage.pixelPerfect`): `snapRoot` lands on whole world pixels. Set by the stage. */
+  pixelGrid = false;
   scrollX = 0;
   scrollY = 0;
   width = 0;
@@ -75,6 +77,15 @@ export class Camera {
   snap(v: number): number {
     const k = this.zoom * this.resolution;
     return Math.round(v * k) / k;
+  }
+
+  /**
+   * Where an object's root lands (a body, and whatever is laid over one): a whole world pixel while the world is drawn
+   * on its own grid (`Stage.pixelPerfect`), else `snap`. One rule for every root, so a body, what it holds and what
+   * points at it fall on the same pixel; children keep whole-pixel offsets from it.
+   */
+  snapRoot(v: number): number {
+    return this.pixelGrid ? Math.round(v) : this.snap(v);
   }
 
   setBounds(x: number, y: number, width: number, height: number): this {

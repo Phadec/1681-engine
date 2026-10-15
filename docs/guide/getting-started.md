@@ -191,6 +191,17 @@ camera.resolution = app.renderer.resolution;
 
 `fitScale(w, h, boxW, boxH)` is the largest whole scale that fits content into a box (a map panel).
 
+A whole zoom still lets a sprite drawn turned, scaled or between two world pixels show pixels of another size
+("mixels"). `stage.pixelPerfect = true` draws the world into a texture of one texel per world pixel and scales that up
+instead, moved by the scroll's fraction so the camera still glides; text made by `add.text` and `add.label` stays at
+screen resolution, drawn over the world (`stage.keepSharp(obj)` for text made another way). Place the roots of moving
+things with `camera.snapRoot(x)`, which lands on whole world pixels while it is on:
+
+```ts
+stage.pixelPerfect = true; // any time; it takes effect on the next frame
+hero.position.set(camera.snapRoot(body.x), camera.snapRoot(body.y));
+```
+
 ## 9. Pixel art
 
 Pixel-art tools live in their own module, so other games never ship them:

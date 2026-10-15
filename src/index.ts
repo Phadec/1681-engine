@@ -52,6 +52,9 @@ export { TimelineBuilder, type TimelineProps, type TimelineTweenOptions } from '
 export type { TimelinePosition } from './core/timelinePlace';
 export { easeByName, type EaseFn } from './core/eases';
 export { ObjectFactory } from './core/ObjectFactory';
+export { PixelGrid } from './core/PixelGrid';
+export { SharpText } from './core/SharpText';
+export { gridPlacement, type GridPlacement } from './core/gridPlacement';
 export { Graphics, type Vec2 } from './core/Graphics';
 export { Image } from './core/Image';
 export { solidSilhouette, fillSolid, clearSilhouettes } from './core/silhouette';

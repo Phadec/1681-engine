@@ -2,6 +2,7 @@ import { Container, type Application } from 'pixi.js';
 import { Camera } from './Camera';
 import { Clock } from './Clock';
 import { ObjectFactory } from './ObjectFactory';
+import { PixelGrid } from './PixelGrid';
 import { Pointer } from './Pointer';
 import type { TextureRegistry } from './TextureRegistry';
 import { Tweener } from './Tweener';
@@ -21,6 +22,15 @@ export abstract class Stage {
   readonly time = new Clock();
   readonly cameras: { main: Camera };
   readonly input: { activePointer: Pointer };
+  /**
+   * Pixel-perfect: the world drawn one texel to a world pixel and scaled up by the camera's zoom (`PixelGrid`), so turned,
+   * scaled and between-pixels art lands on one grid; text made by `add.text`/`add.label` stays at screen resolution.
+   * Off (the default), the world is drawn straight at the zoom. Takes effect on the next frame; may be switched any time.
+   */
+  pixelPerfect = false;
+  private readonly grid: PixelGrid;
+  /** Whether the grid drew last frame, so the frame it is switched off still takes it down. */
+  private gridLive = false;
   private readonly resizeListeners: (() => void)[] = [];
   private lastWidth = 0;
   private lastHeight = 0;
@@ -32,6 +42,7 @@ export abstract class Stage {
     app.stage.addChild(this.world, this.screen);
     this.cameras = { main: new Camera(this.world, this.screen) };
     this.input = { activePointer: new Pointer(app.canvas) };
+    this.grid = new PixelGrid(app, this.world);
     // a timer's throw is a fault like any guarded step's: logged once and told to `onCaught`
     this.time.onError = (err) => this.caught('timers', err);
     this.syncSize();
@@ -72,6 +83,19 @@ export abstract class Stage {
     this.guard('tweens', () => this.tweens.update(delta));
     this.guard('timers', () => this.time.update(now));
     this.guard('camera', () => this.cameras.main.apply(now));
+    // only while it is on, and the frame it is switched off
+    if (this.pixelPerfect || this.gridLive) {
+      this.gridLive = this.pixelPerfect;
+      this.guard('pixel grid', () => this.grid.render(this.cameras.main, this.pixelPerfect));
+    }
+  }
+
+  /**
+   * Keeps a piece of text made outside `add.text`/`add.label` (put on the world any way) at screen resolution while the
+   * world is pixel-perfect. Those two do it themselves.
+   */
+  keepSharp(obj: Container): void {
+    this.grid.text.track(obj);
   }
 
   private readonly reported = new Set<string>();
@@ -109,6 +133,8 @@ export abstract class Stage {
     this.tweens.clear();
     this.time.clear();
     this.input.activePointer.destroy();
+    // the labels go back to their containers first, so the world's destroy takes them
+    this.grid.destroy(this.cameras.main);
     this.world.destroy({ children: true, context: true });
     this.screen.destroy({ children: true, context: true });
   }

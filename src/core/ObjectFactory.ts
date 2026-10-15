@@ -48,12 +48,16 @@ export class ObjectFactory {
   }
 
   text(x: number, y: number, text: string, style: TextStyle): Text {
-    return this.attach(new Text(x, y, text, style));
+    const t = this.attach(new Text(x, y, text, style));
+    this.stage.keepSharp(t);
+    return t;
   }
 
   /** A bitmap-font label (`BitmapLabel`): cheap to change, for text rewritten many times a second. */
   label(x: number, y: number, text: string, fontFamily: string, size: number, color: string, stroke: string, strokeWidth: number, resolution: number, glyphs = ''): BitmapLabel {
-    return this.attach(new BitmapLabel(x, y, text, fontFamily, size, color, stroke, strokeWidth, resolution, glyphs));
+    const l = this.attach(new BitmapLabel(x, y, text, fontFamily, size, color, stroke, strokeWidth, resolution, glyphs));
+    this.stage.keepSharp(l);
+    return l;
   }
 
   /** Puts an object made elsewhere on the world layer, as the factory's own are (a `PixelLayer`, a custom class). */
