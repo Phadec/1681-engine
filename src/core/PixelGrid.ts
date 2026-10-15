@@ -5,7 +5,7 @@ import { SharpText } from './SharpText';
 
 /**
  * A pixel-perfect world (`Stage.pixelPerfect`): the world layer is taken off the stage and drawn each frame into a
- * texture of one texel per world pixel, whose origin sits on a whole world pixel, then shown at the camera's zoom and
+ * texture of one texel per world pixel (`Stage.pixelDensity` texels, when the art is finer), whose origin sits on a whole world pixel, then shown at the camera's zoom and
  * moved by the scroll's fraction, so the camera still glides one backing pixel at a time. Everything turned, scaled or
  * placed between pixels lands on the same grid as the rest of the art, so no pixel on screen is drawn at another size
  * ("mixels"); the world is also filled at 1/zoom² of the screen's pixels. Roots placed with `Camera.snapRoot` land on
@@ -30,7 +30,7 @@ export class PixelGrid {
   }
 
   /** Once a frame, after the camera wrote the world's transform and before Pixi draws the screen. */
-  render(cam: Camera, enabled: boolean): void {
+  render(cam: Camera, enabled: boolean, density = 1): void {
     if (enabled !== this.on) {
       if (enabled) this.enable(cam);
       else this.disable(cam);
@@ -40,7 +40,7 @@ export class PixelGrid {
     // where the camera put the world's origin on screen: the scroll rounded to a backing pixel, plus this frame's shake
     const origin = this.world.position;
     const at = gridPlacement(origin.x, origin.y, zoom, this.app.renderer.resolution, cam.width, cam.height);
-    const texture = this.fit(at.width, at.height);
+    const texture = this.fit(at.width, at.height, Math.max(1, Math.round(density)));
     this.transform.set(1, 0, 0, 1, -at.tx, -at.ty);
     this.app.renderer.render({ container: this.world, target: texture, clear: true, clearColor: [0, 0, 0, 0], transform: this.transform });
     const sprite = this.sprite!;
@@ -80,11 +80,15 @@ export class PixelGrid {
     if (!this.world.destroyed) stage.addChildAt(this.world, at);
   }
 
-  /** The texture at exactly this size, made again only when the screen or the zoom changed. */
-  private fit(w: number, h: number): RenderTexture {
-    if (this.texture && this.texture.width === w && this.texture.height === h) return this.texture;
+  /**
+   * The texture at exactly this size (world pixels) and density (texels to a world pixel), made again only when the
+   * screen, the zoom or the density changed.
+   */
+  private fit(w: number, h: number, density: number): RenderTexture {
+    const t = this.texture;
+    if (t && t.width === w && t.height === h && t.source.resolution === density) return t;
     this.texture?.destroy(true);
-    this.texture = RenderTexture.create({ width: w, height: h, resolution: 1, scaleMode: 'nearest', antialias: false });
+    this.texture = RenderTexture.create({ width: w, height: h, resolution: density, scaleMode: 'nearest', antialias: false });
     this.sprite!.texture = this.texture;
     return this.texture;
   }

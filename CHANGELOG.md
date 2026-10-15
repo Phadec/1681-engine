@@ -3,6 +3,13 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.2
+
+### Added
+
+- `Stage.pixelDensity`: texels of the pixel-perfect grid to a world pixel (1 by default). A game drawing characters at
+  two art pixels to a world pixel sets 2, and the grid keeps their detail instead of sampling them back down.
+
 ## 0.6.1
 
 ### Added

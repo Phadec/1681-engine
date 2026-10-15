@@ -28,6 +28,12 @@ export abstract class Stage {
    * Off (the default), the world is drawn straight at the zoom. Takes effect on the next frame; may be switched any time.
    */
   pixelPerfect = false;
+  /**
+   * Texels of the pixel-perfect grid to a world pixel (whole, 1 by default). A game whose characters are drawn finer
+   * than its world pixel (two art pixels to one) sets 2, so the grid keeps their detail; everything else still lands on
+   * that finer grid.
+   */
+  pixelDensity = 1;
   private readonly grid: PixelGrid;
   /** Whether the grid drew last frame, so the frame it is switched off still takes it down. */
   private gridLive = false;
@@ -86,7 +92,7 @@ export abstract class Stage {
     // only while it is on, and the frame it is switched off
     if (this.pixelPerfect || this.gridLive) {
       this.gridLive = this.pixelPerfect;
-      this.guard('pixel grid', () => this.grid.render(this.cameras.main, this.pixelPerfect));
+      this.guard('pixel grid', () => this.grid.render(this.cameras.main, this.pixelPerfect, this.pixelDensity));
     }
   }
 
