@@ -1,6 +1,6 @@
 {
   "name": "1681-engine",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A 2D game engine on PixiJS 8 for any art style: scenes and a fast ECS, a fixed-step loop, asset loading, Tiled maps, sprite animation, input actions, camera follow, audio and deterministic, server-replayable movement, plus Dither, an optional pixel-art module (pixel-perfect effects, dithered lighting).",
   "type": "module",
   "types": "./dist/types/index.d.ts",

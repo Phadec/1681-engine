@@ -6,6 +6,12 @@ interface Label {
   home: Container | null;
   /** Its stand-in on the label layer, carrying the home's place, visibility and alpha. */
   wrap: Container | null;
+  /**
+   * What was last laid on the stand-in — the matrix (a, b, c, d, tx, ty), alpha, depth and whether it showed — so a
+   * label whose home did not move costs no `setFromMatrix` (a decomposition with trigonometry, which also marks the
+   * stand-in's transform changed for Pixi): a town's standing NPC names took ~9% of a throttled frame every frame.
+   */
+  last: Float64Array | null;
 }
 
 /**
@@ -26,7 +32,7 @@ export class SharpText {
   constructor(private readonly world: Container) {}
 
   track(obj: Container): void {
-    this.labels.add({ obj, home: null, wrap: null });
+    this.labels.add({ obj, home: null, wrap: null, last: null });
     if (++this.sinceSweep >= 256) this.prune();
   }
 
@@ -45,6 +51,7 @@ export class SharpText {
         l.home = o.parent;
         l.wrap ??= this.layer.addChild(new Container());
         l.wrap.addChild(o);
+        l.last = null;
       }
       const home = l.home;
       const wrap = l.wrap;
@@ -55,7 +62,7 @@ export class SharpText {
         this.drop(l);
         continue;
       }
-      this.place(home, wrap, o);
+      this.place(l, home, wrap, o);
     }
   }
 
@@ -74,6 +81,7 @@ export class SharpText {
       wrap?.destroy();
       l.wrap = null;
       l.home = null;
+      l.last = null;
     }
   }
 
@@ -89,7 +97,7 @@ export class SharpText {
     this.layer.destroy({ children: true });
   }
 
-  private place(home: Container, wrap: Container, o: Container): void {
+  private place(l: Label, home: Container, wrap: Container, o: Container): void {
     const m = this.m.identity();
     let shown = true;
     let alpha = 1;
@@ -106,12 +114,24 @@ export class SharpText {
       m.prepend(c.localTransform);
       top = c;
     }
+    // a body's labels sort with the body; text laid on the world itself keeps its own depth
+    const z = home === this.world ? o.zIndex : top.zIndex;
+    const last = (l.last ??= new Float64Array(9).fill(NaN));
+    if (shown === (last[8] === 1) && (!shown || (last[0] === m.a && last[1] === m.b && last[2] === m.c && last[3] === m.d && last[4] === m.tx && last[5] === m.ty && last[6] === alpha && last[7] === z))) return;
+    last[8] = shown ? 1 : 0;
     wrap.visible = shown;
     if (!shown) return;
+    last[0] = m.a;
+    last[1] = m.b;
+    last[2] = m.c;
+    last[3] = m.d;
+    last[4] = m.tx;
+    last[5] = m.ty;
+    last[6] = alpha;
+    last[7] = z;
     wrap.setFromMatrix(m);
     wrap.alpha = alpha;
-    // a body's labels sort with the body; text laid on the world itself keeps its own depth
-    wrap.zIndex = home === this.world ? o.zIndex : top.zIndex;
+    wrap.zIndex = z;
   }
 
   private drop(l: Label): void {

@@ -3,6 +3,14 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.3
+
+### Changed
+
+- `SharpText` lays a label's stand-in again only when its home moved, hid, faded or changed depth: `setFromMatrix`
+  (a decomposition with trigonometry that also marks the transform changed for Pixi) ran for every label every frame,
+  and a town's standing NPC names took ~9% of a frame on a CPU throttled 6x.
+
 ## 0.6.2
 
 ### Added

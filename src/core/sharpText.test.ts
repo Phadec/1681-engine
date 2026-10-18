@@ -63,3 +63,37 @@ test('a destroyed container takes its label, and release puts the rest back', ()
   assert.equal(kept.parent, w);
   assert.equal(sharp.layer.children.length, 0);
 });
+
+test('a label whose home stands still is not laid again, and is the moment its home moves, hides or fades', () => {
+  const { w, body } = world();
+  const sharp = new SharpText(w);
+  const name = new Container();
+  body.addChild(name);
+  sharp.track(name);
+  sharp.sync({ x: 0, y: 0 }, 1);
+  const stand = name.parent!;
+  let laid = 0;
+  const setFromMatrix = stand.setFromMatrix.bind(stand);
+  stand.setFromMatrix = (m) => {
+    laid++;
+    return setFromMatrix(m);
+  };
+  for (let i = 0; i < 5; i++) sharp.sync({ x: i, y: i }, 2);
+  assert.equal(laid, 0);
+  body.position.set(41, 60);
+  sharp.sync({ x: 0, y: 0 }, 2);
+  assert.equal(laid, 1);
+  assert.equal(stand.x, 41);
+  body.visible = false;
+  sharp.sync({ x: 0, y: 0 }, 2);
+  assert.equal(stand.visible, false);
+  body.visible = true;
+  sharp.sync({ x: 0, y: 0 }, 2);
+  assert.equal(stand.visible, true);
+  body.alpha = 0.5;
+  sharp.sync({ x: 0, y: 0 }, 2);
+  assert.equal(stand.alpha, 0.5);
+  body.zIndex = 80;
+  sharp.sync({ x: 0, y: 0 }, 2);
+  assert.equal(stand.zIndex, 80);
+});
