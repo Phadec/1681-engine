@@ -34,3 +34,24 @@ test('a child already in place is not taken out and put back, so the structure s
   assert.equal(moved, 1);
   assert.deepEqual(g.list, [b, c, a]);
 });
+
+test('keepAbove and keepBelow move a child only when it is on the wrong side, so two pieces stop pushing each other', () => {
+  const { g, a, b, c } = three();
+  let moved = 0;
+  const remove = g.removeChild.bind(g);
+  g.removeChild = ((...children: Container[]) => {
+    moved++;
+    return remove(...children);
+  }) as typeof g.removeChild;
+  // b and c both want to be over a: with moveAbove they would swap every call, with keepAbove neither moves
+  for (let i = 0; i < 3; i++) {
+    g.keepAbove(b, a);
+    g.keepAbove(c, a);
+  }
+  assert.equal(moved, 0);
+  g.keepBelow(c, a);
+  assert.equal(moved, 1);
+  assert.deepEqual(g.list, [c, a, b]);
+  g.keepAbove(c, a);
+  assert.deepEqual(g.list, [a, c, b]);
+});

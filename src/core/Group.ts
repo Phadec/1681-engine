@@ -36,6 +36,24 @@ export class Group extends GameObject(Container) {
     return this;
   }
 
+  /**
+   * Keeps `child` drawn above `other`, anywhere above it: moved (directly above) only when it is below. What a weapon
+   * held over its body asks for. `moveAbove` from two pieces each wanting to sit *directly* above the same body (two
+   * blades, a fist on a hilt, a load) pushed the other out every frame, and every push rebuilt Pixi's instructions.
+   */
+  keepAbove(child: PixiContainer, other: PixiContainer): this {
+    if (child.parent !== this || other.parent !== this || child === other) return this;
+    if (this.getChildIndex(child) > this.getChildIndex(other)) return this;
+    return this.moveAbove(child, other);
+  }
+
+  /** Keeps `child` drawn below `other`, anywhere below it: moved (directly below) only when it is above (`keepAbove`). */
+  keepBelow(child: PixiContainer, other: PixiContainer): this {
+    if (child.parent !== this || other.parent !== this || child === other) return this;
+    if (this.getChildIndex(child) < this.getChildIndex(other)) return this;
+    return this.moveBelow(child, other);
+  }
+
   /** Puts `child` directly above `other` in the draw order; already there, it does nothing (see `moveBelow`). */
   moveAbove(child: PixiContainer, other: PixiContainer): this {
     if (child.parent !== this || other.parent !== this || child === other) return this;

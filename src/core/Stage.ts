@@ -1,6 +1,7 @@
 import { Container, type Application } from 'pixi.js';
 import { Camera } from './Camera';
 import { Clock } from './Clock';
+import { deferDepthSort, flushDepthSorts } from './depthSort';
 import { ObjectFactory } from './ObjectFactory';
 import { PixelGrid } from './PixelGrid';
 import { Pointer } from './Pointer';
@@ -46,6 +47,8 @@ export abstract class Stage {
     readonly textures: TextureRegistry,
   ) {
     app.stage.addChild(this.world, this.screen);
+    // the world sorts by depth once a frame, rebuilding Pixi's draw instructions only when the order changed
+    deferDepthSort(this.world);
     this.cameras = { main: new Camera(this.world, this.screen) };
     this.input = { activePointer: new Pointer(app.canvas) };
     this.grid = new PixelGrid(app, this.world);
@@ -89,6 +92,7 @@ export abstract class Stage {
     this.guard('tweens', () => this.tweens.update(delta));
     this.guard('timers', () => this.time.update(now));
     this.guard('camera', () => this.cameras.main.apply(now));
+    this.guard('depth', flushDepthSorts);
     // only while it is on, and the frame it is switched off
     if (this.pixelPerfect || this.gridLive) {
       this.gridLive = this.pixelPerfect;

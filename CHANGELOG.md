@@ -3,6 +3,22 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.7
+
+### Added
+
+- `Group.keepAbove` / `keepBelow`: keep a child on one side of another, moved only when it is on the wrong side. Two
+  pieces each placed *directly* above one body with `moveAbove` (two blades, a fist on a hilt) pushed each other out
+  every frame, and every push rebuilt Pixi's draw instructions.
+
+### Changed
+
+- The world layer sorts by depth once a frame (`deferDepthSort`, `flushDepthSorts`, run by `Stage.frame` after the
+  camera): a child's `zIndex` changing only notes the container, and the children are sorted — the render group's
+  structure marked changed — only when they are out of order. Pixi marked the structure changed at every `zIndex`
+  change, so a world sorted by its bodies' feet rebuilt every draw instruction every frame anything walked up or down
+  the screen. A container not handed over keeps Pixi's own behaviour.
+
 ## 0.6.6
 
 ### Added
