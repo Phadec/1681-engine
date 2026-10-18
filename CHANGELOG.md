@@ -3,6 +3,14 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.5
+
+### Changed
+
+- `Group.moveAbove` / `moveBelow` do nothing when the child is already directly above / below the other. Taking it out
+  and putting it back marked the render group's structure changed, so Pixi rebuilt its draw instructions that frame:
+  a game ordering a held weapon against its body every frame rebuilt them every frame.
+
 ## 0.6.3
 
 ### Changed
