@@ -3,6 +3,20 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.6
+
+### Added
+
+- `TextureRegistry.addView(key, page, x, y, w, h)`: a key that is one rect of another texture, on that texture's own
+  source (`CanvasTexture`'s `view`), so pieces swapped every few frames batch together.
+
+### Changed
+
+- `paintLifeArt` lays every piece of the ambient life (leaves, seeds, embers, motes, ash, butterflies, birds,
+  fireflies, smoke) on one page and registers each key as a view of it (`packShelves`). A canvas each made every flap
+  of a butterfly or puff of smoke a texture of another source, and Pixi rebuilt the world's draw instructions at each.
+  The keys and `LifeArt` are unchanged.
+
 ## 0.6.5
 
 ### Changed

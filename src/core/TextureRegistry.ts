@@ -19,26 +19,34 @@ export interface PackedFrame {
   anchor?: { x: number; y: number };
 }
 
-/** A canvas-backed texture with named frames; repaint the canvas, then `refresh()` to upload it. */
+/**
+ * A canvas-backed texture with named frames; repaint the canvas, then `refresh()` to upload it. Made with a `view`, it
+ * is one rect of another texture's canvas on that texture's own source (`TextureRegistry.addView`): small pieces
+ * swapped every few frames then batch together, where a source each made Pixi rebuild its draw instructions at every
+ * swap.
+ */
 export class CanvasTexture {
   readonly frames = new Map<string, Texture>();
   readonly source: CanvasSource;
   readonly whole: Texture;
+  private readonly owned: boolean;
 
   constructor(
     readonly key: string,
     readonly canvas: HTMLCanvasElement,
+    view?: { source: CanvasSource; frame: Rectangle },
   ) {
-    this.source = new CanvasSource({ resource: canvas, scaleMode: 'nearest' });
-    this.whole = new Texture({ source: this.source });
+    this.owned = !view;
+    this.source = view?.source ?? new CanvasSource({ resource: canvas, scaleMode: 'nearest' });
+    this.whole = view ? new Texture({ source: this.source, frame: view.frame }) : new Texture({ source: this.source });
   }
 
   get width(): number {
-    return this.canvas.width;
+    return this.owned ? this.canvas.width : this.whole.frame.width;
   }
 
   get height(): number {
-    return this.canvas.height;
+    return this.owned ? this.canvas.height : this.whole.frame.height;
   }
 
   get context(): CanvasRenderingContext2D {
@@ -87,7 +95,8 @@ export class CanvasTexture {
     for (const t of this.frames.values()) t.destroy();
     this.frames.clear();
     this.whole.destroy();
-    this.source.destroy();
+    // a view's source is its page's, freed with the page
+    if (this.owned) this.source.destroy();
   }
 }
 
@@ -184,6 +193,19 @@ export class TextureRegistry {
       }
     });
     return first;
+  }
+
+  /**
+   * Registers `key` as the rect (x, y, w, h) of the texture `page`, on the page's source: shown by `setTexture(key)`
+   * like any texture, and batched with every other view of that page. Null when the page is not registered.
+   */
+  addView(key: string, page: string, x: number, y: number, w: number, h: number): CanvasTexture | null {
+    const from = this.textures.get(page);
+    if (!from) return null;
+    this.remove(key);
+    const tex = new CanvasTexture(key, from.canvas, { source: from.source, frame: new Rectangle(x, y, w, h) });
+    this.textures.set(key, tex);
+    return tex;
   }
 
   createCanvas(key: string, width: number, height: number): CanvasTexture {

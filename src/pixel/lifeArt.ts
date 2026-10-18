@@ -115,18 +115,63 @@ export function puffPixels(frame: number, colors: readonly [string, string, stri
   return { w, h, px };
 }
 
-function paint(textures: TextureRegistry, key: string, w: number, h: number, pixels: readonly LifePixel[]): string {
-  if (textures.exists(key)) return key;
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  const g = c.getContext('2d')!;
-  for (const [x, y, color] of pixels) {
-    g.fillStyle = color;
-    g.fillRect(x, y, 1, 1);
+/** Width of the page the life's art is laid on. */
+const PAGE_W = 64;
+
+/**
+ * Where each of `sizes` goes on one page `width` wide: left to right, a new row below the tallest of the last when the
+ * next does not fit, one clear pixel between pieces (so nothing bleeds into a neighbour). Also the page's height.
+ */
+export function packShelves(sizes: readonly (readonly [w: number, h: number])[], width = PAGE_W): { at: [number, number][]; height: number } {
+  const at: [number, number][] = [];
+  let x = 0;
+  let y = 0;
+  let row = 0;
+  for (const [w, h] of sizes) {
+    if (x > 0 && x + w > width) {
+      x = 0;
+      y += row + 1;
+      row = 0;
+    }
+    at.push([x, y]);
+    x += w + 1;
+    row = Math.max(row, h);
   }
-  textures.addCanvas(key, c);
-  return key;
+  return { at, height: y + row };
+}
+
+interface Piece {
+  key: string;
+  w: number;
+  h: number;
+  pixels: readonly LifePixel[];
+}
+
+let pages = 0;
+
+/**
+ * Lays every piece not yet registered on one page and registers each under its own key as a view of it
+ * (`TextureRegistry.addView`). A butterfly flapping, a puff growing or a leaf turning swaps between frames of one
+ * source, which Pixi batches; a canvas each made it rebuild the world's draw instructions at every swap (2026-10-18).
+ */
+function layOut(textures: TextureRegistry, prefix: string, pieces: readonly Piece[]): void {
+  const todo = pieces.filter((p) => !textures.exists(p.key));
+  if (!todo.length) return;
+  const { at, height } = packShelves(todo.map((p) => [p.w, p.h]));
+  const c = document.createElement('canvas');
+  c.width = PAGE_W;
+  c.height = Math.max(1, height);
+  const g = c.getContext('2d')!;
+  todo.forEach((p, i) => {
+    const [ox, oy] = at[i]!;
+    for (const [x, y, color] of p.pixels) {
+      g.fillStyle = color;
+      g.fillRect(ox + x, oy + y, 1, 1);
+    }
+  });
+  const page = `${prefix}page${++pages}`;
+  textures.addCanvas(page, c);
+  todo.forEach((p, i) => textures.addView(p.key, page, at[i]![0], at[i]![1], p.w, p.h));
 }
 
 /**
@@ -136,6 +181,12 @@ function paint(textures: TextureRegistry, key: string, w: number, h: number, pix
 export function paintLifeArt(textures: TextureRegistry, colors: Partial<LifeColors> = {}, prefix = 'life_'): LifeArt {
   const c: LifeColors = { ...LIFE_COLORS, ...colors };
   const k = (name: string) => prefix + name;
+  // every piece is noted here and laid on one page at the end (`layOut`)
+  const pieces: Piece[] = [];
+  const paint = (_textures: TextureRegistry, key: string, w: number, h: number, pixels: readonly LifePixel[]): string => {
+    pieces.push({ key, w, h, pixels });
+    return key;
+  };
   // a leaf tumbling: lying flat, on its edge-ways tilt, and end-on
   const leaves = c.leaves.map(([lit, deep], t) => [
     paint(textures, k(`leaf_${t}_0`), 2, 1, [[0, 0, lit], [1, 0, deep]]),
@@ -175,5 +226,6 @@ export function paintLifeArt(textures: TextureRegistry, colors: Partial<LifeColo
     const { w, h, px } = puffPixels(f, c.smoke);
     puffs.push(paint(textures, k(`puff_${f}`), w, h, px));
   }
+  layOut(textures, prefix, pieces);
   return { leaves, seeds, embers, motes, ash, butterflies, bird, birdShadow, firefly, puffs };
 }
