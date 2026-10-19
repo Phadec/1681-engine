@@ -240,8 +240,11 @@ export class Camera {
     }
     this.world.scale.set(this.zoom);
     const k = this.zoom * this.resolution;
-    const sx = this.roundPixels ? Math.round(this.scrollX * k) / this.resolution : this.scrollX * this.zoom;
-    const sy = this.roundPixels ? Math.round(this.scrollY * k) / this.resolution : this.scrollY * this.zoom;
+    // on a pixel grid the scroll lands on whole world pixels too, the grid the roots are snapped to (`snapRoot`): left
+    // to glide a backing pixel at a time, the body the camera follows sat up to half a world pixel off it, a different
+    // half every frame, and a moving hero read as blurred (a PC at ×2 zoom, 2026-10-19)
+    const sx = this.pixelGrid ? Math.round(this.scrollX) * this.zoom : this.roundPixels ? Math.round(this.scrollX * k) / this.resolution : this.scrollX * this.zoom;
+    const sy = this.pixelGrid ? Math.round(this.scrollY) * this.zoom : this.roundPixels ? Math.round(this.scrollY * k) / this.resolution : this.scrollY * this.zoom;
     this.world.position.set(-sx + ox, -sy + oy);
     for (const f of this.followers) {
       f.scale.set(this.zoom);

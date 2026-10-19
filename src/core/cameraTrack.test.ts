@@ -81,3 +81,19 @@ test('clearBounds lets the view leave the old bounds', () => {
   c.clearBounds().setScroll(-50, -50);
   assert.deepEqual([c.scrollX, c.scrollY], [-50, -50]);
 });
+
+test('on a pixel grid the camera scrolls by whole world pixels, the grid its target is snapped to', () => {
+  const world = new Container();
+  const c = new Camera(world, new Container());
+  c.width = 320;
+  c.height = 180;
+  c.zoom = 2;
+  c.pixelGrid = true;
+  const hero = { x: 500.4, y: 300.7 };
+  c.track(hero);
+  c.apply(16);
+  // whole world pixels at ×2: the world layer moves by even screen pixels
+  assert.equal(Math.abs(world.position.x) % 2, 0);
+  assert.equal(Math.abs(world.position.y) % 2, 0);
+  assert.equal(c.snapRoot(hero.x), 500);
+});

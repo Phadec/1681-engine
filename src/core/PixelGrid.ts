@@ -5,8 +5,10 @@ import { SharpText } from './SharpText';
 
 /**
  * A pixel-perfect world (`Stage.pixelPerfect`): the world layer is taken off the stage and drawn each frame into a
- * texture of one texel per world pixel (`Stage.pixelDensity` texels, when the art is finer), whose origin sits on a whole world pixel, then shown at the camera's zoom and
- * moved by the scroll's fraction, so the camera still glides one backing pixel at a time. Everything turned, scaled or
+ * texture of one texel per world pixel (`Stage.pixelDensity` texels, when the art is finer), whose origin sits on a whole world pixel, then shown at the camera's zoom.
+ * The camera scrolls by whole world pixels meanwhile (`Camera.apply`), the grid the roots are snapped to: it glided a
+ * backing pixel at a time until 0.6.8, and the followed body, snapped to world pixels under it, jittered and read as
+ * blurred. Everything turned, scaled or
  * placed between pixels lands on the same grid as the rest of the art, so no pixel on screen is drawn at another size
  * ("mixels"); the world is also filled at 1/zoom² of the screen's pixels. Roots placed with `Camera.snapRoot` land on
  * whole world pixels meanwhile, and text stays at screen resolution (`SharpText`).
