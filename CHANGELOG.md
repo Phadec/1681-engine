@@ -3,6 +3,17 @@
 All notable changes to this package are written here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and versions follow [Semantic Versioning](https://semver.org/); before 1.0 a minor version may break the API.
 
+## 0.6.9
+
+### Fixed
+
+- `Darkness`: the light the player carries no longer blinks while the night deepens or lifts. Its radius swayed a few
+  per cent and was then painted at the nearest bucket (every 8 px past 24), so a radius standing near the line between
+  two buckets — as it does for a while at every dusk and dawn — was drawn a whole bucket larger and smaller by turns.
+  The carried light now holds its size, and keeps the bucket it had until the radius has moved three quarters of a step
+  past it (`stickyBucket`, `pixel/lightBucket.ts`), so a growing light takes each bucket once. A sheet with only the
+  carried light in it is no longer redrawn every 66 ms for the sway; flickering lamps are unchanged.
+
 ## 0.6.7
 
 ### Added

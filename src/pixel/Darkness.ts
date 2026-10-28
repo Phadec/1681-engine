@@ -1,6 +1,7 @@
 import { Container, RenderTexture, Sprite, Texture } from 'pixi.js';
 import type { Stage } from '../core/Stage';
 import { lightRadius, liveLights } from './lights';
+import { bucket, stickyBucket } from './lightBucket';
 import { isTouchUi } from '../platform/touch';
 
 /**
@@ -47,11 +48,6 @@ export const WARM_LIGHT = 0xffc27a;
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
 
-/**
- * Radii are painted at every second pixel up to 24 and every eighth above, so a shrinking flash reuses a few textures
- * (each new one is a canvas and an upload; one per pixel made the first flashes hitch).
- */
-const bucket = (r: number): number => (r <= 24 ? Math.max(2, Math.round(r / 2) * 2) : Math.round(r / 8) * 8);
 /** Every bucket a light can take, painted ahead one per task (`warm`), so no flash pays for its texture. */
 const BUCKETS = [...new Set(Array.from({ length: 160 }, (_, r) => bucket(r + 1)))];
 /** How often transient lights alone redraw the sheet (≈30 a second): a flash fading needs no more. */
@@ -133,12 +129,14 @@ export class Darkness {
   /** The light the player carries: the only one that follows them, and the last one they lose. */
   private readonly carried: LightSprites;
   private readonly unsubscribeResize: () => void;
-  /** Lamps that flicker: while one does (or the player carries a light) every frame differs. */
+  /** Lamps that flicker: while one does every frame differs (the carried light holds still, `stickyBucket`). */
   private flickering = 0;
   /** Something other than the camera changed what the night looks like (a lamp added, dimmed, the window resized). */
   private dirty = true;
   /** What the last drawn frame was drawn from: the texture, the camera's texel and the shade. */
   private drawn = '';
+  /** The carried light's bucket last drawn (`stickyBucket`), 0 while it is out. */
+  private carriedBucket = 0;
   /** The carried light's place at the last redraw (it follows the body). */
   private carriedAt = '';
   /** When the sheet was last redrawn. */
@@ -255,7 +253,7 @@ export class Darkness {
       key !== this.drawn ||
       carriedAt !== this.carriedAt ||
       (lights.length > 0 && since >= FLASH_MS) ||
-      ((carriedRadius > 0 || this.flickering > 0) && since >= FLICKER_MS);
+      (this.flickering > 0 && since >= FLICKER_MS);
     if (!due) return;
     // a phone holds every redraw `PHONE_MS` apart (redrawing the night at 60 a second runs it hot); the night stays
     // pinned to the world meanwhile, and only a camera about to show the texture's edge cannot wait
@@ -277,8 +275,14 @@ export class Darkness {
     // the colour a light lays shows as much as the night is deep: a dungeon's lamps colour their stone fully, a dusk
     // street's only a little
     const wash = WASH_ALPHA * Math.min(1, this.alpha * 1.4);
-    if (carriedRadius <= 0) this.hide(this.carried);
-    else this.place(this.carried, px, py - 6, carriedRadius * (1 + Math.sin(now / 260) * 0.03 + Math.sin(now / 90) * 0.015), wash * 0.5);
+    // the carried light holds its size: a few per cent of sway can only show as a jump of a whole bucket, back and forth
+    if (carriedRadius <= 0) {
+      this.carriedBucket = 0;
+      this.hide(this.carried);
+    } else {
+      this.carriedBucket = stickyBucket(this.carriedBucket, carriedRadius);
+      this.place(this.carried, px, py - 6, this.carriedBucket, wash * 0.5);
+    }
     const lampWash = this.dimLamps ? wash * LAMP_DIM : wash;
     for (const l of this.lamps) {
       // torchlight is never still: each one wobbles on its own phase so a corridor of them does not pulse as one,
